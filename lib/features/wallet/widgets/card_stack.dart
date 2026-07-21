@@ -9,7 +9,6 @@ import 'loyalty_card_widget.dart';
 class LoyaltyCardStack extends StatelessWidget {
   final List<LoyaltyCard> cards;
   final ValueChanged<LoyaltyCard> onCardTap;
-  final VoidCallback onJoinTap;
   final double cardHeight;
   final double peekOffset;
 
@@ -17,14 +16,13 @@ class LoyaltyCardStack extends StatelessWidget {
     super.key,
     required this.cards,
     required this.onCardTap,
-    required this.onJoinTap,
     this.cardHeight = 190,
     this.peekOffset = 64,
   });
 
   @override
   Widget build(BuildContext context) {
-    final total = cards.length + 1; // +1 pour la carte fantôme "rejoindre"
+    final total = cards.length;
     final stackHeight = cardHeight + peekOffset * (total - 1);
 
     return SizedBox(
@@ -48,12 +46,6 @@ class LoyaltyCardStack extends StatelessWidget {
                 ),
               ),
             ),
-          Positioned(
-            top: peekOffset * cards.length,
-            left: 0,
-            right: 0,
-            child: JoinRestaurantGhostCard(onTap: onJoinTap, height: cardHeight),
-          ),
         ],
       ),
     );

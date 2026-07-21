@@ -64,7 +64,6 @@ class WalletDashboardScreen extends ConsumerWidget {
                     : LoyaltyCardStack(
                         cards: cards,
                         onCardTap: (card) => context.push('/card/${card.id}'),
-                        onJoinTap: () => context.push('/onboarding/scan'),
                       ),
               ),
             ),

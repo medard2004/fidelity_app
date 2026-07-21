@@ -108,38 +108,3 @@ class _MechanicBadge extends StatelessWidget {
   }
 }
 
-/// Dernière "carte" de la pile : discrète, invitation à rejoindre.
-class JoinRestaurantGhostCard extends StatelessWidget {
-  final VoidCallback onTap;
-  final double height;
-  const JoinRestaurantGhostCard({super.key, required this.onTap, this.height = 190});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(
-            color: AppColors.laitonLisere(opacity: 0.4),
-            width: 1,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.add, color: AppColors.laitonBrosse),
-              const SizedBox(height: 6),
-              Text('Rejoindre un restaurant', style: AppTextStyles.bodyMedium(
-                  color: AppColors.encre.withOpacity(0.6))),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

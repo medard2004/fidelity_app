@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/otp_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/qr_scan_screen.dart';
 import '../../features/onboarding/join_restaurant_screen.dart';
 import '../../features/wallet/wallet_dashboard_screen.dart';
@@ -14,8 +15,12 @@ import '../../features/notifications/notifications_screen.dart';
 import '../../widgets/shared/app_shell.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/signup',
+  initialLocation: '/onboarding',
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(

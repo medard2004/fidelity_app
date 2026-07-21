@@ -9,7 +9,7 @@ class NavItem {
 }
 
 const _navItems = [
-  NavItem(Icons.style_outlined, 'Wallet'),
+  NavItem(Icons.wallet_outlined, 'Wallet'),
   NavItem(Icons.card_giftcard_outlined, 'Récompenses'),
   NavItem(Icons.diamond_outlined, 'Parrainage'),
   NavItem(Icons.person_outline, 'Profil'),
@@ -33,7 +33,8 @@ class AppBottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.porcelaine,
         border: Border(
-          top: BorderSide(color: AppColors.laitonLisere(opacity: 0.3), width: 1),
+          top:
+              BorderSide(color: AppColors.laitonLisere(opacity: 0.3), width: 1),
         ),
       ),
       padding: EdgeInsets.only(
@@ -45,7 +46,8 @@ class AppBottomNavBar extends StatelessWidget {
         children: List.generate(_navItems.length, (i) {
           final item = _navItems[i];
           final active = i == currentIndex;
-          final color = active ? AppColors.encre : AppColors.encre.withOpacity(0.4);
+          final color =
+              active ? AppColors.encre : AppColors.encre.withOpacity(0.4);
           return GestureDetector(
             onTap: () => onTap(i),
             behavior: HitTestBehavior.opaque,
@@ -56,7 +58,8 @@ class AppBottomNavBar extends StatelessWidget {
                 children: [
                   Icon(item.icon, size: 23, color: color),
                   const SizedBox(height: 4),
-                  Text(item.label, style: AppTextStyles.bodySmall(color: color)),
+                  Text(item.label,
+                      style: AppTextStyles.bodySmall(color: color)),
                   const SizedBox(height: 4),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -64,7 +67,8 @@ class AppBottomNavBar extends StatelessWidget {
                     height: 4,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: active ? AppColors.laitonBrosse : Colors.transparent,
+                      color:
+                          active ? AppColors.laitonBrosse : Colors.transparent,
                     ),
                   ),
                 ],
