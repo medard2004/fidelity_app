@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../core/theme/app_radius.dart';
 import '../../../models/loyalty_card.dart';
 import '../../../widgets/shared/grain_overlay.dart';
 
-/// Une carte du wallet, traitée comme une plaque gravée : fond
-/// porcelaine ou doublure teintée, liseré laiton, ombre chaude, grain.
+/// Une carte du wallet, traitée comme une plaque gravée selon la maquette 1.
 class LoyaltyCardWidget extends StatelessWidget {
   final LoyaltyCard card;
   final double height;
@@ -18,60 +16,74 @@ class LoyaltyCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = _isDark ? AppColors.porcelaine : AppColors.encre;
+    final subtextColor = textColor.withOpacity(0.75);
 
     return Container(
       height: height,
       decoration: BoxDecoration(
         color: card.liningColor,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.laitonLisere(opacity: 0.5), width: 1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _isDark
+              ? AppColors.laitonLisere(opacity: 0.3)
+              : AppColors.encre.withOpacity(0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ombreChaude(opacity: 0.16),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: AppColors.ombreChaude(opacity: 0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Stack(
         children: [
-          GrainOverlay(borderRadius: BorderRadius.circular(AppRadius.card)),
+          GrainOverlay(borderRadius: BorderRadius.circular(20)),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Ligne supérieure : Catégorie à gauche, Code ID à droite
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        card.restaurantName,
-                        style: AppTextStyles.displayMedium(color: textColor),
+                        card.restaurantCategory.toUpperCase(),
+                        style: AppTextStyles.monoSmall(color: subtextColor)
+                            .copyWith(letterSpacing: 1.8),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    _MechanicBadge(card: card, textColor: textColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      card.fallbackId,
+                      style: AppTextStyles.monoSmall(color: subtextColor)
+                          .copyWith(letterSpacing: 1.5),
+                    ),
                   ],
                 ),
-                Text(
-                  card.restaurantCategory,
-                  style: AppTextStyles.bodySmall(color: textColor).copyWith(
-                    color: textColor.withOpacity(0.65),
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(card.quickStat, style: AppTextStyles.monoMedium(color: textColor)),
-                    Icon(Icons.qr_code_2,
-                        size: 20, color: AppColors.laitonBrosse.withOpacity(0.9)),
-                  ],
-                ),
+
+                // Titre principal du restaurant
+                if (card.restaurantName != 'Bistrot de Quartier')
+                  Text(
+                    card.restaurantName,
+                    style: AppTextStyles.displayLarge(color: textColor).copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                else
+                  const SizedBox.shrink(),
+
+                // Bloc inférieur selon la mécanique (Statut / Cashback / Points)
+                _buildCardBottom(textColor),
               ],
             ),
           ),
@@ -79,32 +91,59 @@ class LoyaltyCardWidget extends StatelessWidget {
       ),
     );
   }
-}
 
-class _MechanicBadge extends StatelessWidget {
-  final LoyaltyCard card;
-  final Color textColor;
-  const _MechanicBadge({required this.card, required this.textColor});
+  Widget _buildCardBottom(Color textColor) {
+    if (card.mechanic == LoyaltyMechanic.vip) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'STATUT',
+            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: 48,
+            height: 24,
+            decoration: BoxDecoration(
+              color: AppColors.laitonBrosse,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ],
+      );
+    } else if (card.mechanic == LoyaltyMechanic.cashback) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'CASHBACK',
+            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+          ),
+          Text(
+            '${card.cashbackBalanceFcfa} FCFA',
+            style: AppTextStyles.monoMedium(color: textColor),
+          ),
+        ],
+      );
+    } else if (card.mechanic == LoyaltyMechanic.points) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'SOLDE',
+            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+          ),
+          Text(
+            '${card.pointsBalance} PTS',
+            style: AppTextStyles.monoMedium(color: textColor),
+          ),
+        ],
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    if (card.mechanic != LoyaltyMechanic.vip) return const SizedBox.shrink();
-    final isPlatinum = card.vipTier == VipTier.platinum;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: isPlatinum ? AppColors.bordeauxProfond : AppColors.laitonBrosse,
-        ),
-      ),
-      child: Text(
-        card.vipTier.label.toUpperCase(),
-        style: AppTextStyles.monoSmall(
-          color: isPlatinum ? AppColors.bordeauxProfond : AppColors.laitonBrosse,
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }
+
 

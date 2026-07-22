@@ -11,7 +11,7 @@ class NavItem {
 const _navItems = [
   NavItem(Icons.wallet_outlined, 'Wallet'),
   NavItem(Icons.card_giftcard_outlined, 'Récompenses'),
-  NavItem(Icons.diamond_outlined, 'Parrainage'),
+  NavItem(Icons.people_outline, 'Parrainage'),
   NavItem(Icons.person_outline, 'Profil'),
 ];
 
@@ -48,18 +48,25 @@ class AppBottomNavBar extends StatelessWidget {
           final active = i == currentIndex;
           final color =
               active ? AppColors.encre : AppColors.encre.withOpacity(0.4);
-          return GestureDetector(
-            onTap: () => onTap(i),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onTap(i),
+              behavior: HitTestBehavior.opaque,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(item.icon, size: 23, color: color),
                   const SizedBox(height: 4),
-                  Text(item.label,
-                      style: AppTextStyles.bodySmall(color: color)),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        item.label,
+                        style: AppTextStyles.bodySmall(color: color),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 200),

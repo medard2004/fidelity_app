@@ -12,14 +12,15 @@ class GrainOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.zero,
-        child: Opacity(
-          opacity: opacity,
-          child: CustomPaint(
-            painter: _GrainPainter(),
-            size: Size.infinite,
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: ClipRRect(
+          borderRadius: borderRadius ?? BorderRadius.zero,
+          child: Opacity(
+            opacity: opacity,
+            child: CustomPaint(
+              painter: _GrainPainter(),
+            ),
           ),
         ),
       ),

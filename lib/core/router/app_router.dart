@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/signup_screen.dart';
-import '../../features/auth/login_screen.dart';
+import '../../features/auth/auth_screen.dart';
 import '../../features/auth/otp_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/qr_scan_screen.dart';
@@ -21,8 +20,9 @@ final appRouter = GoRouter(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
     ),
-    GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
+    GoRoute(path: '/signup', builder: (context, state) => const AuthScreen()),
+    GoRoute(path: '/login', builder: (context, state) => const AuthScreen()),
     GoRoute(
       path: '/otp',
       builder: (context, state) => OtpScreen(
@@ -89,7 +89,7 @@ final appRouter = GoRouter(
                   opacity: t.clamp(0, 1),
                   child: Transform(
                     alignment: Alignment.center,
-                    transform: perspective..scale(0.92 + 0.08 * t),
+                    transform: perspective..scale(0.92 + 0.08 * t, 0.92 + 0.08 * t, 1.0),
                     child: child,
                   ),
                 );

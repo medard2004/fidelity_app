@@ -1,48 +1,69 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:carte_app/main.dart';
+import 'package:carte_app/features/wallet/widgets/loyalty_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  testWidgets('Onboarding flow smoke test', (WidgetTester tester) async {
+  testWidgets('Full flow to card detail screen', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const CarteApp());
+    await tester.pumpWidget(const ProviderScope(child: CarteApp()));
     await tester.pumpAndSettle();
 
     // Verify that onboarding starts with the first slide.
     expect(find.text("L'Écrin de vos Cartes"), findsOneWidget);
-    expect(find.text("01 / 03"), findsOneWidget);
 
-    // Tap the "Continuer" button.
-    final nextButton = find.text("Continuer");
-    expect(nextButton, findsOneWidget);
-    await tester.tap(nextButton);
+    // Tap "Passer" to go straight to Auth Screen
+    final skipButton = find.text("Passer");
+    expect(skipButton, findsOneWidget);
+    await tester.tap(skipButton);
     await tester.pumpAndSettle();
 
-    // Verify we are on the second slide.
-    expect(find.text("Privilèges Uniques"), findsOneWidget);
-    expect(find.text("02 / 03"), findsOneWidget);
+    // Verify we navigated to the Auth screen.
+    expect(find.text("Numéro de téléphone"), findsOneWidget);
 
-    // Tap the "Continuer" button again.
-    await tester.tap(find.text("Continuer"));
+    // Tap "Continuer" on Auth Screen
+    final continueBtn = find.text("Continuer");
+    expect(continueBtn, findsOneWidget);
+    await tester.tap(continueBtn);
     await tester.pumpAndSettle();
 
-    // Verify we are on the third slide.
-    expect(find.text("Partager l'Élégance"), findsOneWidget);
-    expect(find.text("03 / 03"), findsOneWidget);
-    expect(find.text("Commencer l'expérience"), findsOneWidget);
+    // Verify we navigated to the OTP Screen
+    expect(find.text("Vérification"), findsOneWidget);
 
-    // Tap the "Commencer l'expérience" button.
-    await tester.tap(find.text("Commencer l'expérience"));
+    // Type OTP code
+    final textFields = find.byType(TextField);
+    expect(textFields, findsNWidgets(6));
+    for (int i = 0; i < 6; i++) {
+      await tester.enterText(textFields.at(i), '1');
+      await tester.pumpAndSettle();
+    }
+
+    // After typing 6 digits, we should be on QrScanScreen.
+    // QrScanScreen has a timer of 2 seconds to redirect to JoinRestaurantScreen.
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
+    // Now we should be on JoinRestaurantScreen.
+    expect(find.text("Rejoindre Chez Awa"), findsOneWidget);
+
+    // Tap "Rejoindre le programme"
+    final joinBtn = find.text("Rejoindre le programme");
+    expect(joinBtn, findsOneWidget);
+    await tester.tap(joinBtn);
+    
+    // It has a delay of 900ms then redirects to /wallet
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
+    // Now we are on the Wallet Dashboard Screen
+    expect(find.text("BONSOIR"), findsOneWidget);
+
+    // Let's tap the first card in the stack
+    final cardWidget = find.byType(LoyaltyCardWidget);
+    expect(cardWidget, findsAtLeastNWidgets(1));
+    await tester.tap(cardWidget.first, warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    // Verify we navigated to the signup page.
-    expect(find.text("Prénom"), findsOneWidget);
+    // Verify we are on CardDetailScreen
+    expect(find.text("VOTRE CARTE"), findsOneWidget);
   });
 }
