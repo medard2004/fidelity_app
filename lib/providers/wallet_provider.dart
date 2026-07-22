@@ -18,6 +18,16 @@ class WalletNotifier extends StateNotifier<List<LoyaltyCard>> {
     state = [card, ...state];
   }
 
+  void reorder(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.length) return;
+    if (newIndex < 0 || newIndex >= state.length) return;
+    if (oldIndex == newIndex) return;
+    final list = List<LoyaltyCard>.from(state);
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    state = list;
+  }
+
   void addStamp(String cardId) {
     state = [
       for (final c in state)
