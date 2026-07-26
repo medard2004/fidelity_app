@@ -13,51 +13,68 @@ void main() {
     // Verify that onboarding starts with the first slide.
     expect(find.text("L'Écrin de vos Cartes"), findsOneWidget);
 
-    // Tap "Passer" to go straight to Auth Screen
+    // Tap "Passer" to go to Signup Screen
     final skipButton = find.text("Passer");
     expect(skipButton, findsOneWidget);
     await tester.tap(skipButton);
     await tester.pumpAndSettle();
 
-    // Verify we navigated to the Auth screen.
-    expect(find.text("Numéro de téléphone"), findsOneWidget);
+    // Verify we navigated to the Signup screen.
+    expect(find.text("Créer un compte"), findsOneWidget);
 
-    // Tap "Continuer" on Auth Screen
-    final continueBtn = find.text("Continuer");
-    expect(continueBtn, findsOneWidget);
-    await tester.tap(continueBtn);
+    // Fill in fullName and phone
+    final textFields = find.byType(TextFormField);
+    expect(textFields, findsNWidgets(2));
+
+    await tester.enterText(textFields.at(0), 'Amina Kokou');
+    await tester.enterText(textFields.at(1), '+228 90 12 34 56');
+    await tester.pumpAndSettle();
+
+    // Tap Date Picker
+    final datePickerBtn = find.text("Sélectionner le jour, le mois et l'année");
+    expect(datePickerBtn, findsOneWidget);
+    await tester.tap(datePickerBtn);
+    await tester.pumpAndSettle();
+
+    // Tap OK on the Date Picker dialog
+    final okBtn = find.text('OK');
+    if (okBtn.evaluate().isNotEmpty) {
+      await tester.tap(okBtn);
+      await tester.pumpAndSettle();
+    }
+
+    // Tap "S'inscrire et vérifier mon numéro"
+    final submitBtn = find.text("S'inscrire et vérifier mon numéro");
+    expect(submitBtn, findsOneWidget);
+    await tester.tap(submitBtn);
     await tester.pumpAndSettle();
 
     // Verify we navigated to the OTP Screen
     expect(find.text("Vérification"), findsOneWidget);
 
-    // Type OTP code
-    final textFields = find.byType(TextField);
-    expect(textFields, findsNWidgets(6));
+    // Type 6-digit OTP code
+    final otpFields = find.byType(TextField);
+    expect(otpFields, findsNWidgets(6));
     for (int i = 0; i < 6; i++) {
-      await tester.enterText(textFields.at(i), '1');
+      await tester.enterText(otpFields.at(i), '1');
       await tester.pumpAndSettle();
     }
 
-    // After typing 6 digits, we should be on QrScanScreen.
-    // QrScanScreen has a timer of 2 seconds to redirect to JoinRestaurantScreen.
-    await tester.pumpAndSettle(const Duration(seconds: 3));
+    // After OTP, we navigate to CompleteProfileScreen
+    await tester.pumpAndSettle();
+    expect(find.text("Complétez votre profil"), findsOneWidget);
 
-    // Now we should be on JoinRestaurantScreen.
-    expect(find.text("Rejoindre Chez Awa"), findsOneWidget);
-
-    // Tap "Rejoindre le programme"
-    final joinBtn = find.text("Rejoindre le programme");
-    expect(joinBtn, findsOneWidget);
-    await tester.tap(joinBtn);
-    
-    // It has a delay of 900ms then redirects to /wallet
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    // Tap "Accéder à l'application"
+    final accessBtn = find.text("Accéder à l'application");
+    expect(accessBtn, findsOneWidget);
+    await tester.ensureVisible(accessBtn);
+    await tester.tap(accessBtn);
+    await tester.pumpAndSettle();
 
     // Now we are on the Wallet Dashboard Screen
     expect(find.text("BONSOIR"), findsOneWidget);
 
-    // Let's tap the first card in the stack
+    // Tap the first card in the stack
     final cardWidget = find.byType(LoyaltyCardWidget);
     expect(cardWidget, findsAtLeastNWidgets(1));
     await tester.tap(cardWidget.first, warnIfMissed: false);

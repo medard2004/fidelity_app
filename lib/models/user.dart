@@ -1,25 +1,44 @@
+/// Méthode d'authentification utilisée lors de l'inscription.
+enum AuthProvider { phone, google, apple }
+
 class AppUser {
   final String id;
-  final String firstName;
+  final String fullName;
   final String phoneNumber;
+  final int? age;
   final DateTime? birthDate;
   final String? email;
   final String? photoUrl;
   final String referralCode;
   final int friendsInvited;
   final int friendsJoined;
+  final String? city;
+  final String? neighborhood;
+  final AuthProvider authProvider;
+  final bool profileCompleted;
 
   const AppUser({
     required this.id,
-    required this.firstName,
+    required this.fullName,
     required this.phoneNumber,
+    this.age,
     this.birthDate,
     this.email,
     this.photoUrl,
     required this.referralCode,
     this.friendsInvited = 0,
     this.friendsJoined = 0,
+    this.city,
+    this.neighborhood,
+    this.authProvider = AuthProvider.phone,
+    this.profileCompleted = false,
   });
+
+  /// Rétro-compatibilité : expose `firstName` comme premier prénom (avant le premier espace).
+  String get firstName {
+    final parts = fullName.trim().split(' ');
+    return parts.isNotEmpty ? parts.first : fullName;
+  }
 
   /// Numéro masqué partiellement pour l'écran Profil, ex. "+228 •• •• 45 12".
   String get maskedPhoneNumber {
@@ -35,21 +54,40 @@ class AppUser {
     return birthDate!.month == DateTime.now().month;
   }
 
+  /// Vrai si cet utilisateur s'est connecté via un fournisseur social.
+  bool get isSocialUser =>
+      authProvider == AuthProvider.google || authProvider == AuthProvider.apple;
+
   AppUser copyWith({
+    String? fullName,
     String? firstName,
+    String? phoneNumber,
+    int? age,
+    DateTime? birthDate,
     String? email,
     String? photoUrl,
+    String? city,
+    String? neighborhood,
+    AuthProvider? authProvider,
+    bool? profileCompleted,
   }) {
     return AppUser(
       id: id,
-      firstName: firstName ?? this.firstName,
-      phoneNumber: phoneNumber,
-      birthDate: birthDate,
+      // Si `fullName` est fourni, on le prend directement.
+      // Si seulement `firstName` est fourni (compatibilité), on substitue.
+      fullName: fullName ?? (firstName != null ? '$firstName ${this.fullName.split(' ').skip(1).join(' ')}'.trim() : this.fullName),
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      age: age ?? this.age,
+      birthDate: birthDate ?? this.birthDate,
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
       referralCode: referralCode,
       friendsInvited: friendsInvited,
       friendsJoined: friendsJoined,
+      city: city ?? this.city,
+      neighborhood: neighborhood ?? this.neighborhood,
+      authProvider: authProvider ?? this.authProvider,
+      profileCompleted: profileCompleted ?? this.profileCompleted,
     );
   }
 }

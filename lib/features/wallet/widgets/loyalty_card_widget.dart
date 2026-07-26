@@ -44,7 +44,6 @@ class LoyaltyCardWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Ligne supérieure : Catégorie à gauche, Code ID à droite
                 Row(
@@ -67,6 +66,7 @@ class LoyaltyCardWidget extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
 
                 // Titre principal du restaurant
                 if (card.restaurantName != 'Bistrot de Quartier')
@@ -81,6 +81,8 @@ class LoyaltyCardWidget extends StatelessWidget {
                   )
                 else
                   const SizedBox.shrink(),
+
+                const Spacer(flex: 5),
 
                 // Bloc inférieur selon la mécanique (Statut / Cashback / Points)
                 _buildCardBottom(textColor),

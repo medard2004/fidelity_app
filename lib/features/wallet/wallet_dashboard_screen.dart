@@ -74,6 +74,13 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
         color: AppColors.saugePale,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.laitonLisere(opacity: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.encre.withAlpha(8),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: TextField(
         controller: _searchController,
@@ -85,6 +92,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
           hintText: 'Rechercher une carte ou une enseigne',
           hintStyle: AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(140)),
           prefixIcon: Icon(Icons.search_rounded, color: AppColors.encre.withAlpha(191)),
+          prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           suffixIcon: _searchQuery.isEmpty
               ? null
               : IconButton(
@@ -137,13 +146,24 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                             onTap: _toggleSearch,
                             child: Container(
                               padding: const EdgeInsets.all(10),
-                              decoration: const BoxDecoration(
-                                color: AppColors.saugePale,
+                              decoration: BoxDecoration(
+                                color: AppColors.porcelaine,
                                 shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.laitonLisere(opacity: 0.18),
+                                  width: 1.1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.encre.withAlpha(8),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
                               ),
                               child: Icon(
                                 _isSearching ? Icons.close_rounded : Icons.search_rounded,
-                                size: 22,
+                                size: 20,
                                 color: AppColors.encre,
                               ),
                             ),
@@ -156,9 +176,20 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.saugePale,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.porcelaine,
                                     shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.laitonLisere(opacity: 0.18),
+                                      width: 1.1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.encre.withAlpha(8),
+                                        blurRadius: 18,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
                                   ),
                                   child: const Icon(Icons.notifications_none_rounded,
                                       size: 24, color: AppColors.encre),

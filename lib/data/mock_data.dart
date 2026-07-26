@@ -10,14 +10,19 @@ class MockData {
 
   static AppUser get user => AppUser(
         id: 'u1',
-        firstName: 'Amina',
+        fullName: 'Amina Kokou',
         phoneNumber: '+228 90 12 34 56',
         birthDate: DateTime(1996, 4, 18),
         email: 'amina@example.com',
         referralCode: 'AMINA-2839',
         friendsInvited: 3,
         friendsJoined: 1,
+        city: 'Lomé',
+        neighborhood: 'Bè',
+        authProvider: AuthProvider.phone,
+        profileCompleted: true,
       );
+
 
   static List<LoyaltyCard> get cards => [
         const LoyaltyCard(

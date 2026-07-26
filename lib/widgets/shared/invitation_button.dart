@@ -9,6 +9,7 @@ class InvitationButton extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
   final IconData? icon;
+  final Widget? leading;
   final bool filled; // vert bouteille plein — réservé au CTA principal
   final bool fullWidth;
 
@@ -17,6 +18,7 @@ class InvitationButton extends StatefulWidget {
     required this.label,
     required this.onTap,
     this.icon,
+    this.leading,
     this.filled = false,
     this.fullWidth = true,
   });
@@ -56,8 +58,8 @@ class _InvitationButtonState extends State<InvitationButton> {
             mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.icon != null) ...[
-                Icon(widget.icon, size: 17, color: fg),
+              if (widget.leading != null || widget.icon != null) ...[
+                widget.leading ?? Icon(widget.icon, size: 17, color: fg),
                 const SizedBox(width: 8),
               ],
               Text(widget.label, style: AppTextStyles.label(color: fg)),
