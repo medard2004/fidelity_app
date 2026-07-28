@@ -49,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOutCubic,
       );
     } else {
-      context.go('/signup');
+      context.go('/auth');
     }
   }
 
@@ -80,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => context.go('/signup'),
+                    onPressed: () => context.go('/auth'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.encre.withOpacity(0.6),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

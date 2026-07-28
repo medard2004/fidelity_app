@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
@@ -57,105 +58,118 @@ class _CompleteSocialProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = GoogleFonts.bodoniModa(
+      fontSize: 25,
+      fontWeight: FontWeight.w600,
+      color: AppColors.encre,
+      height: 1.1,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.porcelaine,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-
-                // ── En-tête (22px) ─────────────────────────────────────────
-                Text('Compléter le profil', style: AppTextStyles.displayMedium()),
-
-                const SizedBox(height: 20),
-
-                // ── 1. Nom complet ──────────────────────────────────────────
-                _Label('Nom complet'),
-                const SizedBox(height: 6),
-                _Field(
-                  controller: _fullNameController,
-                  hintText: 'Prénom Nom',
-                  keyboardType: TextInputType.name,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Veuillez saisir votre nom complet'
-                      : null,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32,
                 ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── En-tête (25px) ───────────────────────────────────
+                      Text('Compléter le profil', style: titleStyle),
 
-                const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
-                // ── 2. Numéro de téléphone avec indicateur pays ─────────────
-                _Label('Numéro de téléphone'),
-                const SizedBox(height: 6),
-                PhoneInputWithCountryPicker(
-                  key: _phoneInputKey,
-                  controller: _phoneController,
-                  validator: (v) => (v == null || v.trim().isEmpty)
-                      ? 'Veuillez saisir votre numéro'
-                      : null,
-                ),
-
-                const SizedBox(height: 16),
-
-                // ── 3. Date de naissance / anniversaire ────────────────────
-                _Label('Date de naissance'),
-                const SizedBox(height: 6),
-                _DatePickerField(
-                  value: _birthDate,
-                  onChanged: (date) => setState(() => _birthDate = date),
-                  validator: (_) => _birthDate == null
-                      ? 'Veuillez sélectionner votre date de naissance'
-                      : null,
-                ),
-
-                const SizedBox(height: 16),
-
-                // ── 4. Email ────────────────────────────────────────────────
-                Row(
-                  children: [
-                    _Label('Email'),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.saugePale,
-                        borderRadius: BorderRadius.circular(20),
+                      // ── 1. Nom complet ────────────────────────────────────
+                      _Label('Nom complet'),
+                      const SizedBox(height: 6),
+                      _Field(
+                        controller: _fullNameController,
+                        hintText: 'Prénom Nom',
+                        keyboardType: TextInputType.name,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Veuillez saisir votre nom complet'
+                            : null,
                       ),
-                      child: Text(
-                        'Optionnel',
-                        style: AppTextStyles.monoSmall().copyWith(
-                          letterSpacing: 0.8,
-                          color: AppColors.encre.withValues(alpha: 0.5),
-                        ),
+
+                      const SizedBox(height: 16),
+
+                      // ── 2. Numéro de téléphone avec indicateur pays ───────
+                      _Label('Numéro de téléphone'),
+                      const SizedBox(height: 6),
+                      PhoneInputWithCountryPicker(
+                        key: _phoneInputKey,
+                        controller: _phoneController,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Veuillez saisir votre numéro'
+                            : null,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                _Field(
-                  controller: _emailController,
-                  hintText: 'votre@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                ),
 
-                const SizedBox(height: 28),
+                      const SizedBox(height: 16),
 
-                // ── CTA ────────────────────────────────────────────────────
-                InvitationButton(
-                  label: 'Accéder à l\'application',
-                  filled: true,
-                  onTap: _submit,
+                      // ── 3. Date de naissance / anniversaire ──────────────
+                      _Label('Date de naissance'),
+                      const SizedBox(height: 6),
+                      _DatePickerField(
+                        value: _birthDate,
+                        onChanged: (date) => setState(() => _birthDate = date),
+                        validator: (_) => _birthDate == null
+                            ? 'Veuillez sélectionner votre date de naissance'
+                            : null,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ── 4. Email ──────────────────────────────────────────
+                      Row(
+                        children: [
+                          _Label('Email'),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.saugePale,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Optionnel',
+                              style: AppTextStyles.monoSmall().copyWith(
+                                letterSpacing: 0.8,
+                                color: AppColors.encre.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      _Field(
+                        controller: _emailController,
+                        hintText: 'votre@email.com',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // ── CTA ──────────────────────────────────────────────
+                      InvitationButton(
+                        label: 'Accéder à l\'application',
+                        filled: true,
+                        onTap: _submit,
+                      ),
+                    ],
+                  ),
                 ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
