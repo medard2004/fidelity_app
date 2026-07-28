@@ -22,46 +22,20 @@ void main() {
     // Verify we navigated to the Signup screen.
     expect(find.text("Créer un compte"), findsOneWidget);
 
-    // Fill in fullName and phone
-    final textFields = find.byType(TextFormField);
-    expect(textFields, findsNWidgets(2));
+    // Fill in phone number
+    final phoneField = find.byType(TextFormField);
+    expect(phoneField, findsOneWidget);
 
-    await tester.enterText(textFields.at(0), 'Amina Kokou');
-    await tester.enterText(textFields.at(1), '+228 90 12 34 56');
+    await tester.enterText(phoneField, '90 12 34 56');
     await tester.pumpAndSettle();
 
-    // Tap Date Picker
-    final datePickerBtn = find.text("Sélectionner le jour, le mois et l'année");
-    expect(datePickerBtn, findsOneWidget);
-    await tester.tap(datePickerBtn);
-    await tester.pumpAndSettle();
-
-    // Tap OK on the Date Picker dialog
-    final okBtn = find.text('OK');
-    if (okBtn.evaluate().isNotEmpty) {
-      await tester.tap(okBtn);
-      await tester.pumpAndSettle();
-    }
-
-    // Tap "S'inscrire et vérifier mon numéro"
-    final submitBtn = find.text("S'inscrire et vérifier mon numéro");
+    // Tap "S'inscrire" (Direct signup without OTP)
+    final submitBtn = find.text("S'inscrire");
     expect(submitBtn, findsOneWidget);
     await tester.tap(submitBtn);
     await tester.pumpAndSettle();
 
-    // Verify we navigated to the OTP Screen
-    expect(find.text("Vérification"), findsOneWidget);
-
-    // Type 6-digit OTP code
-    final otpFields = find.byType(TextField);
-    expect(otpFields, findsNWidgets(6));
-    for (int i = 0; i < 6; i++) {
-      await tester.enterText(otpFields.at(i), '1');
-      await tester.pumpAndSettle();
-    }
-
-    // After OTP, we navigate to CompleteProfileScreen
-    await tester.pumpAndSettle();
+    // Direct navigation to CompleteProfileScreen
     expect(find.text("Complétez votre profil"), findsOneWidget);
 
     // Tap "Accéder à l'application"

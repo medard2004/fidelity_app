@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/shared/invitation_button.dart';
+import '../../widgets/shared/phone_input_with_country_picker.dart';
 
 /// Écran de connexion : numéro de téléphone ou fournisseur social.
 class AuthScreen extends ConsumerStatefulWidget {
@@ -17,6 +18,7 @@ class AuthScreen extends ConsumerStatefulWidget {
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
+  final _phoneInputKey = GlobalKey<PhoneInputWithCountryPickerState>();
   final _phoneController = TextEditingController();
 
   @override
@@ -26,8 +28,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   void _continueWithPhone() {
-    final phone = _phoneController.text.trim();
-    context.push('/otp', extra: {'phone': phone, 'context': 'login'});
+    final raw = _phoneController.text.trim();
+    if (raw.isEmpty) return;
+    final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ?? raw;
+    ref.read(authProvider.notifier).completeLogin(phone: fullPhone);
+    context.go('/wallet');
   }
 
   void _continueWithGoogle() {
@@ -56,30 +61,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
 
-              // ── En-tête ────────────────────────────────────────────────────
-              Text('Carte', style: AppTextStyles.displayXL()),
+              // ── En-tête compact (22px) ─────────────────────────────────────
+              Text('Connexion', style: AppTextStyles.displayMedium()),
+
+              const SizedBox(height: 20),
+
+              // ── Champ téléphone avec indicateur pays ───────────────────────
+              Text('Numéro de téléphone', style: AppTextStyles.label()),
               const SizedBox(height: 8),
-              Text(
-                'Votre portefeuille de fidélité, réuni en un seul geste.',
-                style: AppTextStyles.bodyMedium(
-                  color: AppColors.encre.withOpacity(0.65),
-                ),
+              PhoneInputWithCountryPicker(
+                key: _phoneInputKey,
+                controller: _phoneController,
               ),
 
-              const SizedBox(height: 52),
-
-              // ── Champ téléphone ────────────────────────────────────────────
-              Text('Numéro de téléphone', style: AppTextStyles.label()),
-              const SizedBox(height: 10),
-              _PhoneField(controller: _phoneController),
-
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
 
               // ── CTA Connexion ──────────────────────────────────────────────
               InvitationButton(
@@ -88,20 +89,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 onTap: _continueWithPhone,
               ),
 
-              const SizedBox(height: 12),
-
-              // ── Bouton Créer un compte ─────────────────────────────────────
-              InvitationButton(
-                label: 'Créer un compte',
-                onTap: () => context.push('/signup'),
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // ── Séparateur ─────────────────────────────────────────────────
               _Divider(),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // ── Connexion sociale ──────────────────────────────────────────
               InvitationButton(
@@ -109,12 +102,39 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 leading: const _GoogleLogo(),
                 onTap: _continueWithGoogle,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               InvitationButton(
                 label: 'Continuer avec Apple',
                 icon: SimpleIcons.apple,
                 onTap: _continueWithApple,
               ),
+
+              const SizedBox(height: 24),
+
+              // ── Lien textuel Créer un compte ──────────────────────────────
+              Center(
+                child: GestureDetector(
+                  onTap: () => context.push('/signup'),
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'Pas encore membre ? ',
+                      style: AppTextStyles.bodyMedium(
+                        color: AppColors.encre.withValues(alpha: 0.55),
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'S\'inscrire',
+                          style: AppTextStyles.bodyMedium(
+                            color: AppColors.laitonBrosse,
+                          ).copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -126,42 +146,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Widgets locaux
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _PhoneField extends StatelessWidget {
-  final TextEditingController controller;
-  const _PhoneField({required this.controller});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.phone,
-      style: AppTextStyles.bodyLarge(),
-      decoration: InputDecoration(
-        hintText: '+228 90 12 34 56',
-        filled: true,
-        fillColor: AppColors.saugePale.withOpacity(0.4),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: AppColors.laitonBrosse,
-            width: 1.2,
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _GoogleLogo extends StatelessWidget {
   const _GoogleLogo();
@@ -181,17 +165,17 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Divider(color: AppColors.encre.withOpacity(0.15))),
+        Expanded(child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             'OU',
             style: AppTextStyles.monoSmall(
-              color: AppColors.encre.withOpacity(0.4),
+              color: AppColors.encre.withValues(alpha: 0.4),
             ),
           ),
         ),
-        Expanded(child: Divider(color: AppColors.encre.withOpacity(0.15))),
+        Expanded(child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
       ],
     );
   }

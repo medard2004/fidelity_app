@@ -5,10 +5,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/shared/invitation_button.dart';
-import '../../widgets/shared/otp_input_row.dart';
+import '../../widgets/shared/phone_input_with_country_picker.dart';
 
 /// Étape post-connexion sociale (Google/Apple).
-/// Collecte : Nom complet · Téléphone + OTP · Date de naissance · Ville · Quartier · Email.
+/// Collecte : Nom complet · Téléphone · Date de naissance · Email.
 class CompleteSocialProfileScreen extends ConsumerStatefulWidget {
   const CompleteSocialProfileScreen({super.key});
 
@@ -22,67 +22,30 @@ class _CompleteSocialProfileScreenState
   final _formKey = GlobalKey<FormState>();
 
   final _fullNameController = TextEditingController();
+  final _phoneInputKey = GlobalKey<PhoneInputWithCountryPickerState>();
   final _phoneController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _neighborhoodController = TextEditingController();
   final _emailController = TextEditingController();
 
   DateTime? _birthDate;
-  bool _phoneVerified = false;
-  bool _showOtpField = false;
 
   @override
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
-    _cityController.dispose();
-    _neighborhoodController.dispose();
     _emailController.dispose();
     super.dispose();
   }
 
-  void _requestOtp() {
-    if (_phoneController.text.trim().isEmpty) return;
-    setState(() => _showOtpField = true);
-  }
-
-  void _onOtpCompleted(String code) {
-    // En production : appel API pour vérifier le code.
-    setState(() {
-      _phoneVerified = true;
-      _showOtpField = false;
-    });
-
-    // Stocker dans le flow
-    ref.read(signupFlowProvider.notifier).setSocialDetails(
-          fullName: _fullNameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          birthDate: _birthDate,
-        );
-  }
-
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    if (!_phoneVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez vérifier votre numéro de téléphone.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+
+    final fullPhone =
+        _phoneInputKey.currentState?.fullPhoneNumber ?? _phoneController.text.trim();
 
     ref.read(authProvider.notifier).completeSocialProfile(
           fullName: _fullNameController.text.trim(),
-          phone: _phoneController.text.trim(),
+          phone: fullPhone,
           birthDate: _birthDate,
-          city: _cityController.text.trim().isNotEmpty
-              ? _cityController.text.trim()
-              : null,
-          neighborhood: _neighborhoodController.text.trim().isNotEmpty
-              ? _neighborhoodController.text.trim()
-              : null,
           email: _emailController.text.trim().isNotEmpty
               ? _emailController.text.trim()
               : null,
@@ -98,57 +61,22 @@ class _CompleteSocialProfileScreenState
       backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── En-tête ────────────────────────────────────────────────
-                Text('Dernière étape', style: AppTextStyles.displayXL()),
-                const SizedBox(height: 10),
-                Text(
-                  'Votre numéro et votre date de naissance sont indispensables pour bénéficier de vos programmes de fidélité.',
-                  style: AppTextStyles.bodyMedium(
-                    color: AppColors.encre.withOpacity(0.6),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // ── Banderole informationnelle ─────────────────────────────
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.laitonBrosse.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.laitonBrosse.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.star_border_rounded,
-                          size: 16, color: AppColors.laitonBrosse),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Requis pour accéder aux offres de fidélité et aux avantages d\'anniversaire.',
-                          style: AppTextStyles.bodySmall(
-                            color: AppColors.laitonBrosse,
-                          ).copyWith(color: AppColors.laitonBrosse),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // ── Nom complet ────────────────────────────────────────────
-                _Label('Nom complet'),
                 const SizedBox(height: 8),
+
+                // ── En-tête (22px) ─────────────────────────────────────────
+                Text('Compléter le profil', style: AppTextStyles.displayMedium()),
+
+                const SizedBox(height: 20),
+
+                // ── 1. Nom complet ──────────────────────────────────────────
+                _Label('Nom complet'),
+                const SizedBox(height: 6),
                 _Field(
                   controller: _fullNameController,
                   hintText: 'Prénom Nom',
@@ -158,84 +86,24 @@ class _CompleteSocialProfileScreenState
                       : null,
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // ── Numéro de téléphone + OTP ──────────────────────────────
+                // ── 2. Numéro de téléphone avec indicateur pays ─────────────
                 _Label('Numéro de téléphone'),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _Field(
-                        controller: _phoneController,
-                        hintText: '+228 90 12 34 56',
-                        keyboardType: TextInputType.phone,
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Veuillez saisir votre numéro'
-                            : null,
-                        suffix: _phoneVerified
-                            ? const Icon(Icons.check_circle,
-                                color: Colors.green, size: 18)
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    if (!_phoneVerified)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: GestureDetector(
-                          onTap: _requestOtp,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 16),
-                            decoration: BoxDecoration(
-                              color: AppColors.vertBouteille,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Vérifier',
-                              style: AppTextStyles.label(
-                                  color: AppColors.porcelaine),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                const SizedBox(height: 6),
+                PhoneInputWithCountryPicker(
+                  key: _phoneInputKey,
+                  controller: _phoneController,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Veuillez saisir votre numéro'
+                      : null,
                 ),
 
-                // ── Champ OTP inline ───────────────────────────────────────
-                if (_showOtpField) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.saugePale.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: AppColors.laitonLisere(opacity: 0.2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Code envoyé au ${_phoneController.text.trim()}',
-                          style: AppTextStyles.bodySmall(
-                            color: AppColors.encre.withOpacity(0.65),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        OtpInputRow(onCompleted: _onOtpCompleted),
-                      ],
-                    ),
-                  ),
-                ],
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
-
-                // ── Date de naissance ──────────────────────────────────────
+                // ── 3. Date de naissance / anniversaire ────────────────────
                 _Label('Date de naissance'),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _DatePickerField(
                   value: _birthDate,
                   onChanged: (date) => setState(() => _birthDate = date),
@@ -244,53 +112,9 @@ class _CompleteSocialProfileScreenState
                       : null,
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
 
-                // ── Séparateur ─────────────────────────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                        child: Divider(
-                            color: AppColors.encre.withOpacity(0.1))),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'INFOS COMPLÉMENTAIRES',
-                        style: AppTextStyles.monoSmall().copyWith(
-                          letterSpacing: 1.4,
-                          color: AppColors.encre.withOpacity(0.35),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                        child: Divider(
-                            color: AppColors.encre.withOpacity(0.1))),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Ville ──────────────────────────────────────────────────
-                _Label('Ville'),
-                const SizedBox(height: 8),
-                _Field(
-                  controller: _cityController,
-                  hintText: 'Ex. Lomé',
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Quartier ───────────────────────────────────────────────
-                _Label('Quartier'),
-                const SizedBox(height: 8),
-                _Field(
-                  controller: _neighborhoodController,
-                  hintText: 'Ex. Bè, Adidogomé…',
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Email ──────────────────────────────────────────────────
+                // ── 4. Email ────────────────────────────────────────────────
                 Row(
                   children: [
                     _Label('Email'),
@@ -306,20 +130,20 @@ class _CompleteSocialProfileScreenState
                         'Optionnel',
                         style: AppTextStyles.monoSmall().copyWith(
                           letterSpacing: 0.8,
-                          color: AppColors.encre.withOpacity(0.5),
+                          color: AppColors.encre.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _Field(
                   controller: _emailController,
                   hintText: 'votre@email.com',
                   keyboardType: TextInputType.emailAddress,
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 28),
 
                 // ── CTA ────────────────────────────────────────────────────
                 InvitationButton(
@@ -328,7 +152,7 @@ class _CompleteSocialProfileScreenState
                   onTap: _submit,
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -355,14 +179,12 @@ class _Field extends StatelessWidget {
   final String hintText;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
-  final Widget? suffix;
 
   const _Field({
     required this.controller,
     required this.hintText,
     this.keyboardType = TextInputType.text,
     this.validator,
-    this.suffix,
   });
 
   @override
@@ -370,18 +192,18 @@ class _Field extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      style: AppTextStyles.bodyLarge(),
+      style: AppTextStyles.bodyMedium(),
       validator: validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle:
-            AppTextStyles.bodyLarge(color: AppColors.encre.withOpacity(0.35)),
-        suffixIcon: suffix,
+        hintStyle: AppTextStyles.bodyMedium(
+          color: AppColors.encre.withValues(alpha: 0.35),
+        ),
         filled: true,
-        fillColor: AppColors.saugePale.withOpacity(0.4),
+        fillColor: AppColors.saugePale.withValues(alpha: 0.4),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
@@ -401,8 +223,7 @@ class _Field extends StatelessWidget {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: Colors.redAccent, width: 1.2),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
         ),
       ),
     );
@@ -456,10 +277,10 @@ class _DatePickerField extends StatelessWidget {
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.saugePale.withOpacity(0.4),
+                  color: AppColors.saugePale.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: state.hasError
@@ -476,9 +297,9 @@ class _DatePickerField extends StatelessWidget {
                             : '${value!.day.toString().padLeft(2, '0')}/'
                                 '${value!.month.toString().padLeft(2, '0')}/'
                                 '${value!.year}',
-                        style: AppTextStyles.bodyLarge(
+                        style: AppTextStyles.bodyMedium(
                           color: value == null
-                              ? AppColors.encre.withOpacity(0.35)
+                              ? AppColors.encre.withValues(alpha: 0.35)
                               : AppColors.encre,
                         ),
                       ),

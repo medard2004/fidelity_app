@@ -30,4 +30,31 @@ class Reward {
 
   bool get isExpiringSoon =>
       expiresAt != null && expiresAt!.difference(DateTime.now()).inHours < 48;
+
+  String get daysRemainingText {
+    if (expiresAt == null) return '';
+    final days = expiresAt!.difference(DateTime.now()).inDays;
+    return 'J-${days < 0 ? 0 : days}';
+  }
+
+  String get formattedUsedDate {
+    if (usedAt == null) return '';
+    const months = [
+      'JAN',
+      'FEV',
+      'MAR',
+      'AVR',
+      'MAI',
+      'JUI',
+      'JUI',
+      'AOU',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC'
+    ];
+    final day = usedAt!.day.toString().padLeft(2, '0');
+    final month = months[usedAt!.month - 1];
+    return '$day $month ${usedAt!.year}';
+  }
 }
