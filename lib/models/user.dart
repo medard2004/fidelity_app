@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Méthode d'authentification utilisée lors de l'inscription.
 enum AuthProvider { phone, google, apple }
 
@@ -7,6 +9,7 @@ class AppUser {
   final String phoneNumber;
   final int? age;
   final DateTime? birthDate;
+  final DateTime joinDate;
   final String? email;
   final String? photoUrl;
   final String referralCode;
@@ -23,6 +26,7 @@ class AppUser {
     required this.phoneNumber,
     this.age,
     this.birthDate,
+    required this.joinDate,
     this.email,
     this.photoUrl,
     required this.referralCode,
@@ -58,12 +62,19 @@ class AppUser {
   bool get isSocialUser =>
       authProvider == AuthProvider.google || authProvider == AuthProvider.apple;
 
+  /// Texte de membre depuis la date d'inscription.
+  String get memberSince {
+    final locale = 'fr_FR';
+    return 'Depuis ${DateFormat('MMMM yyyy', locale).format(joinDate)}';
+  }
+
   AppUser copyWith({
     String? fullName,
     String? firstName,
     String? phoneNumber,
     int? age,
     DateTime? birthDate,
+    DateTime? joinDate,
     String? email,
     String? photoUrl,
     String? city,
@@ -79,6 +90,7 @@ class AppUser {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       age: age ?? this.age,
       birthDate: birthDate ?? this.birthDate,
+      joinDate: joinDate ?? this.joinDate,
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
       referralCode: referralCode,

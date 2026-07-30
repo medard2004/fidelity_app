@@ -13,14 +13,14 @@ void main() {
     // Verify that onboarding starts with the first slide.
     expect(find.text("L'Écrin de vos Cartes"), findsOneWidget);
 
-    // Tap "Passer" to go to Signup Screen
+    // Tap "Passer" to go to Auth Screen (Connexion)
     final skipButton = find.text("Passer");
     expect(skipButton, findsOneWidget);
     await tester.tap(skipButton);
     await tester.pumpAndSettle();
 
-    // Verify we navigated to the Signup screen.
-    expect(find.text("Créer un compte"), findsOneWidget);
+    // Verify we navigated to the Connexion screen.
+    expect(find.text("Connexion"), findsOneWidget);
 
     // Fill in phone number
     final phoneField = find.byType(TextFormField);
@@ -29,20 +29,10 @@ void main() {
     await tester.enterText(phoneField, '90 12 34 56');
     await tester.pumpAndSettle();
 
-    // Tap "S'inscrire" (Direct signup without OTP)
-    final submitBtn = find.text("S'inscrire");
+    // Tap "Se connecter"
+    final submitBtn = find.text("Se connecter");
     expect(submitBtn, findsOneWidget);
     await tester.tap(submitBtn);
-    await tester.pumpAndSettle();
-
-    // Direct navigation to CompleteProfileScreen
-    expect(find.text("Complétez votre profil"), findsOneWidget);
-
-    // Tap "Accéder à l'application"
-    final accessBtn = find.text("Accéder à l'application");
-    expect(accessBtn, findsOneWidget);
-    await tester.ensureVisible(accessBtn);
-    await tester.tap(accessBtn);
     await tester.pumpAndSettle();
 
     // Now we are on the Wallet Dashboard Screen

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
 import '../models/loyalty_card.dart';
 import '../models/reward.dart';
 import '../models/app_notification.dart';
@@ -13,6 +12,7 @@ class MockData {
         fullName: 'Amina Kokou',
         phoneNumber: '+228 90 12 34 56',
         birthDate: DateTime(1996, 4, 18),
+        joinDate: DateTime(2024, 3, 1),
         email: 'amina@example.com',
         referralCode: 'AMINA-2839',
         friendsInvited: 3,

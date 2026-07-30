@@ -9,7 +9,7 @@ import '../../widgets/shared/invitation_button.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 
 /// Étape post-connexion sociale (Google/Apple).
-/// Collecte : Nom complet · Téléphone · Date de naissance · Email.
+/// Collecte : Nom complet · Téléphone · Date de naissance.
 class CompleteSocialProfileScreen extends ConsumerStatefulWidget {
   const CompleteSocialProfileScreen({super.key});
 
@@ -25,7 +25,6 @@ class _CompleteSocialProfileScreenState
   final _fullNameController = TextEditingController();
   final _phoneInputKey = GlobalKey<PhoneInputWithCountryPickerState>();
   final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
 
   DateTime? _birthDate;
 
@@ -33,7 +32,6 @@ class _CompleteSocialProfileScreenState
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -47,9 +45,6 @@ class _CompleteSocialProfileScreenState
           fullName: _fullNameController.text.trim(),
           phone: fullPhone,
           birthDate: _birthDate,
-          email: _emailController.text.trim().isNotEmpty
-              ? _emailController.text.trim()
-              : null,
         );
 
     ref.read(signupFlowProvider.notifier).reset();
@@ -123,37 +118,6 @@ class _CompleteSocialProfileScreenState
                         validator: (_) => _birthDate == null
                             ? 'Veuillez sélectionner votre date de naissance'
                             : null,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ── 4. Email ──────────────────────────────────────────
-                      Row(
-                        children: [
-                          _Label('Email'),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.saugePale,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Optionnel',
-                              style: AppTextStyles.monoSmall().copyWith(
-                                letterSpacing: 0.8,
-                                color: AppColors.encre.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      _Field(
-                        controller: _emailController,
-                        hintText: 'votre@email.com',
-                        keyboardType: TextInputType.emailAddress,
                       ),
 
                       const SizedBox(height: 28),

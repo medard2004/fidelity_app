@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/reward.dart';
 import '../../providers/app_providers.dart';
 
-/// Écran des Récompenses et Privilèges (Design conforme à la maquette)
+/// Écran des Récompenses et Privilèges (En-tête statique & format compact)
 class RewardsScreen extends ConsumerWidget {
   const RewardsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rewards = ref.watch(rewardsProvider);
-    final notifications = ref.watch(notificationsProvider);
-    final unreadCount = notifications.where((n) => !n.isRead).length;
+    final unreadNotifs = ref.watch(notificationsProvider.notifier).unreadCount;
 
     final activeRewards =
         rewards.where((r) => r.status == RewardStatus.active).toList();
@@ -23,18 +23,24 @@ class RewardsScreen extends ConsumerWidget {
     final usedRewards =
         rewards.where((r) => r.status == RewardStatus.used).toList();
 
+    final titleStyle = GoogleFonts.bodoniModa(
+      fontSize: 25,
+      fontWeight: FontWeight.w600,
+      color: AppColors.encre,
+      height: 1.1,
+    );
+
     return Scaffold(
       backgroundColor: AppColors.porcelaine,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Header Section ─────────────────────────────────────────────
-              Row(
+        child: Column(
+          children: [
+            // ── En-tête Statique (Fixe au défilement) ─────────────────────────
+            Container(
+              color: AppColors.porcelaine,
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,49 +49,52 @@ class RewardsScreen extends ConsumerWidget {
                         'VOS PRIVILÈGES',
                         style: AppTextStyles.monoSmall(
                           color: AppColors.laitonBrosse,
-                        ).copyWith(
-                          letterSpacing: 2.2,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Récompenses',
-                        style: AppTextStyles.displayXL(
-                          color: AppColors.encre,
-                        ).copyWith(
-                          fontSize: 36,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      Text('Récompenses', style: titleStyle),
                     ],
                   ),
 
-                  // Bouton Cloche de Notification
+                  // Bouton Notification uniforme avec badge
                   GestureDetector(
                     onTap: () => context.push('/notifications'),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.porcelaine,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.laitonLisere(opacity: 0.35),
+                            ),
+                          ),
                           child: const Icon(
-                            Icons.notifications_none_outlined,
-                            size: 24,
+                            Icons.notifications_none,
                             color: AppColors.encre,
+                            size: 20,
                           ),
                         ),
-                        if (unreadCount > 0)
+                        if (unreadNotifs > 0)
                           Positioned(
-                            top: 8,
-                            right: 8,
+                            top: -2,
+                            right: -2,
                             child: Container(
-                              width: 8,
-                              height: 8,
+                              padding: const EdgeInsets.all(4),
                               decoration: const BoxDecoration(
-                                color: AppColors.laitonBrosse,
+                                color: AppColors.bordeauxProfond,
                                 shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$unreadNotifs',
+                                style: const TextStyle(
+                                  color: AppColors.porcelaine,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -94,78 +103,108 @@ class RewardsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
 
-              const SizedBox(height: 28),
+            // Séparateur discret sous l'en-tête statique
+            Divider(
+              height: 1,
+              color: AppColors.encre.withValues(alpha: 0.06),
+            ),
 
-              // ── 1. Privilèges Actifs (Cartes en haut) ─────────────────────
-              if (activeRewards.isNotEmpty)
-                ...activeRewards.map((reward) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _ActiveRewardCard(reward: reward),
-                    ))
-              else
-                const _EmptySectionCard(
-                  message: 'Aucun privilège disponible pour le moment.',
-                ),
-
-              const SizedBox(height: 16),
-
-              // ── 2. Section "À débloquer" ──────────────────────────────────
-              Text(
-                'À débloquer',
-                style: AppTextStyles.displayMedium(color: AppColors.encre).copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              if (lockedRewards.isNotEmpty)
-                ...lockedRewards.map((reward) => Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: _LockedRewardCard(reward: reward),
-                    ))
-              else
-                const _EmptySectionCard(
-                  message: 'Toutes les récompenses sont actuellement débloquées !',
-                ),
-
-              const SizedBox(height: 24),
-
-              // ── 3. Section "Historique" ───────────────────────────────────
-              Text(
-                'Historique',
-                style: AppTextStyles.displayMedium(color: AppColors.encre).copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              if (usedRewards.isNotEmpty)
-                Column(
-                  children: usedRewards
-                      .map((reward) => Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _HistoryRewardRow(reward: reward),
+            // ── Contenu Défilant ──────────────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── 1. Privilèges Actifs ─────────────────────────────────
+                    if (activeRewards.isNotEmpty)
+                      ...activeRewards.map((reward) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _ActiveRewardCard(reward: reward),
                           ))
-                      .toList(),
-                )
-              else
-                const _EmptySectionCard(
-                  message: 'Aucune récompense utilisée récemment.',
-                ),
+                    else
+                      const _EmptySectionCard(
+                        message: 'Aucun privilège disponible pour le moment.',
+                      ),
 
-              const SizedBox(height: 32),
-            ],
-          ),
+                    const SizedBox(height: 14),
+
+                    // ── 2. Section "À débloquer" ──────────────────────────────
+                    Text(
+                      'À débloquer',
+                      style: GoogleFonts.bodoniModa(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.encre,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    if (lockedRewards.isNotEmpty)
+                      ...lockedRewards.map((reward) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _LockedRewardCard(reward: reward),
+                          ))
+                    else
+                      const _EmptySectionCard(
+                        message:
+                            'Toutes les récompenses sont actuellement débloquées !',
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // ── 3. Section "Historique" ───────────────────────────────
+                    Text(
+                      'Historique',
+                      style: GoogleFonts.bodoniModa(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.encre,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    if (usedRewards.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.porcelaine,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.laitonLisere(opacity: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          children: usedRewards
+                              .map((reward) => Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                    child: _HistoryRewardRow(reward: reward),
+                                  ))
+                              .toList(),
+                        ),
+                      )
+                    else
+                      const _EmptySectionCard(
+                        message: 'Aucune récompense utilisée récemment.',
+                      ),
+
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Carte de récompense active (Débloquée / Disponible)
+/// Carte de récompense active (Format compact)
 class _ActiveRewardCard extends StatelessWidget {
   final Reward reward;
   const _ActiveRewardCard({required this.reward});
@@ -174,19 +213,19 @@ class _ActiveRewardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFF2EEE4),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: const Color(0xFFDFDACB),
-          width: 1.2,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -198,32 +237,33 @@ class _ActiveRewardCard extends StatelessWidget {
             children: [
               Text(
                 reward.restaurantName.toUpperCase(),
-                style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
-                  letterSpacing: 1.8,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
+                    .copyWith(
+                  letterSpacing: 1.4,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               if (reward.expiresAt != null)
                 Text(
                   reward.daysRemainingText,
                   style: AppTextStyles.monoSmall(
-                    color: AppColors.encre.withOpacity(0.75),
+                    color: AppColors.encre.withValues(alpha: 0.7),
                   ).copyWith(
-                    letterSpacing: 1.2,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.0,
+                    fontSize: 10,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           Text(
             reward.title,
-            style: AppTextStyles.displayMedium(color: AppColors.encre).copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.bodoniModa(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: AppColors.encre,
               height: 1.15,
             ),
           ),
@@ -232,9 +272,9 @@ class _ActiveRewardCard extends StatelessWidget {
           Text(
             reward.description,
             style: AppTextStyles.bodyMedium(
-              color: AppColors.encre.withOpacity(0.75),
+              color: AppColors.encre.withValues(alpha: 0.7),
             ).copyWith(
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ],
@@ -243,7 +283,7 @@ class _ActiveRewardCard extends StatelessWidget {
   }
 }
 
-/// Carte de récompense verrouillée ("À débloquer")
+/// Carte de récompense verrouillée (Format compact)
 class _LockedRewardCard extends StatelessWidget {
   final Reward reward;
   const _LockedRewardCard({required this.reward});
@@ -252,40 +292,55 @@ class _LockedRewardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBE8DD),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFEBE8DD).withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.laitonLisere(opacity: 0.25),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            reward.restaurantName.toUpperCase(),
-            style: AppTextStyles.monoSmall(color: AppColors.encre.withOpacity(0.7)).copyWith(
-              letterSpacing: 1.8,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                reward.restaurantName.toUpperCase(),
+                style: AppTextStyles.monoSmall(
+                  color: AppColors.encre.withValues(alpha: 0.6),
+                ).copyWith(
+                  letterSpacing: 1.2,
+                  fontSize: 10,
+                ),
+              ),
+              const Icon(
+                Icons.lock_outline,
+                size: 14,
+                color: AppColors.laitonBrosse,
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
 
           Text(
             reward.title,
-            style: AppTextStyles.displayMedium(color: AppColors.encre).copyWith(
-              fontSize: 17,
-              fontWeight: FontWeight.w500,
+            style: GoogleFonts.bodoniModa(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.encre,
               height: 1.15,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
 
           Text(
             reward.lockedCondition ?? reward.description,
-            style: AppTextStyles.monoSmall(color: AppColors.encre.withOpacity(0.65)).copyWith(
-              letterSpacing: 1.2,
-              fontSize: 11,
-              fontWeight: FontWeight.w400,
+            style: AppTextStyles.monoSmall(
+              color: AppColors.encre.withValues(alpha: 0.6),
+            ).copyWith(
+              fontSize: 10.5,
             ),
           ),
         ],
@@ -294,7 +349,7 @@ class _LockedRewardCard extends StatelessWidget {
   }
 }
 
-/// Ligne d'historique des récompenses utilisées
+/// Ligne d'historique (Format compact)
 class _HistoryRewardRow extends StatelessWidget {
   final Reward reward;
   const _HistoryRewardRow({required this.reward});
@@ -306,18 +361,22 @@ class _HistoryRewardRow extends StatelessWidget {
       children: [
         Text(
           reward.formattedUsedDate,
-          style: AppTextStyles.monoSmall(color: AppColors.encre.withOpacity(0.85)).copyWith(
-            letterSpacing: 1.4,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+          style: AppTextStyles.monoSmall(
+            color: AppColors.encre.withValues(alpha: 0.8),
+          ).copyWith(
+            fontSize: 10.5,
           ),
         ),
-        Text(
-          '${reward.restaurantName}  ·  ${reward.title}',
-          style: AppTextStyles.monoSmall(color: AppColors.encre.withOpacity(0.85)).copyWith(
-            letterSpacing: 0.5,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+        Expanded(
+          child: Text(
+            '${reward.restaurantName}  ·  ${reward.title}',
+            style: AppTextStyles.bodyMedium(
+              color: AppColors.encre.withValues(alpha: 0.8),
+            ).copyWith(
+              fontSize: 11.5,
+            ),
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -325,7 +384,7 @@ class _HistoryRewardRow extends StatelessWidget {
   }
 }
 
-/// Widget d'état vide pour une section
+/// Widget d'état vide
 class _EmptySectionCard extends StatelessWidget {
   final String message;
   const _EmptySectionCard({required this.message});
@@ -334,16 +393,20 @@ class _EmptySectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFEBE8DD).withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFDFDACB).withOpacity(0.5)),
+        color: const Color(0xFFEBE8DD).withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: const Color(0xFFDFDACB).withValues(alpha: 0.4),
+        ),
       ),
       child: Text(
         message,
-        style: AppTextStyles.bodyMedium(color: AppColors.encre.withOpacity(0.5)).copyWith(
-          fontSize: 12.5,
+        style: AppTextStyles.bodyMedium(
+          color: AppColors.encre.withValues(alpha: 0.5),
+        ).copyWith(
+          fontSize: 12,
           fontStyle: FontStyle.italic,
         ),
         textAlign: TextAlign.center,

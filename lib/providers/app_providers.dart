@@ -176,6 +176,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         phoneNumber: flow.phone,
         birthDate: flow.birthDate,
         age: flow.age,
+        joinDate: DateTime.now(),
         referralCode: _generateReferralCode(flow.fullName),
         authProvider: AuthProvider.phone,
         profileCompleted: false,
@@ -194,6 +195,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         id: 'u_social_${DateTime.now().millisecondsSinceEpoch}',
         fullName: '',
         phoneNumber: '',
+        joinDate: DateTime.now(),
         referralCode: '',
         authProvider: provider,
         profileCompleted: false,
@@ -252,6 +254,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           fullName: fullName,
           phoneNumber: phone,
           birthDate: birthDate,
+          joinDate: state.user!.joinDate,
           city: city,
           neighborhood: neighborhood,
           email: email,
@@ -269,6 +272,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (state.user == null) return;
     state = state.copyWith(
       user: state.user!.copyWith(fullName: firstName, email: email),
+    );
+  }
+
+  void updateFullProfile({
+    String? fullName,
+    String? phoneNumber,
+    DateTime? birthDate,
+    String? email,
+  }) {
+    if (state.user == null) return;
+    state = state.copyWith(
+      user: state.user!.copyWith(
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        birthDate: birthDate,
+        email: email,
+        profileCompleted: true,
+      ),
     );
   }
 
