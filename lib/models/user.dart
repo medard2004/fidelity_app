@@ -16,6 +16,7 @@ class AppUser {
   final int friendsInvited;
   final int friendsJoined;
   final String? city;
+  final String? country;
   final String? neighborhood;
   final AuthProvider authProvider;
   final bool profileCompleted;
@@ -33,10 +34,43 @@ class AppUser {
     this.friendsInvited = 0,
     this.friendsJoined = 0,
     this.city,
+    this.country,
     this.neighborhood,
     this.authProvider = AuthProvider.phone,
     this.profileCompleted = false,
   });
+
+  factory AppUser.fromJson(Map<String, dynamic> json) {
+    String fName = json['first_name'] ?? '';
+    String lName = json['last_name'] ?? '';
+    String full = [fName, lName].where((e) => e.isNotEmpty).join(' ');
+
+    return AppUser(
+      id: json['uuid']?.toString() ?? json['id']?.toString() ?? '',
+      fullName: full.isEmpty ? 'Utilisateur' : full,
+      phoneNumber: json['phone'] ?? '',
+      birthDate: json['birthdate'] != null ? DateTime.tryParse(json['birthdate']) : null,
+      joinDate: DateTime.now(), // À remplacer si l'API le fournit plus tard
+      email: json['email'],
+      photoUrl: json['avatar_url'],
+      referralCode: json['referral_code'] ?? '',
+      city: json['city'],
+      country: json['country'],
+      authProvider: _parseProvider(json['oauth_provider']),
+      profileCompleted: json['is_profile_complete'] ?? false,
+    );
+  }
+
+  static AuthProvider _parseProvider(String? provider) {
+    switch (provider) {
+      case 'google':
+        return AuthProvider.google;
+      case 'apple':
+        return AuthProvider.apple;
+      default:
+        return AuthProvider.phone;
+    }
+  }
 
   /// Rétro-compatibilité : expose `firstName` comme premier prénom (avant le premier espace).
   String get firstName {
@@ -78,6 +112,7 @@ class AppUser {
     String? email,
     String? photoUrl,
     String? city,
+    String? country,
     String? neighborhood,
     AuthProvider? authProvider,
     bool? profileCompleted,
@@ -97,6 +132,7 @@ class AppUser {
       friendsInvited: friendsInvited,
       friendsJoined: friendsJoined,
       city: city ?? this.city,
+      country: country ?? this.country,
       neighborhood: neighborhood ?? this.neighborhood,
       authProvider: authProvider ?? this.authProvider,
       profileCompleted: profileCompleted ?? this.profileCompleted,

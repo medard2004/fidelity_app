@@ -7,11 +7,12 @@ import '../../core/theme/app_radius.dart';
 /// scale subtil (0.98) au tap, jamais de rebond visible.
 class InvitationButton extends StatefulWidget {
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final IconData? icon;
   final Widget? leading;
   final bool filled; // vert bouteille plein — réservé au CTA principal
   final bool fullWidth;
+  final bool isLoading;
 
   const InvitationButton({
     super.key,
@@ -21,6 +22,7 @@ class InvitationButton extends StatefulWidget {
     this.leading,
     this.filled = false,
     this.fullWidth = true,
+    this.isLoading = false,
   });
 
   @override
@@ -58,11 +60,22 @@ class _InvitationButtonState extends State<InvitationButton> {
             mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.leading != null || widget.icon != null) ...[
-                widget.leading ?? Icon(widget.icon, size: 17, color: fg),
-                const SizedBox(width: 8),
+              if (widget.isLoading)
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: fg,
+                  ),
+                )
+              else ...[
+                if (widget.leading != null || widget.icon != null) ...[
+                  widget.leading ?? Icon(widget.icon, size: 17, color: fg),
+                  const SizedBox(width: 8),
+                ],
+                Text(widget.label, style: AppTextStyles.label(color: fg)),
               ],
-              Text(widget.label, style: AppTextStyles.label(color: fg)),
             ],
           ),
         ),

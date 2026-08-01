@@ -6,13 +6,16 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/shared/otp_input_row.dart';
+import '../../core/errors/app_error.dart';
+import '../../core/errors/form_error_handler.dart';
+import '../../widgets/shared/loading_overlay.dart';
 
 /// Contexte d'utilisation de l'OTP, transmis via `extra` du router.
 /// - `login`        → connexion classique, redirige vers /wallet
 /// - `signup`       → inscription téléphone, redirige vers /complete-profile
 /// - `social`       → vérification du numéro lors du profil social,
 ///                    redirige vers /wallet (le profil est déjà saisi)
-enum OtpContext { login, signup, social }
+enum OtpContext { login, signup, social, forgotPassword }
 
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -28,7 +31,7 @@ class OtpScreen extends ConsumerStatefulWidget {
   ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends ConsumerState<OtpScreen> {
+class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
   int _secondsLeft = 30;
   Timer? _timer;
 
@@ -56,27 +59,62 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     super.dispose();
   }
 
-  void _onCompleted(String code) {
+  Future<void> _onCompleted(String code) async {
+    // Le widget OTP peut redéclencher onCompleted (ex. correction rapide du
+    // dernier chiffre) : sans ce garde, une seconde vérification partirait
+    // pendant que la première tourne encore.
+    if (isBusy) return;
+
     switch (widget.otpContext) {
       case OtpContext.login:
-        ref.read(authProvider.notifier).completeLogin(phone: widget.phoneNumber);
         context.go('/wallet');
 
       case OtpContext.signup:
-        final flow = ref.read(signupFlowProvider);
-        ref.read(authProvider.notifier).completeSignupOtp(flow);
         context.go('/complete-profile');
 
       case OtpContext.social:
-        // Le profil social est déjà entièrement saisi dans CompleteSocialProfileScreen.
-        // On arrive ici après la vérif du téléphone → on termine l'enregistrement.
-        final flow = ref.read(signupFlowProvider);
-        ref.read(authProvider.notifier).completeSocialProfile(
-              fullName: flow.fullName,
-              phone: flow.phone,
-              birthDate: flow.birthDate,
+        try {
+          final flow = ref.read(signupFlowProvider);
+          await runLoading(
+            context,
+            () => ref.read(authProvider.notifier).completeSocialProfile(
+                  fullName: flow.fullName,
+                  phone: flow.phone,
+                  birthDate: flow.birthDate,
+                ),
+            message: 'Vérification…',
+          );
+          if (mounted) context.go('/wallet');
+        } catch (e) {
+          if (mounted) handleError(e, context: ErrorContext.completeProfile);
+        }
+
+      case OtpContext.forgotPassword:
+        try {
+          final resetToken = await runLoading(
+            context,
+            () => ref.read(authProvider.notifier).verifyResetOtp(
+                  widget.phoneNumber,
+                  code,
+                ),
+            message: 'Vérification du code…',
+          );
+
+          if (resetToken != null && mounted) {
+            context.push('/reset-password', extra: {
+              'phone': widget.phoneNumber,
+              'token': resetToken,
+            });
+          } else if (mounted) {
+            // Le code saisi occupe tout l'écran : le retour passe par un Toast.
+            handleError(
+              ref.read(authProvider).lastError,
+              context: ErrorContext.verifyOtp,
             );
-        context.go('/wallet');
+          }
+        } catch (e) {
+          if (mounted) handleError(e, context: ErrorContext.verifyOtp);
+        }
     }
   }
 
@@ -86,6 +124,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       OtpContext.login => 'Connexion',
       OtpContext.signup => 'Inscription',
       OtpContext.social => 'Vérification',
+      OtpContext.forgotPassword => 'Récupération',
     };
 
     return Scaffold(
@@ -96,7 +135,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         leading: BackButton(color: AppColors.encre),
         title: Text(
           contextLabel.toUpperCase(),
-          style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
+          style:
+              AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
             letterSpacing: 2.5,
             fontWeight: FontWeight.w500,
           ),
@@ -120,22 +160,27 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             ),
             const SizedBox(height: 44),
             OtpInputRow(onCompleted: _onCompleted),
-            const SizedBox(height: 32),
+            const Spacer(),
             Center(
-              child: _secondsLeft > 0
-                  ? Text(
-                      'Renvoyer le code dans 00:${_secondsLeft.toString().padLeft(2, '0')}',
-                      style: AppTextStyles.monoSmall(),
-                    )
-                  : TextButton(
-                      onPressed: _startCountdown,
-                      child: Text(
-                        'Renvoyer le code',
-                        style: AppTextStyles.bodyMedium(
-                            color: AppColors.vertBouteille),
-                      ),
-                    ),
+              child: TextButton(
+                onPressed: _secondsLeft > 0 ? null : _startCountdown,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.laitonBrosse,
+                  disabledForegroundColor:
+                      AppColors.encre.withValues(alpha: 0.3),
+                ),
+                child: Text(
+                  _secondsLeft > 0
+                      ? 'Renvoyer le code dans 00:${_secondsLeft.toString().padLeft(2, '0')}'
+                      : 'Renvoyer le code',
+                  style: AppTextStyles.bodyMedium().copyWith(
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

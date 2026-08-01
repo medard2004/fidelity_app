@@ -3,6 +3,8 @@ import '../data/mock_data.dart';
 import '../models/reward.dart';
 import '../models/app_notification.dart';
 import '../models/user.dart';
+import '../api/repositories/auth_repository.dart';
+import '../api/providers/api_providers.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Récompenses
@@ -61,6 +63,7 @@ class SignupFlowData {
   final String fullName;
   final int? age;
   final String phone;
+  final String email;
   final AuthProvider provider;
   final DateTime? birthDate;
 
@@ -68,6 +71,7 @@ class SignupFlowData {
     this.fullName = '',
     this.age,
     this.phone = '',
+    this.email = '',
     this.provider = AuthProvider.phone,
     this.birthDate,
   });
@@ -76,6 +80,7 @@ class SignupFlowData {
     String? fullName,
     int? age,
     String? phone,
+    String? email,
     AuthProvider? provider,
     DateTime? birthDate,
   }) =>
@@ -83,6 +88,7 @@ class SignupFlowData {
         fullName: fullName ?? this.fullName,
         age: age ?? this.age,
         phone: phone ?? this.phone,
+        email: email ?? this.email,
         provider: provider ?? this.provider,
         birthDate: birthDate ?? this.birthDate,
       );
@@ -98,7 +104,9 @@ class SignupFlowNotifier extends StateNotifier<SignupFlowData> {
     int? age,
   }) {
     final calculatedAge = age ??
-        (birthDate != null ? (DateTime.now().difference(birthDate).inDays ~/ 365) : null);
+        (birthDate != null
+            ? (DateTime.now().difference(birthDate).inDays ~/ 365)
+            : null);
     state = SignupFlowData(
       fullName: fullName,
       age: calculatedAge,
@@ -108,8 +116,12 @@ class SignupFlowNotifier extends StateNotifier<SignupFlowData> {
     );
   }
 
-  void startSocialSignup({required AuthProvider provider}) {
-    state = SignupFlowData(provider: provider);
+  void startSocialSignup(
+      {required AuthProvider provider,
+      String fullName = '',
+      String email = ''}) {
+    state =
+        SignupFlowData(provider: provider, fullName: fullName, email: email);
   }
 
   void setSocialDetails({
@@ -139,68 +151,183 @@ final signupFlowProvider =
 class AuthState {
   final bool isAuthenticated;
   final AppUser? user;
+  final bool isLoading;
 
-  const AuthState({this.isAuthenticated = false, this.user});
+  /// Dernière erreur brute survenue, conservée telle quelle.
+  ///
+  /// Le notifier ne formule volontairement aucun message : seul l'écran connaît
+  /// son contexte (une même erreur ne se dit pas pareil à la connexion et sur
+  /// le profil) et sait si elle concerne un champ précis. L'écran la traduit
+  /// via `FormErrorHandler.handleError`.
+  final Object? lastError;
 
-  AuthState copyWith({bool? isAuthenticated, AppUser? user}) => AuthState(
+  const AuthState({
+    this.isAuthenticated = false,
+    this.user,
+    this.isLoading = false,
+    this.lastError,
+  });
+
+  AuthState copyWith({
+    bool? isAuthenticated,
+    AppUser? user,
+    bool? isLoading,
+    Object? lastError,
+    bool clearError = false,
+  }) =>
+      AuthState(
         isAuthenticated: isAuthenticated ?? this.isAuthenticated,
         user: user ?? this.user,
+        isLoading: isLoading ?? this.isLoading,
+        lastError: clearError ? null : (lastError ?? this.lastError),
       );
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  AuthNotifier() : super(const AuthState());
+  final AuthRepository _authRepository;
 
-  // ── Connexion par téléphone (OTP validé) ──────────────────────────────────
+  AuthNotifier(this._authRepository) : super(const AuthState());
 
-  /// Connexion classique : crée la session avec le numéro de téléphone.
-  void completeLogin({String phone = ''}) {
+  // ── Session ───────────────────────────────────────────────────────────────
+
+  void setAuthenticated(AppUser user) {
     state = AuthState(
       isAuthenticated: true,
-      user: MockData.user.copyWith(phoneNumber: phone.isNotEmpty ? phone : null),
+      user: user,
     );
   }
 
-  /// Rétro-compatibilité : utilisé par OtpScreen en mode connexion simple.
-  void completeOtp() => completeLogin();
+  // ── Connexion par téléphone (API) ─────────────────────────────────────────
 
-  // ── Inscription par téléphone ──────────────────────────────────────────────
+  Future<bool> login(String phone, String password) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final user = await _authRepository.login(phone, password);
+      state = AuthState(
+        isAuthenticated: true,
+        user: user,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
 
-  /// Crée le compte après validation OTP lors d'une inscription par téléphone.
-  void completeSignupOtp(SignupFlowData flow) {
-    state = AuthState(
-      isAuthenticated: true,
-      user: AppUser(
-        id: 'u_${DateTime.now().millisecondsSinceEpoch}',
-        fullName: flow.fullName,
-        phoneNumber: flow.phone,
-        birthDate: flow.birthDate,
-        age: flow.age,
-        joinDate: DateTime.now(),
-        referralCode: _generateReferralCode(flow.fullName),
-        authProvider: AuthProvider.phone,
-        profileCompleted: false,
-      ),
-    );
+  Future<bool> validateRegisterStep1(SignupFlowData flow) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final data = {
+        'first_name': flow.fullName,
+        'phone': flow.phone,
+        if (flow.birthDate != null)
+          'birthdate': flow.birthDate!.toIso8601String().split('T')[0],
+      };
+      await _authRepository.validateRegisterStep1(data);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
+
+  // ── Inscription par téléphone (API) ────────────────────────────────────────
+
+  Future<bool> register(SignupFlowData flow, String password) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final data = {
+        'first_name': flow.fullName,
+        'phone': flow.phone,
+        'password': password,
+        'password_confirmation': password,
+        if (flow.birthDate != null)
+          'birthdate': flow.birthDate!.toIso8601String().split('T')[0],
+      };
+      final user = await _authRepository.register(data);
+      state = AuthState(
+        isAuthenticated: true,
+        user: user,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
+
+  // ── Password Recovery ──────────────────────────────────────────────────────
+
+  Future<bool> forgotPassword(String phone) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authRepository.forgotPassword(phone);
+      state = state.copyWith(isLoading: false);
+      // We don't store the message in state, the UI will show success
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
+
+  Future<String?> verifyResetOtp(String phone, String otp) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final token = await _authRepository.verifyResetOtp(phone, otp);
+      state = state.copyWith(isLoading: false);
+      return token;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return null;
+    }
+  }
+
+  Future<bool> resetPassword(
+      String phone, String token, String password) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authRepository.resetPassword(phone, token, password);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
   }
 
   // ── Connexion/Inscription sociale ──────────────────────────────────────────
 
-  /// Connexion sociale (Google/Apple) — crée une session partielle,
-  /// le profil doit être complété avant d'accéder au wallet.
-  void completeSocialLogin(AuthProvider provider) {
-    state = AuthState(
-      isAuthenticated: true,
-      user: AppUser(
-        id: 'u_social_${DateTime.now().millisecondsSinceEpoch}',
-        fullName: '',
-        phoneNumber: '',
-        joinDate: DateTime.now(),
-        referralCode: '',
-        authProvider: provider,
-        profileCompleted: false,
-      ),
-    );
+  /// Connexion sociale (Google/Apple) — retourne true si la connexion est réussie.
+  /// Le booléen 'needsProfileCompletion' indique si l'utilisateur doit compléter son profil.
+  Future<Map<String, dynamic>> socialLogin(
+      AuthProvider provider, String idToken,
+      {String action = 'login'}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final String providerString =
+          provider == AuthProvider.google ? 'google' : 'apple';
+      final response = await _authRepository
+          .socialLogin(providerString, idToken, action: action);
+
+      final client = response['client'] as AppUser;
+      final needsCompletion = response['needs_profile_completion'] as bool;
+
+      state = AuthState(
+        isAuthenticated: true,
+        user: client,
+      );
+
+      return {
+        'success': true,
+        'needs_profile_completion': needsCompletion,
+        'client': client,
+      };
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return {'success': false};
+    }
   }
 
   // ── Complétion du profil ───────────────────────────────────────────────────
@@ -208,6 +335,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Complète le profil post-inscription téléphone (Ville + Quartier + Email).
   void completeProfile({
     String? city,
+    String? country,
     String? neighborhood,
     String? email,
   }) {
@@ -215,6 +343,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(
       user: state.user!.copyWith(
         city: city,
+        country: country,
         neighborhood: neighborhood,
         email: email,
         profileCompleted: true,
@@ -223,46 +352,64 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Complète le profil post-connexion sociale (Nom + Téléphone + Birthdate + Ville + …).
-  void completeSocialProfile({
+  Future<bool> completeSocialProfile({
     required String fullName,
     required String phone,
     DateTime? birthDate,
     String? city,
+    String? country,
     String? neighborhood,
     String? email,
-  }) {
-    if (state.user == null) return;
-    final code = _generateReferralCode(fullName);
-    state = state.copyWith(
-      user: state.user!.copyWith(
-        fullName: fullName,
-        phoneNumber: phone,
-        birthDate: birthDate,
-        city: city,
-        neighborhood: neighborhood,
-        email: email,
-        profileCompleted: true,
-      ).copyWith(
-        // referralCode ne peut pas être changé via copyWith standard ; on le sette ici via reconstruction.
-      ),
-    );
-    // Reconstruire avec le referralCode si vide.
-    if (state.user!.referralCode.isEmpty) {
-      state = state.copyWith(
-        user: AppUser(
-          id: state.user!.id,
-          fullName: fullName,
-          phoneNumber: phone,
-          birthDate: birthDate,
-          joinDate: state.user!.joinDate,
-          city: city,
-          neighborhood: neighborhood,
-          email: email,
-          referralCode: code,
-          authProvider: state.user!.authProvider,
-          profileCompleted: true,
-        ),
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final data = {
+        'first_name': fullName,
+        'phone': phone,
+        if (birthDate != null)
+          'birthdate': birthDate.toIso8601String().split('T')[0],
+        if (city != null) 'city': city,
+        if (country != null) 'country': country,
+        if (neighborhood != null) 'neighborhood': neighborhood,
+        if (email != null) 'email': email,
+      };
+
+      final user = await _authRepository.completeSocialProfile(data);
+      state = AuthState(
+        isAuthenticated: true,
+        user: user,
       );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
+
+  // ── Verify / Change Password (authenticated) ──────────────────────────────
+
+  Future<bool> verifyPassword(String currentPassword) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final valid = await _authRepository.verifyPassword(currentPassword);
+      state = state.copyWith(isLoading: false);
+      return valid;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(
+      String currentPassword, String newPassword) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authRepository.changePassword(currentPassword, newPassword);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, lastError: e);
+      return false;
     }
   }
 
@@ -275,25 +422,76 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  void updateFullProfile({
+  Future<void> updateFullProfile({
     String? fullName,
     String? phoneNumber,
     DateTime? birthDate,
     String? email,
-  }) {
+    String? city,
+    String? country,
+  }) async {
     if (state.user == null) return;
+
+    // Optimistic UI update
     state = state.copyWith(
       user: state.user!.copyWith(
         fullName: fullName,
         phoneNumber: phoneNumber,
         birthDate: birthDate,
         email: email,
+        city: city,
+        country: country,
         profileCompleted: true,
       ),
     );
+
+    try {
+      // Séparation first_name / last_name pour l'API si fullName est fourni
+      String? firstName;
+      String? lastName;
+      if (fullName != null) {
+        final parts = fullName.trim().split(' ');
+        firstName = parts.first;
+        lastName = parts.skip(1).join(' ');
+      }
+
+      final data = <String, dynamic>{};
+      if (firstName != null) data['first_name'] = firstName;
+      if (lastName != null) data['last_name'] = lastName;
+      if (phoneNumber != null) data['phone'] = phoneNumber;
+      if (email != null) data['email'] = email;
+      if (city != null) data['city'] = city;
+      if (country != null) data['country'] = country;
+      if (birthDate != null)
+        data['birthdate'] = birthDate.toIso8601String().split('T')[0];
+
+      if (data.isNotEmpty) {
+        final updatedUser = await _authRepository.updateProfile(data);
+        state = state.copyWith(user: updatedUser);
+      }
+    } catch (e) {
+      state = state.copyWith(lastError: e);
+      rethrow;
+    }
   }
 
-  void signOut() => state = const AuthState();
+  Future<void> signOut() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _authRepository.logout();
+    } catch (_) {
+      // Ignorer l'erreur d'API (ex: NetworkException ou 401)
+      // car on force la déconnexion locale dans le finally.
+    } finally {
+      state = const AuthState();
+    }
+  }
+
+  void clearError() {
+    if (state.lastError != null) {
+      state = state.copyWith(clearError: true);
+    }
+  }
 
   // ── Helpers privés ────────────────────────────────────────────────────────
 
@@ -304,6 +502,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-  (ref) => AuthNotifier(),
-);
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
+  return AuthNotifier(authRepository);
+});

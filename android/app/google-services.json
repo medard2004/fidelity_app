@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "423747164232",
+    "project_id": "mivafid-1bc6a",
+    "storage_bucket": "mivafid-1bc6a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423747164232:android:a175edaa2bd000a7ee607d",
+        "android_client_info": {
+          "package_name": "com.example.fidelity_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "423747164232-j5glla77ht18qboe5vfd8ar29466rcl9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fidelity_app",
+            "certificate_hash": "69346f834440df097f476b108d07486e2b94146c"
+          }
+        },
+        {
+          "client_id": "423747164232-1a8off0p0fn5sjom8b7u878mf48ifuc5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7PiA-wl_uEYXLs2wDVZCl791rfxFlggo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "423747164232-1a8off0p0fn5sjom8b7u878mf48ifuc5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "423747164232-6mppmco5mi8mbeelp4v7l2agus3tk598.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fidelityApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

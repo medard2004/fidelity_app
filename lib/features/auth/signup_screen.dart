@@ -9,6 +9,11 @@ import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/shared/invitation_button.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
+import '../../widgets/shared/phone_confirmation_dialog.dart';
+import '../../services/social_auth_service.dart';
+import '../../core/errors/app_error.dart';
+import '../../core/errors/error_messages.dart';
+import '../../core/errors/form_error_handler.dart';
 
 /// Formulaire d'inscription complet : Nom · Date de naissance · Téléphone → /wallet
 class SignupScreen extends ConsumerStatefulWidget {
@@ -18,7 +23,8 @@ class SignupScreen extends ConsumerStatefulWidget {
   ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends ConsumerState<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen>
+    with FormErrorHandler {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneInputKey = GlobalKey<PhoneInputWithCountryPickerState>();
@@ -32,44 +38,135 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    clearAllFieldErrors();
     if (!_formKey.currentState!.validate()) return;
 
-    final fullPhone =
-        _phoneInputKey.currentState?.fullPhoneNumber ?? _phoneController.text.trim();
+    final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
+        _phoneController.text.trim();
 
-    ref.read(signupFlowProvider.notifier).startPhoneSignup(
+    final confirmed = await PhoneConfirmationDialog.show(
+      context,
+      phoneNumber: fullPhone,
+    );
+
+    if (confirmed && mounted) {
+      try {
+        final notifier = ref.read(signupFlowProvider.notifier);
+        notifier.startPhoneSignup(
           fullName: _fullNameController.text.trim(),
           phone: fullPhone,
           birthDate: _birthDate,
         );
 
-    final flow = ref.read(signupFlowProvider);
-    ref.read(authProvider.notifier).completeSignupOtp(flow);
+        final flowData = ref.read(signupFlowProvider);
+        final isValid = await runLoading(
+          context,
+          () => ref.read(authProvider.notifier).validateRegisterStep1(flowData),
+          message: 'Validation en cours…',
+        );
 
-    context.go('/wallet');
+        if (!mounted || isValid == null) return;
+        if (isValid) {
+          context.push('/create-password');
+        } else {
+          // Numéro déjà utilisé, invalide ou refusé : s'affiche sous le champ.
+          handleError(
+            ref.read(authProvider).lastError,
+            context: ErrorContext.signup,
+            formKey: _formKey,
+          );
+        }
+      } catch (e) {
+        if (mounted) handleError(e, context: ErrorContext.signup, formKey: _formKey);
+      }
+    }
   }
 
   void _goToLogin() {
     context.go('/auth');
   }
 
-  void _continueWithGoogle() {
-    ref.read(signupFlowProvider.notifier).startSocialSignup(provider: AuthProvider.google);
-    ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.google);
-    context.go('/complete-social-profile');
+  Future<void> _continueWithGoogle() async {
+    try {
+      final result = await runLoading(
+        context,
+        () async {
+          final idToken = await SocialAuthService.signInWithGoogle();
+          if (idToken == null) return null;
+          return ref
+              .read(authProvider.notifier)
+              .socialLogin(AuthProvider.google, idToken, action: 'signup');
+        },
+        message: 'Connexion avec Google…',
+      );
+
+      if (!mounted || result == null) return;
+      if (result['success'] == true) {
+        if (result['needs_profile_completion'] == true) {
+          final client = result['client'] as AppUser;
+          ref.read(signupFlowProvider.notifier).startSocialSignup(
+                provider: AuthProvider.google,
+                fullName: client.fullName,
+                email: client.email ?? '',
+              );
+          context.go('/complete-social-profile');
+        } else {
+          context.go('/wallet');
+        }
+      } else {
+        handleError(
+          ref.read(authProvider).lastError,
+          context: ErrorContext.socialLogin,
+        );
+      }
+    } catch (e) {
+      if (mounted) handleError(e, context: ErrorContext.socialLogin);
+    }
   }
 
-  void _continueWithApple() {
-    ref.read(signupFlowProvider.notifier).startSocialSignup(provider: AuthProvider.apple);
-    ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.apple);
-    context.go('/complete-social-profile');
+  Future<void> _continueWithApple() async {
+    try {
+      final result = await runLoading(
+        context,
+        () async {
+          final idToken = await SocialAuthService.signInWithApple();
+          if (idToken == null) return null;
+          return ref
+              .read(authProvider.notifier)
+              .socialLogin(AuthProvider.apple, idToken, action: 'signup');
+        },
+        message: 'Connexion avec Apple…',
+      );
+
+      if (!mounted || result == null) return;
+      if (result['success'] == true) {
+        if (result['needs_profile_completion'] == true) {
+          final client = result['client'] as AppUser;
+          ref.read(signupFlowProvider.notifier).startSocialSignup(
+                provider: AuthProvider.apple,
+                fullName: client.fullName,
+                email: client.email ?? '',
+              );
+          context.go('/complete-social-profile');
+        } else {
+          context.go('/wallet');
+        }
+      } else {
+        handleError(
+          ref.read(authProvider).lastError,
+          context: ErrorContext.socialLogin,
+        );
+      }
+    } catch (e) {
+      if (mounted) handleError(e, context: ErrorContext.socialLogin);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final titleStyle = GoogleFonts.bodoniModa(
-      fontSize: 25,
+      fontSize: 48,
       fontWeight: FontWeight.w600,
       color: AppColors.encre,
       height: 1.1,
@@ -103,9 +200,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         controller: _fullNameController,
                         hintText: 'Prénom Nom',
                         keyboardType: TextInputType.name,
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Veuillez saisir votre nom complet'
-                            : null,
+                        validator: fieldValidator(
+                          'first_name',
+                          requiredMessage: ErrorMessages.fieldRequired,
+                        ),
                       ),
 
                       const SizedBox(height: 14),
@@ -117,8 +215,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         value: _birthDate,
                         onChanged: (date) => setState(() => _birthDate = date),
                         validator: (_) => _birthDate == null
-                            ? 'Veuillez sélectionner votre date de naissance'
-                            : null,
+                            ? ErrorMessages.birthdateRequired
+                            : fieldError('birthdate'),
                       ),
 
                       const SizedBox(height: 14),
@@ -129,21 +227,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       PhoneInputWithCountryPicker(
                         key: _phoneInputKey,
                         controller: _phoneController,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Veuillez saisir votre numéro de téléphone';
-                          }
-                          return null;
-                        },
+                        validator: fieldValidator(
+                          'phone',
+                          requiredMessage: ErrorMessages.fieldRequired,
+                        ),
                       ),
 
                       const SizedBox(height: 20),
 
                       // ── CTA Inscription directe ─────────────────────────
-                      InvitationButton(
-                        label: 'S\'inscrire',
-                        filled: true,
-                        onTap: _submit,
+                      Consumer(
+                        builder: (context, ref, child) {
+                          return InvitationButton(
+                            label: 'Suivant',
+                            filled: true,
+                            onTap: _submit,
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 16),
@@ -206,7 +306,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                   text: 'Se connecter',
                                   style: AppTextStyles.bodyMedium(
                                     color: AppColors.laitonBrosse,
-                                  ).copyWith(fontWeight: FontWeight.w600),
+                                  ).copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                  ),
                                 ),
                               ],
                             ),
@@ -282,11 +385,11 @@ class _Field extends StatelessWidget {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+          borderSide: const BorderSide(color: AppColors.bordeauxProfond, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
+          borderSide: const BorderSide(color: AppColors.bordeauxProfond, width: 1.2),
         ),
       ),
     );
@@ -347,7 +450,7 @@ class _DatePickerField extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: state.hasError
-                        ? Colors.redAccent
+                        ? AppColors.bordeauxProfond
                         : AppColors.laitonLisere(opacity: 0.3),
                   ),
                 ),
@@ -378,8 +481,7 @@ class _DatePickerField extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 6, left: 4),
                 child: Text(
                   state.errorText!,
-                  style: const TextStyle(
-                      color: Colors.redAccent, fontSize: 12),
+                  style: const TextStyle(color: AppColors.bordeauxProfond, fontSize: 12),
                 ),
               ),
           ],

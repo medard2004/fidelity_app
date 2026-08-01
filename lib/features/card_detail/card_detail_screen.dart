@@ -9,6 +9,7 @@ import '../../providers/app_providers.dart';
 import '../../widgets/shared/grain_overlay.dart';
 import '../../models/reward.dart';
 import 'card_export_service.dart';
+import '../../core/utils/toast_service.dart';
 
 class CardDetailScreen extends ConsumerWidget {
   final String cardId;
@@ -390,9 +391,7 @@ class _TopQrPlateCard extends StatelessWidget {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Identifiant copié')),
-                  );
+                  ToastService.showSuccess('Identifiant copié');
                 },
                 child: const Icon(
                   Icons.copy_outlined,

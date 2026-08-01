@@ -5,7 +5,8 @@ class ApiLogger {
     log('ℹ️ INFO: $message', name: 'API');
   }
 
-  static void logError(String message, [dynamic error, StackTrace? stackTrace]) {
+  static void logError(String message,
+      [dynamic error, StackTrace? stackTrace]) {
     log('❌ ERROR: $message', name: 'API', error: error, stackTrace: stackTrace);
   }
 

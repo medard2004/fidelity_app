@@ -6,6 +6,7 @@ import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/referral_provider.dart';
 import '../../widgets/shared/invitation_button.dart';
+import '../../core/utils/toast_service.dart';
 
 /// Écran de Parrainage Partenaire
 /// Permet de :
@@ -45,12 +46,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
     if (added) {
       _recipientController.clear();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ce destinataire est déjà dans votre liste d\'envoi.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.showWarning('Ce destinataire est déjà dans votre liste d\'envoi.');
     }
   }
 
@@ -70,20 +66,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         message.write('$dup doublon(s) ignoré(s) (Anti-fraude).');
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message.toString()),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      ToastService.showSuccess(message.toString(), duration: const Duration(seconds: 4));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter au moins un destinataire avant d\'envoyer.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      ToastService.showWarning('Veuillez ajouter au moins un destinataire avant d\'envoyer.');
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/loyalty_card.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/toast_service.dart';
 
 class CardExportService {
   /// Simule l'exportation et le partage d'une carte.
@@ -34,14 +35,7 @@ class CardExportService {
 
     // ignore: use_build_context_synchronously
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.encre,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+      ToastService.showSuccess(message);
     }
   }
 }

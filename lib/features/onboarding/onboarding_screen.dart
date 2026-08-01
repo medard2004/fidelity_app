@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../api/storage/local_preferences.dart';
+import '../../providers/app_startup_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
 import '../../widgets/shared/brass_bordered_container.dart';
 import '../../widgets/shared/invitation_button.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -42,6 +45,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
+  Future<void> _completeOnboarding() async {
+    final prefs = ref.read(localPreferencesProvider);
+    await prefs.setHasSeenOnboarding(true);
+    ref.invalidate(appStartupProvider);
+  }
+
   void _onNext() {
     if (_currentPage < _slides.length - 1) {
       _pageController.nextPage(
@@ -49,7 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOutCubic,
       );
     } else {
-      context.go('/auth');
+      _completeOnboarding();
     }
   }
 
@@ -80,7 +89,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => context.go('/auth'),
+                    onPressed: _completeOnboarding,
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.encre.withOpacity(0.6),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

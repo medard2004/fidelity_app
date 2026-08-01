@@ -9,9 +9,11 @@ class ReferralRecord {
   final String restaurantName;
   final String recipient;
   final DateTime timestamp;
-  final bool isValidatedClick; // Vrai si un clic unique a été confirmé côté serveur
-  final bool isDuplicate;       // Vrai si le destinataire a déjà été sollicité
-  final String fraudNote;      // Ex. "Clic unique vérifié", "Destinataire déjà invité"
+  final bool
+      isValidatedClick; // Vrai si un clic unique a été confirmé côté serveur
+  final bool isDuplicate; // Vrai si le destinataire a déjà été sollicité
+  final String
+      fraudNote; // Ex. "Clic unique vérifié", "Destinataire déjà invité"
 
   const ReferralRecord({
     required this.id,
@@ -181,7 +183,8 @@ class ReferralNotifier extends StateNotifier<ReferralState> {
             restaurantName: card.restaurantName,
             recipient: recipient,
             timestamp: DateTime.now(),
-            isValidatedClick: true, // Clic unique validé par le système anti-fraude
+            isValidatedClick:
+                true, // Clic unique validé par le système anti-fraude
             isDuplicate: false,
             fraudNote: 'Clic unique validé',
           ),
@@ -207,7 +210,6 @@ class ReferralNotifier extends StateNotifier<ReferralState> {
   }
 }
 
-final referralProvider =
-    StateNotifierProvider<ReferralNotifier, ReferralState>(
+final referralProvider = StateNotifierProvider<ReferralNotifier, ReferralState>(
   (ref) => ReferralNotifier(),
 );

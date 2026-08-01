@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../providers/app_providers.dart';
+import '../../providers/app_startup_provider.dart';
+import '../../features/splash/splash_screen.dart';
 import '../../features/auth/auth_screen.dart';
 import '../../features/auth/otp_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/auth/complete_profile_screen.dart';
 import '../../features/auth/complete_social_profile_screen.dart';
+import '../../features/auth/create_password_screen.dart';
+import '../../features/auth/forgot_password_screen.dart';
+import '../../features/auth/reset_password_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/qr_scan_screen.dart';
 import '../../features/onboarding/join_restaurant_screen.dart';
@@ -13,6 +20,10 @@ import '../../features/card_detail/card_detail_screen.dart';
 import '../../features/rewards/rewards_screen.dart';
 import '../../features/referral/referral_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/profile/personal_info_screen.dart';
+import '../../features/profile/edit_profile_screen.dart';
+import '../../features/profile/verify_current_password_screen.dart';
+import '../../features/profile/set_new_password_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../widgets/shared/app_shell.dart';
 
@@ -32,6 +43,7 @@ OtpScreen _buildOtpScreen(GoRouterState state) {
     otpContext = switch (ctx) {
       'signup' => OtpContext.signup,
       'social' => OtpContext.social,
+      'forgotPassword' => OtpContext.forgotPassword,
       _ => OtpContext.login,
     };
   } else if (extra is String) {
@@ -41,10 +53,81 @@ OtpScreen _buildOtpScreen(GoRouterState state) {
   return OtpScreen(phoneNumber: phone, otpContext: otpContext);
 }
 
-final appRouter = GoRouter(
-  initialLocation: '/onboarding',
-  routes: [
-    // ── Onboarding ───────────────────────────────────────────────────────────
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authProvider, (_, __) => notifyListeners());
+    _ref.listen(appStartupProvider, (_, __) => notifyListeners());
+  }
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final notifier = RouterNotifier(ref);
+
+  return GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: '/splash',
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final startupState = ref.read(appStartupProvider);
+      final authState = ref.read(authProvider);
+
+      final isGoingToSplash = state.uri.path == '/splash';
+      final isGoingToOnboarding = state.uri.path.startsWith('/onboarding');
+      final isGoingToAuth = state.uri.path.startsWith('/auth') ||
+          state.uri.path.startsWith('/login') ||
+          state.uri.path.startsWith('/signup') ||
+          state.uri.path.startsWith('/otp') ||
+          state.uri.path.startsWith('/complete-profile') ||
+          state.uri.path.startsWith('/complete-social-profile') ||
+          state.uri.path.startsWith('/create-password') ||
+          state.uri.path.startsWith('/forgot-password') ||
+          state.uri.path.startsWith('/reset-password');
+
+      // 1. Splash / Loading State
+      if (startupState.isLoading || !startupState.hasValue) {
+        return isGoingToSplash ? null : '/splash';
+      }
+
+      final hasSeenOnboarding = startupState.value?.hasSeenOnboarding ?? false;
+      final isAuthenticated = authState.isAuthenticated;
+
+      // 2. Onboarding flow
+      if (!hasSeenOnboarding) {
+        return isGoingToOnboarding ? null : '/onboarding';
+      }
+
+      // If they try to go to onboarding or splash after they've seen onboarding
+      if (isGoingToOnboarding || isGoingToSplash) {
+        return isAuthenticated ? '/wallet' : '/auth';
+      }
+
+      // 3. Auth flow
+      if (!isAuthenticated) {
+        // Enforce auth
+        if (!isGoingToAuth) {
+          return '/auth';
+        }
+      } else {
+        // Prevent logged-in users from seeing auth screens
+        if (isGoingToAuth) {
+          return '/wallet';
+        }
+      }
+
+      return null; // No redirect
+    },
+    routes: [
+      // ── Splash ───────────────────────────────────────────────────────────────
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+
+      // ── Onboarding ───────────────────────────────────────────────────────────
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
@@ -90,6 +173,52 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/complete-social-profile',
       builder: (context, state) => const CompleteSocialProfileScreen(),
+    ),
+
+    // ── Auth : création de mot de passe ──────────────────────────────────────
+    GoRoute(
+      path: '/create-password',
+      builder: (context, state) => const CreatePasswordScreen(),
+    ),
+
+    // ── Auth : Mot de passe oublié ───────────────────────────────────────────
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return ResetPasswordScreen(
+          accountId: extra['phone'] as String? ?? '',
+          token: extra['token'] as String? ?? '',
+        );
+      },
+    ),
+
+    // ── Profil : sous-pages ──────────────────────────────────────────────────
+    GoRoute(
+      path: '/personal-info',
+      builder: (context, state) => const PersonalInfoScreen(),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      builder: (context, state) {
+        final fieldType = state.extra as EditFieldType;
+        return EditFieldScreen(fieldType: fieldType);
+      },
+    ),
+    GoRoute(
+      path: '/change-password',
+      builder: (context, state) => const VerifyCurrentPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/set-new-password',
+      builder: (context, state) {
+        final currentPassword = state.extra as String? ?? '';
+        return SetNewPasswordScreen(currentPassword: currentPassword);
+      },
     ),
 
     // ── Coquille principale avec bottom tab bar ───────────────────────────────
@@ -162,3 +291,4 @@ final appRouter = GoRouter(
     ),
   ],
 );
+});
