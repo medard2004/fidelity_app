@@ -20,6 +20,25 @@ class RewardsNotifier extends StateNotifier<List<Reward>> {
 
   List<Reward> forCard(String cardId) =>
       state.where((r) => r.cardId == cardId).toList();
+
+  /// Marque une récompense active comme utilisée.
+  void redeem(String id) {
+    state = [
+      for (final r in state)
+        if (r.id == id && r.status == RewardStatus.active)
+          Reward(
+            id: r.id,
+            cardId: r.cardId,
+            restaurantName: r.restaurantName,
+            title: r.title,
+            description: r.description,
+            status: RewardStatus.used,
+            usedAt: DateTime.now(),
+          )
+        else
+          r,
+    ];
+  }
 }
 
 final rewardsProvider = StateNotifierProvider<RewardsNotifier, List<Reward>>(
@@ -45,11 +64,35 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
         if (n.id == id) n.copyWith(isRead: true) else n,
     ];
   }
+
+  void remove(String id) {
+    state = state.where((n) => n.id != id).toList();
+  }
 }
 
 final notificationsProvider =
     StateNotifierProvider<NotificationsNotifier, List<AppNotification>>(
   (ref) => NotificationsNotifier(),
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Préférences de notification par établissement
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Activation des notifications par carte (par défaut activées).
+class NotificationPrefsNotifier extends StateNotifier<Map<String, bool>> {
+  NotificationPrefsNotifier() : super(const {});
+
+  bool isEnabled(String cardId) => state[cardId] ?? true;
+
+  void toggle(String cardId, bool enabled) {
+    state = {...state, cardId: enabled};
+  }
+}
+
+final notificationPrefsProvider =
+    StateNotifierProvider<NotificationPrefsNotifier, Map<String, bool>>(
+  (ref) => NotificationPrefsNotifier(),
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,7 +141,9 @@ class SignupFlowNotifier extends StateNotifier<SignupFlowData> {
     int? age,
   }) {
     final calculatedAge = age ??
-        (birthDate != null ? (DateTime.now().difference(birthDate).inDays ~/ 365) : null);
+        (birthDate != null
+            ? (DateTime.now().difference(birthDate).inDays ~/ 365)
+            : null);
     state = SignupFlowData(
       fullName: fullName,
       age: calculatedAge,
@@ -157,7 +202,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void completeLogin({String phone = ''}) {
     state = AuthState(
       isAuthenticated: true,
-      user: MockData.user.copyWith(phoneNumber: phone.isNotEmpty ? phone : null),
+      user:
+          MockData.user.copyWith(phoneNumber: phone.isNotEmpty ? phone : null),
     );
   }
 
@@ -234,17 +280,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (state.user == null) return;
     final code = _generateReferralCode(fullName);
     state = state.copyWith(
-      user: state.user!.copyWith(
-        fullName: fullName,
-        phoneNumber: phone,
-        birthDate: birthDate,
-        city: city,
-        neighborhood: neighborhood,
-        email: email,
-        profileCompleted: true,
-      ).copyWith(
-        // referralCode ne peut pas être changé via copyWith standard ; on le sette ici via reconstruction.
-      ),
+      user: state.user!
+          .copyWith(
+            fullName: fullName,
+            phoneNumber: phone,
+            birthDate: birthDate,
+            city: city,
+            neighborhood: neighborhood,
+            email: email,
+            profileCompleted: true,
+          )
+          .copyWith(
+              // referralCode ne peut pas être changé via copyWith standard ; on le sette ici via reconstruction.
+              ),
     );
     // Reconstruire avec le referralCode si vide.
     if (state.user!.referralCode.isEmpty) {

@@ -65,7 +65,7 @@ class AppTextStyles {
       GoogleFonts.publicSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
-        color: color.withOpacity(0.7),
+        color: color.withValues(alpha: 0.7),
         height: 1.3,
       );
 
@@ -101,7 +101,7 @@ class AppTextStyles {
       GoogleFonts.ibmPlexMono(
         fontSize: 11,
         fontWeight: FontWeight.w500,
-        color: color.withOpacity(0.75),
+        color: color.withValues(alpha: 0.75),
         letterSpacing: 1.6,
         fontFeatures: const [FontFeature.tabularFigures()],
       );

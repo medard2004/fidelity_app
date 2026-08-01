@@ -59,7 +59,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   void _onCompleted(String code) {
     switch (widget.otpContext) {
       case OtpContext.login:
-        ref.read(authProvider.notifier).completeLogin(phone: widget.phoneNumber);
+        ref
+            .read(authProvider.notifier)
+            .completeLogin(phone: widget.phoneNumber);
         context.go('/wallet');
 
       case OtpContext.signup:
@@ -93,10 +95,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.porcelaine,
         elevation: 0,
-        leading: BackButton(color: AppColors.encre),
+        leading: const BackButton(color: AppColors.encre),
         title: Text(
           contextLabel.toUpperCase(),
-          style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
+          style:
+              AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
             letterSpacing: 2.5,
             fontWeight: FontWeight.w500,
           ),

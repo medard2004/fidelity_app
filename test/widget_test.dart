@@ -35,8 +35,10 @@ void main() {
     await tester.tap(submitBtn);
     await tester.pumpAndSettle();
 
-    // Now we are on the Wallet Dashboard Screen
-    expect(find.text("BONSOIR"), findsOneWidget);
+    // Now we are on the Wallet Dashboard Screen (le message d'accueil varie
+    // selon l'heure du jour, donc on vérifie un texte stable de l'écran).
+    expect(find.text("Vos cartes, réunies. Touchez-en une pour l'ouvrir."),
+        findsOneWidget);
 
     // Tap the first card in the stack
     final cardWidget = find.byType(LoyaltyCardWidget);

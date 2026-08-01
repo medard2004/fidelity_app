@@ -39,20 +39,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   void _continueWithGoogle() {
     ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.google);
     ref.read(authProvider.notifier).completeSocialProfile(
-      fullName: 'John Doe (Google)',
-      phone: '+228 90 00 00 00',
-      birthDate: DateTime(1990, 1, 1),
-    );
+          fullName: 'John Doe (Google)',
+          phone: '+228 90 00 00 00',
+          birthDate: DateTime(1990, 1, 1),
+        );
     context.go('/wallet');
   }
 
   void _continueWithApple() {
     ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.apple);
     ref.read(authProvider.notifier).completeSocialProfile(
-      fullName: 'Jane Doe (Apple)',
-      phone: '+228 91 11 11 11',
-      birthDate: DateTime(1992, 2, 2),
-    );
+          fullName: 'Jane Doe (Apple)',
+          phone: '+228 91 11 11 11',
+          birthDate: DateTime(1992, 2, 2),
+        );
     context.go('/wallet');
   }
 
@@ -179,7 +179,8 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
+        Expanded(
+            child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
@@ -189,7 +190,8 @@ class _Divider extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
+        Expanded(
+            child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
       ],
     );
   }

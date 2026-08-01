@@ -47,7 +47,7 @@ class AppBottomNavBar extends StatelessWidget {
           final item = _navItems[i];
           final active = i == currentIndex;
           final color =
-              active ? AppColors.encre : AppColors.encre.withOpacity(0.4);
+              active ? AppColors.encre : AppColors.encre.withValues(alpha: 0.4);
           return Expanded(
             child: GestureDetector(
               onTap: () => onTap(i),

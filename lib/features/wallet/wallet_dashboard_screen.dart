@@ -12,7 +12,8 @@ class WalletDashboardScreen extends ConsumerStatefulWidget {
   const WalletDashboardScreen({super.key});
 
   @override
-  ConsumerState<WalletDashboardScreen> createState() => _WalletDashboardScreenState();
+  ConsumerState<WalletDashboardScreen> createState() =>
+      _WalletDashboardScreenState();
 }
 
 class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
@@ -57,6 +58,14 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
     });
   }
 
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 5) return 'BONSOIR';
+    if (hour < 12) return 'BONJOUR';
+    if (hour < 18) return 'BON APRÈS-MIDI';
+    return 'BONSOIR';
+  }
+
   List<LoyaltyCard> _filteredCards(List<LoyaltyCard> cards) {
     final query = _searchQuery.trim().toLowerCase();
     if (query.isEmpty) return cards;
@@ -90,10 +99,14 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
         style: AppTextStyles.bodyLarge(color: AppColors.encre),
         decoration: InputDecoration(
           hintText: 'Rechercher une carte ou une enseigne',
-          hintStyle: AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(140)),
-          prefixIcon: Icon(Icons.search_rounded, color: AppColors.encre.withAlpha(191)),
-          prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          hintStyle:
+              AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(140)),
+          prefixIcon:
+              Icon(Icons.search_rounded, color: AppColors.encre.withAlpha(191)),
+          prefixIconConstraints:
+              const BoxConstraints(minWidth: 48, minHeight: 48),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 48, minHeight: 48),
           suffixIcon: _searchQuery.isEmpty
               ? null
               : IconButton(
@@ -101,7 +114,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                   onPressed: _clearSearch,
                 ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
         ),
       ),
     );
@@ -111,7 +125,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
   Widget build(BuildContext context) {
     final cards = ref.watch(walletProvider);
     final auth = ref.watch(authProvider);
-    final unread = ref.watch(notificationsProvider).where((n) => !n.isRead).length;
+    final unread =
+        ref.watch(notificationsProvider).where((n) => !n.isRead).length;
     final firstName = auth.user?.firstName ?? 'vous';
     final filteredCards = _filteredCards(cards);
 
@@ -132,82 +147,111 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'BONSOIR',
-                            style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
-                                .copyWith(letterSpacing: 2.2, fontWeight: FontWeight.w600),
+                            _greeting(),
+                            style: AppTextStyles.monoSmall(
+                                    color: AppColors.laitonBrosse)
+                                .copyWith(
+                                    letterSpacing: 2.2,
+                                    fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 4),
-                          Text(firstName, style: AppTextStyles.displayXL(color: AppColors.encre)),
+                          Text(firstName,
+                              style: AppTextStyles.displayXL(
+                                  color: AppColors.encre)),
                         ],
                       ),
                       Row(
                         children: [
-                          GestureDetector(
-                            onTap: _toggleSearch,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppColors.porcelaine,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.laitonLisere(opacity: 0.18),
-                                  width: 1.1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.encre.withAlpha(8),
-                                    blurRadius: 18,
-                                    offset: const Offset(0, 8),
+                          Semantics(
+                            button: true,
+                            label: _isSearching
+                                ? 'Fermer la recherche'
+                                : 'Rechercher une carte',
+                            child: GestureDetector(
+                              onTap: _toggleSearch,
+                              behavior: HitTestBehavior.opaque,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: AppColors.porcelaine,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color:
+                                        AppColors.laitonLisere(opacity: 0.18),
+                                    width: 1.1,
                                   ),
-                                ],
-                              ),
-                              child: Icon(
-                                _isSearching ? Icons.close_rounded : Icons.search_rounded,
-                                size: 20,
-                                color: AppColors.encre,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.encre.withAlpha(8),
+                                      blurRadius: 18,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  _isSearching
+                                      ? Icons.close_rounded
+                                      : Icons.search_rounded,
+                                  size: 20,
+                                  color: AppColors.encre,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 14),
-                          GestureDetector(
-                            onTap: () => context.push('/notifications'),
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.porcelaine,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: AppColors.laitonLisere(opacity: 0.18),
-                                      width: 1.1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.encre.withAlpha(8),
-                                        blurRadius: 18,
-                                        offset: const Offset(0, 8),
+                          Semantics(
+                            button: true,
+                            label: unread > 0
+                                ? 'Notifications, $unread non lues'
+                                : 'Notifications',
+                            child: GestureDetector(
+                              onTap: () => context.push('/notifications'),
+                              behavior: HitTestBehavior.opaque,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.porcelaine,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppColors.laitonLisere(
+                                            opacity: 0.18),
+                                        width: 1.1,
                                       ),
-                                    ],
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.encre.withAlpha(8),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                        Icons.notifications_none_rounded,
+                                        size: 24,
+                                        color: AppColors.encre),
                                   ),
-                                  child: const Icon(Icons.notifications_none_rounded,
-                                      size: 24, color: AppColors.encre),
-                                ),
-                                if (unread > 0)
-                                  Positioned(
-                                    right: 6,
-                                    top: 6,
-                                    child: Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.laitonBrosse,
-                                        shape: BoxShape.circle,
+                                  if (unread > 0)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.laitonBrosse,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -217,29 +261,39 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                   const SizedBox(height: 24),
                   Text(
                     'Vos cartes, réunies. Touchez-en une pour l\'ouvrir.',
-                    style: AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(217)),
+                    style: AppTextStyles.bodyMedium(
+                        color: AppColors.encre.withAlpha(217)),
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 260),
                     curve: Curves.easeInOut,
                     child: Padding(
                       padding: EdgeInsets.only(top: _isSearching ? 24 : 0),
-                      child: _isSearching ? _buildSearchField() : const SizedBox.shrink(),
+                      child: _isSearching
+                          ? _buildSearchField()
+                          : const SizedBox.shrink(),
                     ),
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-                child: filteredCards.isEmpty
-                    ? _buildEmptyState(cards.isEmpty)
-                    : LoyaltyCardStack(
-                        cards: filteredCards,
-                        onCardTap: (card) => context.push('/card/${card.id}'),
-                      ),
+              child: RefreshIndicator(
+                color: AppColors.laitonBrosse,
+                backgroundColor: AppColors.porcelaine,
+                onRefresh: () =>
+                    Future.delayed(const Duration(milliseconds: 700)),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+                  child: filteredCards.isEmpty
+                      ? _buildEmptyState(cards.isEmpty)
+                      : LoyaltyCardStack(
+                          cards: filteredCards,
+                          onCardTap: (card) => context.push('/card/${card.id}'),
+                        ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -264,7 +318,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
             ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.qr_code_scanner_outlined, color: AppColors.encre, size: 26),
+            icon: const Icon(Icons.qr_code_scanner_outlined,
+                color: AppColors.encre, size: 26),
             onPressed: () => context.push('/onboarding/scan'),
           ),
         ),
@@ -281,14 +336,16 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
         children: [
-          const Icon(Icons.search_off_rounded, size: 40, color: AppColors.laitonBrosse),
+          const Icon(Icons.search_off_rounded,
+              size: 40, color: AppColors.laitonBrosse),
           const SizedBox(height: 16),
           Text('Aucune carte trouvée', style: AppTextStyles.displayMedium()),
           const SizedBox(height: 8),
           Text(
             'Essayez un autre nom ou une autre enseigne.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
+            style:
+                AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
           ),
         ],
       ),
@@ -306,14 +363,17 @@ class _EmptyWallet extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
         children: [
-          const Icon(Icons.style_outlined, size: 40, color: AppColors.laitonBrosse),
+          const Icon(Icons.style_outlined,
+              size: 40, color: AppColors.laitonBrosse),
           const SizedBox(height: 16),
-          Text('Aucune carte pour l\'instant', style: AppTextStyles.displayMedium()),
+          Text('Aucune carte pour l\'instant',
+              style: AppTextStyles.displayMedium()),
           const SizedBox(height: 8),
           Text(
             'Scannez votre premier QR pour commencer votre collection',
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
+            style:
+                AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
           ),
         ],
       ),

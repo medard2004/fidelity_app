@@ -20,7 +20,8 @@ class CountryInfo {
 const List<CountryInfo> kCountries = [
   CountryInfo(name: 'Togo', code: 'TG', dialCode: '+228', flag: '🇹🇬'),
   CountryInfo(name: 'France', code: 'FR', dialCode: '+33', flag: '🇫🇷'),
-  CountryInfo(name: 'Côte d\'Ivoire', code: 'CI', dialCode: '+225', flag: '🇨🇮'),
+  CountryInfo(
+      name: 'Côte d\'Ivoire', code: 'CI', dialCode: '+225', flag: '🇨🇮'),
   CountryInfo(name: 'Sénégal', code: 'SN', dialCode: '+221', flag: '🇸🇳'),
   CountryInfo(name: 'Bénin', code: 'BJ', dialCode: '+229', flag: '🇧🇯'),
   CountryInfo(name: 'Cameroun', code: 'CM', dialCode: '+237', flag: '🇨🇲'),
@@ -268,8 +269,8 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                   prefixIcon: const Icon(Icons.search, size: 18),
                   filled: true,
                   fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -294,8 +295,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
 
                     return ListTile(
                       dense: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                       leading: Text(
                         country.flag,
                         style: const TextStyle(fontSize: 22),
@@ -307,9 +307,8 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                               ? AppColors.vertBouteille
                               : AppColors.encre,
                         ).copyWith(
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.w400,
                         ),
                       ),
                       trailing: Text(

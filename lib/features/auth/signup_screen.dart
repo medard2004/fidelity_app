@@ -35,8 +35,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final fullPhone =
-        _phoneInputKey.currentState?.fullPhoneNumber ?? _phoneController.text.trim();
+    final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
+        _phoneController.text.trim();
 
     ref.read(signupFlowProvider.notifier).startPhoneSignup(
           fullName: _fullNameController.text.trim(),
@@ -55,13 +55,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   void _continueWithGoogle() {
-    ref.read(signupFlowProvider.notifier).startSocialSignup(provider: AuthProvider.google);
+    ref
+        .read(signupFlowProvider.notifier)
+        .startSocialSignup(provider: AuthProvider.google);
     ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.google);
     context.go('/complete-social-profile');
   }
 
   void _continueWithApple() {
-    ref.read(signupFlowProvider.notifier).startSocialSignup(provider: AuthProvider.apple);
+    ref
+        .read(signupFlowProvider.notifier)
+        .startSocialSignup(provider: AuthProvider.apple);
     ref.read(authProvider.notifier).completeSocialLogin(AuthProvider.apple);
     context.go('/complete-social-profile');
   }
@@ -97,7 +101,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       const SizedBox(height: 20),
 
                       // ── 1. Nom complet ──────────────────────────────────
-                      _Label('Nom complet'),
+                      const _Label('Nom complet'),
                       const SizedBox(height: 6),
                       _Field(
                         controller: _fullNameController,
@@ -111,7 +115,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       const SizedBox(height: 14),
 
                       // ── 2. Date de naissance ────────────────────────────
-                      _Label('Date de naissance'),
+                      const _Label('Date de naissance'),
                       const SizedBox(height: 6),
                       _DatePickerField(
                         value: _birthDate,
@@ -124,7 +128,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       const SizedBox(height: 14),
 
                       // ── 3. Numéro de téléphone avec indicateur pays ──────
-                      _Label('Numéro de téléphone'),
+                      const _Label('Numéro de téléphone'),
                       const SizedBox(height: 6),
                       PhoneInputWithCountryPicker(
                         key: _phoneInputKey,
@@ -378,8 +382,7 @@ class _DatePickerField extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 6, left: 4),
                 child: Text(
                   state.errorText!,
-                  style: const TextStyle(
-                      color: Colors.redAccent, fontSize: 12),
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                 ),
               ),
           ],

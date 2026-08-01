@@ -55,7 +55,16 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/onboarding/join',
-      builder: (context, state) => const JoinRestaurantScreen(),
+      builder: (context, state) {
+        final extra = state.extra;
+        String? code;
+        if (extra is Map<String, dynamic>) {
+          code = extra['code'] as String?;
+        } else if (extra is String) {
+          code = extra;
+        }
+        return JoinRestaurantScreen(scannedCode: code);
+      },
     ),
 
     // ── Auth : connexion ─────────────────────────────────────────────────────
@@ -136,6 +145,7 @@ final appRouter = GoRouter(
               child: child,
               builder: (context, child) {
                 final t = curved.value;
+                final s = 0.92 + 0.08 * t;
                 final perspective = Matrix4.identity()
                   ..setEntry(3, 2, 0.0009)
                   ..rotateX((1 - t) * -0.35);
@@ -143,8 +153,7 @@ final appRouter = GoRouter(
                   opacity: t.clamp(0, 1),
                   child: Transform(
                     alignment: Alignment.center,
-                    transform: perspective
-                      ..scale(0.92 + 0.08 * t, 0.92 + 0.08 * t, 1.0),
+                    transform: perspective..scaleByDouble(s, s, 1.0, 1.0),
                     child: child,
                   ),
                 );

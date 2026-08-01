@@ -23,7 +23,6 @@ class MockData {
         profileCompleted: true,
       );
 
-
   static List<LoyaltyCard> get cards => [
         const LoyaltyCard(
           id: 'card_comptoir',
@@ -88,7 +87,7 @@ class MockData {
           status: RewardStatus.active,
           expiresAt: DateTime.now().add(const Duration(days: 21)),
         ),
-        Reward(
+        const Reward(
           id: 'rw3',
           cardId: 'card_sunset',
           restaurantName: 'SUNSET LOUNGE',
@@ -97,7 +96,7 @@ class MockData {
           status: RewardStatus.locked,
           lockedCondition: '5 000 FCFA de cashback',
         ),
-        Reward(
+        const Reward(
           id: 'rw4',
           cardId: 'card_macbouffe',
           restaurantName: 'MAC BOUFFE',
@@ -125,6 +124,33 @@ class MockData {
           usedAt: DateTime(2026, 8, 20),
         ),
       ];
+
+  /// Établissements partenaires "découvrables" via scan QR (pas encore dans
+  /// le portefeuille de l'utilisateur). En l'absence de backend, la mise en
+  /// correspondance code scanné → restaurant est simulée ici.
+  static const List<LoyaltyCard> joinableRestaurants = [
+    LoyaltyCard(
+      id: 'card_jardin_dore',
+      restaurantName: 'Le Jardin Doré',
+      restaurantCategory: 'BRUNCH & PÂTISSERIE',
+      mechanic: LoyaltyMechanic.stamps,
+      liningColor: Color(0xFF607B6E),
+      stampsCurrent: 1,
+      stampsGoal: 8,
+      fallbackId: 'JARDIN-2024',
+      welcomeOffer: 'Un dessert offert à votre 3e visite',
+    ),
+  ];
+
+  /// Recherche un établissement partenaire par code scanné/saisi
+  /// (insensible à la casse et aux espaces).
+  static LoyaltyCard? findJoinableByCode(String rawCode) {
+    final normalized = rawCode.trim().toUpperCase();
+    for (final card in joinableRestaurants) {
+      if (card.fallbackId.toUpperCase() == normalized) return card;
+    }
+    return null;
+  }
 
   static List<AppNotification> get notifications => [
         AppNotification(

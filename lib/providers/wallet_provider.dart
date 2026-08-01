@@ -49,8 +49,7 @@ class WalletNotifier extends StateNotifier<List<LoyaltyCard>> {
   }
 }
 
-final walletProvider =
-    StateNotifierProvider<WalletNotifier, List<LoyaltyCard>>(
+final walletProvider = StateNotifierProvider<WalletNotifier, List<LoyaltyCard>>(
   (ref) => WalletNotifier(),
 );
 

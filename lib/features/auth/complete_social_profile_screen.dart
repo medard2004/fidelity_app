@@ -38,8 +38,8 @@ class _CompleteSocialProfileScreenState
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final fullPhone =
-        _phoneInputKey.currentState?.fullPhoneNumber ?? _phoneController.text.trim();
+    final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
+        _phoneController.text.trim();
 
     ref.read(authProvider.notifier).completeSocialProfile(
           fullName: _fullNameController.text.trim(),
@@ -83,7 +83,7 @@ class _CompleteSocialProfileScreenState
                       const SizedBox(height: 20),
 
                       // ── 1. Nom complet ────────────────────────────────────
-                      _Label('Nom complet'),
+                      const _Label('Nom complet'),
                       const SizedBox(height: 6),
                       _Field(
                         controller: _fullNameController,
@@ -97,7 +97,7 @@ class _CompleteSocialProfileScreenState
                       const SizedBox(height: 16),
 
                       // ── 2. Numéro de téléphone avec indicateur pays ───────
-                      _Label('Numéro de téléphone'),
+                      const _Label('Numéro de téléphone'),
                       const SizedBox(height: 6),
                       PhoneInputWithCountryPicker(
                         key: _phoneInputKey,
@@ -110,7 +110,7 @@ class _CompleteSocialProfileScreenState
                       const SizedBox(height: 16),
 
                       // ── 3. Date de naissance / anniversaire ──────────────
-                      _Label('Date de naissance'),
+                      const _Label('Date de naissance'),
                       const SizedBox(height: 6),
                       _DatePickerField(
                         value: _birthDate,
@@ -293,8 +293,7 @@ class _DatePickerField extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 6, left: 4),
                 child: Text(
                   state.errorText!,
-                  style: const TextStyle(
-                      color: Colors.redAccent, fontSize: 12),
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                 ),
               ),
           ],

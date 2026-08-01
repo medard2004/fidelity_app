@@ -16,7 +16,7 @@ class LoyaltyCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = _isDark ? AppColors.porcelaine : AppColors.encre;
-    final subtextColor = textColor.withOpacity(0.75);
+    final subtextColor = textColor.withValues(alpha: 0.75);
 
     return Container(
       height: height,
@@ -26,7 +26,7 @@ class LoyaltyCardWidget extends StatelessWidget {
         border: Border.all(
           color: _isDark
               ? AppColors.laitonLisere(opacity: 0.3)
-              : AppColors.encre.withOpacity(0.1),
+              : AppColors.encre.withValues(alpha: 0.1),
           width: 1,
         ),
         boxShadow: [
@@ -59,28 +59,29 @@ class LoyaltyCardWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      card.fallbackId,
-                      style: AppTextStyles.monoSmall(color: subtextColor)
-                          .copyWith(letterSpacing: 1.5),
+                    Flexible(
+                      child: Text(
+                        card.fallbackId,
+                        style: AppTextStyles.monoSmall(color: subtextColor)
+                            .copyWith(letterSpacing: 1.5),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
 
                 // Titre principal du restaurant
-                if (card.restaurantName != 'Bistrot de Quartier')
-                  Text(
-                    card.restaurantName,
-                    style: AppTextStyles.displayLarge(color: textColor).copyWith(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                else
-                  const SizedBox.shrink(),
+                Text(
+                  card.restaurantName,
+                  style: AppTextStyles.displayLarge(color: textColor).copyWith(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
 
                 const Spacer(flex: 5),
 
@@ -101,15 +102,21 @@ class LoyaltyCardWidget extends StatelessWidget {
         children: [
           Text(
             'STATUT',
-            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+            style: AppTextStyles.monoSmall(
+                color: textColor.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 6),
           Container(
-            width: 48,
-            height: 24,
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.laitonBrosse,
               borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              card.vipTier.label.toUpperCase(),
+              style: AppTextStyles.monoSmall(color: AppColors.porcelaine)
+                  .copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -120,7 +127,8 @@ class LoyaltyCardWidget extends StatelessWidget {
         children: [
           Text(
             'CASHBACK',
-            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+            style: AppTextStyles.monoSmall(
+                color: textColor.withValues(alpha: 0.7)),
           ),
           Text(
             '${card.cashbackBalanceFcfa} FCFA',
@@ -134,7 +142,8 @@ class LoyaltyCardWidget extends StatelessWidget {
         children: [
           Text(
             'SOLDE',
-            style: AppTextStyles.monoSmall(color: textColor.withOpacity(0.7)),
+            style: AppTextStyles.monoSmall(
+                color: textColor.withValues(alpha: 0.7)),
           ),
           Text(
             '${card.pointsBalance} PTS',
@@ -147,5 +156,3 @@ class LoyaltyCardWidget extends StatelessWidget {
     return const SizedBox.shrink();
   }
 }
-
-

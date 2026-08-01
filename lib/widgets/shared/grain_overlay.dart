@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 /// Overlay de grain très subtil (opacité 2-3%) pour éviter l'aplat
@@ -29,8 +28,6 @@ class GrainOverlay extends StatelessWidget {
 }
 
 class _GrainPainter extends CustomPainter {
-  static ui.Image? _cached;
-
   @override
   void paint(Canvas canvas, Size size) {
     final rnd = Random(7);

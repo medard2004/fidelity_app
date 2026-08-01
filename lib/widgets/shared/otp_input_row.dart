@@ -82,104 +82,117 @@ class _OtpInputRowState extends State<OtpInputRow> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(6, (i) {
-        final active = i == _activeIndex;
-        return AnimatedContainer(
-          width: 48,
-          height: 60,
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          decoration: BoxDecoration(
-            gradient: active
-                ? LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.porcelaine,
-                      AppColors.saugePale.withAlpha(220),
-                    ],
-                  )
-                : null,
-            color: active
-                ? AppColors.porcelaine
-                : AppColors.saugePale.withAlpha(180),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: active
-                  ? AppColors.laitonBrosse
-                  : AppColors.laitonLisere(opacity: 0.36),
-              width: active ? 1.7 : 1.05,
-            ),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                      color: AppColors.ombreChaude(opacity: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // ── Chiffre centré ─────────────────────────────────────────
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _controllers[i],
-                builder: (_, value, __) {
-                  return Center(
-                    child: Text(
-                      value.text,
-                      style: AppTextStyles.monoLarge(
-                        color: AppColors.encre,
-                      ).copyWith(
-                        fontSize: 22,
-                        height: 1,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              // ── TextField transparent qui capte la saisie ──────────────
-              TextField(
-                controller: _controllers[i],
-                focusNode: _focusNodes[i],
-                onTap: () => _setActiveIndex(i),
-                onChanged: (v) => _onChanged(i, v),
-                textAlign: TextAlign.center,
-                textAlignVertical: TextAlignVertical.center,
-                keyboardType: TextInputType.number,
-                textInputAction:
-                    i == 5 ? TextInputAction.done : TextInputAction.next,
-                maxLength: 1,
-                cursorColor: Colors.transparent,
-                cursorWidth: 0,
-                showCursor: false,
-                enableInteractiveSelection: true,
-                selectionControls: MaterialTextSelectionControls(),
-                // Texte rendu invisible — on affiche le ValueListenableBuilder au-dessus.
-                style: const TextStyle(color: Colors.transparent, fontSize: 22),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(1),
-                ],
-                decoration: const InputDecoration(
-                  counterText: '',
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  isDense: false,
-                  contentPadding: EdgeInsets.zero,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Largeur des cases dérivée de l'espace disponible : évite tout
+        // débordement sur les petits écrans (iPhone SE, ~375px et moins)
+        // tout en plafonnant à 48px sur les écrans plus larges.
+        const spacing = 8.0;
+        final boxWidth =
+            ((constraints.maxWidth - spacing * 5) / 6).clamp(38.0, 48.0);
+        final boxHeight = boxWidth * (60 / 48);
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(6, (i) {
+            final active = i == _activeIndex;
+            return AnimatedContainer(
+              width: boxWidth,
+              height: boxHeight,
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                gradient: active
+                    ? LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.porcelaine,
+                          AppColors.saugePale.withAlpha(220),
+                        ],
+                      )
+                    : null,
+                color: active
+                    ? AppColors.porcelaine
+                    : AppColors.saugePale.withAlpha(180),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: active
+                      ? AppColors.laitonBrosse
+                      : AppColors.laitonLisere(opacity: 0.36),
+                  width: active ? 1.7 : 1.05,
                 ),
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: AppColors.ombreChaude(opacity: 0.08),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ]
+                    : null,
               ),
-            ],
-          ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // ── Chiffre centré ─────────────────────────────────────────
+                  ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _controllers[i],
+                    builder: (_, value, __) {
+                      return Center(
+                        child: Text(
+                          value.text,
+                          style: AppTextStyles.monoLarge(
+                            color: AppColors.encre,
+                          ).copyWith(
+                            fontSize: 22,
+                            height: 1,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // ── TextField transparent qui capte la saisie ──────────────
+                  TextField(
+                    controller: _controllers[i],
+                    focusNode: _focusNodes[i],
+                    onTap: () => _setActiveIndex(i),
+                    onChanged: (v) => _onChanged(i, v),
+                    textAlign: TextAlign.center,
+                    textAlignVertical: TextAlignVertical.center,
+                    keyboardType: TextInputType.number,
+                    textInputAction:
+                        i == 5 ? TextInputAction.done : TextInputAction.next,
+                    maxLength: 1,
+                    cursorColor: Colors.transparent,
+                    cursorWidth: 0,
+                    showCursor: false,
+                    enableInteractiveSelection: true,
+                    selectionControls: MaterialTextSelectionControls(),
+                    // Texte rendu invisible — on affiche le ValueListenableBuilder au-dessus.
+                    style: const TextStyle(
+                        color: Colors.transparent, fontSize: 22),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(1),
+                    ],
+                    decoration: const InputDecoration(
+                      counterText: '',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: false,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 }

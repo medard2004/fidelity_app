@@ -44,7 +44,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.saugePale.withOpacity(0.5),
+        fillColor: AppColors.saugePale.withValues(alpha: 0.5),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -59,7 +59,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 1)),
         ),
-        hintStyle: AppTextStyles.bodyMedium(color: AppColors.encre.withOpacity(0.4)),
+        hintStyle: AppTextStyles.bodyMedium(
+            color: AppColors.encre.withValues(alpha: 0.4)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

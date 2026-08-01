@@ -55,7 +55,8 @@ class _InvitationButtonState extends State<InvitationButton> {
                 : Border.all(color: AppColors.laitonLisere(opacity: 0.55)),
           ),
           child: Row(
-            mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisSize:
+                widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (widget.leading != null || widget.icon != null) ...[
@@ -88,8 +89,10 @@ class DiscreetTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onTap,
-      style: TextButton.styleFrom(foregroundColor: color.withOpacity(0.6)),
-      child: Text(label, style: AppTextStyles.bodyMedium(color: color.withOpacity(0.6))),
+      style:
+          TextButton.styleFrom(foregroundColor: color.withValues(alpha: 0.6)),
+      child: Text(label,
+          style: AppTextStyles.bodyMedium(color: color.withValues(alpha: 0.6))),
     );
   }
 }

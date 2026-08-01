@@ -4,11 +4,15 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
+import '../../data/mock_data.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 
 class JoinRestaurantScreen extends ConsumerStatefulWidget {
-  const JoinRestaurantScreen({super.key});
+  /// Code scanné (ou saisi manuellement) sur l'écran précédent.
+  final String? scannedCode;
+
+  const JoinRestaurantScreen({super.key, this.scannedCode});
 
   @override
   ConsumerState<JoinRestaurantScreen> createState() =>
@@ -19,31 +23,29 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
     with SingleTickerProviderStateMixin {
   bool _joining = false;
 
-  // ── Carte démo : Le Comptoir (reproduit fidèlement la maquette) ──────────
-  static const _demoCard = LoyaltyCard(
-    id: 'card_new_demo',
-    restaurantName: 'Le Comptoir',
-    restaurantCategory: 'Bistrot de quartier · Cocody',
-    mechanic: LoyaltyMechanic.stamps,
-    liningColor: Color(0xFF607B6E), // vert sauge foncé — fond dégradé haut
-    stampsCurrent: 1,
-    stampsGoal: 8,
-    fallbackId: 'AWA-90031',
-    welcomeOffer: 'Un dessert offert à votre 3e visite',
-  );
-
   // Détail de l'offre affiché sous l'offre principale.
   static const _offerDetail = 'Cumulez 10 tampons pour un menu entier offert.';
 
-  Future<void> _join() async {
+  Future<void> _join(LoyaltyCard card) async {
     setState(() => _joining = true);
     await Future.delayed(const Duration(milliseconds: 800));
-    ref.read(walletProvider.notifier).joinRestaurant(_demoCard);
+    ref.read(walletProvider.notifier).joinRestaurant(card);
     if (mounted) context.go('/wallet');
   }
 
   @override
   Widget build(BuildContext context) {
+    final code = widget.scannedCode;
+    final card = code != null ? MockData.findJoinableByCode(code) : null;
+
+    if (code != null && card == null) {
+      return _UnrecognizedCodeScreen(code: code);
+    }
+
+    // Repli si l'écran est atteint sans code (ex. navigation directe) :
+    // propose le seul établissement démo découvrable.
+    final resolvedCard = card ?? MockData.joinableRestaurants.first;
+
     return Scaffold(
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 600),
@@ -60,13 +62,77 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
           ),
         ),
         child: _joining
-            ? _CardRevealScreen(key: const ValueKey('reveal'), card: _demoCard)
+            ? _CardRevealScreen(
+                key: const ValueKey('reveal'), card: resolvedCard)
             : _JoinScreen(
                 key: const ValueKey('join'),
-                card: _demoCard,
+                card: resolvedCard,
                 offerDetail: _offerDetail,
-                onJoin: _join,
+                onJoin: () => _join(resolvedCard),
               ),
+      ),
+    );
+  }
+}
+
+/// Écran affiché quand le code scanné/saisi ne correspond à aucun
+/// établissement partenaire connu.
+class _UnrecognizedCodeScreen extends StatelessWidget {
+  final String code;
+  const _UnrecognizedCodeScreen({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.porcelaine,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.qr_code_2_outlined,
+                    size: 40, color: AppColors.laitonBrosse),
+                const SizedBox(height: 16),
+                Text('Code non reconnu', style: AppTextStyles.displayMedium()),
+                const SizedBox(height: 8),
+                Text(
+                  '« $code » ne correspond à aucun établissement partenaire de Carte pour le moment.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium(
+                    color: AppColors.encre.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => context.go('/onboarding/scan'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.vertBouteille,
+                      foregroundColor: AppColors.porcelaine,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Réessayer un scan'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => context.go('/wallet'),
+                  child: Text(
+                    'Retour au portefeuille',
+                    style: AppTextStyles.label(
+                        color: AppColors.encre.withValues(alpha: 0.6)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -106,7 +172,8 @@ class _JoinScreenState extends State<_JoinScreen>
       duration: const Duration(milliseconds: 700),
     )..forward();
 
-    _fade = CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.7, curve: Curves.easeOut));
+    _fade = CurvedAnimation(
+        parent: _ctrl, curve: const Interval(0, 0.7, curve: Curves.easeOut));
     _slide = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
@@ -178,7 +245,7 @@ class _JoinScreenState extends State<_JoinScreen>
                       Text(
                         widget.card.restaurantCategory,
                         style: AppTextStyles.bodyMedium(
-                          color: AppColors.encre.withOpacity(0.7),
+                          color: AppColors.encre.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -212,12 +279,12 @@ class _JoinScreenState extends State<_JoinScreen>
                       color: AppColors.porcelaine,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.laitonBrosse.withOpacity(0.35),
+                        color: AppColors.laitonBrosse.withValues(alpha: 0.35),
                         width: 1.0,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.encre.withOpacity(0.06),
+                          color: AppColors.encre.withValues(alpha: 0.06),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -240,7 +307,8 @@ class _JoinScreenState extends State<_JoinScreen>
                         // Titre de l'offre — serif élégant
                         Text(
                           widget.card.welcomeOffer,
-                          style: AppTextStyles.displayMedium(color: AppColors.encre)
+                          style: AppTextStyles.displayMedium(
+                                  color: AppColors.encre)
                               .copyWith(height: 1.2),
                         ),
                         const SizedBox(height: 10),
@@ -248,7 +316,7 @@ class _JoinScreenState extends State<_JoinScreen>
                         Text(
                           widget.offerDetail,
                           style: AppTextStyles.bodyMedium(
-                            color: AppColors.encre.withOpacity(0.65),
+                            color: AppColors.encre.withValues(alpha: 0.65),
                           ).copyWith(height: 1.5),
                         ),
                       ],
@@ -355,7 +423,8 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
     _scale = Tween<double>(begin: 0.88, end: 1.0).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut),
     );
-    _fade = CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.5, curve: Curves.easeOut));
+    _fade = CurvedAnimation(
+        parent: _ctrl, curve: const Interval(0, 0.5, curve: Curves.easeOut));
     _slide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
         .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
@@ -391,12 +460,13 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
                           color: widget.card.liningColor,
                           borderRadius: BorderRadius.circular(AppRadius.card),
                           border: Border.all(
-                            color: AppColors.laitonBrosse.withOpacity(0.5),
+                            color:
+                                AppColors.laitonBrosse.withValues(alpha: 0.5),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.encre.withOpacity(0.15),
+                              color: AppColors.encre.withValues(alpha: 0.15),
                               blurRadius: 30,
                               offset: const Offset(0, 12),
                             ),
@@ -418,7 +488,8 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
                               Text(
                                 widget.card.restaurantName,
                                 style: AppTextStyles.bodyMedium(
-                                  color: AppColors.porcelaine.withOpacity(0.75),
+                                  color: AppColors.porcelaine
+                                      .withValues(alpha: 0.75),
                                 ),
                               ),
                             ],

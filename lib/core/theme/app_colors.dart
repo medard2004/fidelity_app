@@ -28,18 +28,21 @@ class AppColors {
 
   /// Liseré laiton à faible opacité pour les bordures fines (1px).
   static Color laitonLisere({double opacity = 0.55}) =>
-      laitonBrosse.withOpacity(opacity);
+      laitonBrosse.withValues(alpha: opacity);
 
   /// Ombre portée chaude — jamais un gris froid.
   static Color ombreChaude({double opacity = 0.14}) =>
-      encre.withOpacity(opacity);
+      encre.withValues(alpha: opacity);
 
   /// Fond du desktop / device frame — porcelaine légèrement assombrie.
   static const Color porcelaineAssombrie = Color(0xFFEAE6DA);
 
   /// Doublures désaturées par établissement (exemples de démonstration).
-  static const Color doublureComptoir = Color(0xFF2E3B33); // vert profond feutré
-  static const Color doublurePalais = Color(0xFFEDEADF); // reste porcelaine/sauge
-  static const Color doublureSunset = Color(0xFF1D3A2C); // vert bouteille soutenu
+  static const Color doublureComptoir =
+      Color(0xFF2E3B33); // vert profond feutré
+  static const Color doublurePalais =
+      Color(0xFFEDEADF); // reste porcelaine/sauge
+  static const Color doublureSunset =
+      Color(0xFF1D3A2C); // vert bouteille soutenu
   static const Color doublureMacBouffe = Color(0xFF3A2C24); // brun feutré
 }

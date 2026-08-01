@@ -64,7 +64,7 @@ class AppUser {
 
   /// Texte de membre depuis la date d'inscription.
   String get memberSince {
-    final locale = 'fr_FR';
+    const locale = 'fr_FR';
     return 'Depuis ${DateFormat('MMMM yyyy', locale).format(joinDate)}';
   }
 
@@ -86,7 +86,11 @@ class AppUser {
       id: id,
       // Si `fullName` est fourni, on le prend directement.
       // Si seulement `firstName` est fourni (compatibilité), on substitue.
-      fullName: fullName ?? (firstName != null ? '$firstName ${this.fullName.split(' ').skip(1).join(' ')}'.trim() : this.fullName),
+      fullName: fullName ??
+          (firstName != null
+              ? '$firstName ${this.fullName.split(' ').skip(1).join(' ')}'
+                  .trim()
+              : this.fullName),
       phoneNumber: phoneNumber ?? this.phoneNumber,
       age: age ?? this.age,
       birthDate: birthDate ?? this.birthDate,

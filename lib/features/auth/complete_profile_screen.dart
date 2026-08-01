@@ -90,12 +90,13 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               const SizedBox(height: 20),
 
               // ── Titre (22px) ───────────────────────────────────────────────
-              Text('Complétez votre profil', style: AppTextStyles.displayMedium()),
+              Text('Complétez votre profil',
+                  style: AppTextStyles.displayMedium()),
 
               const SizedBox(height: 20),
 
               // ── 1. Nom complet ─────────────────────────────────────────────
-              _SectionLabel('Nom complet'),
+              const _SectionLabel('Nom complet'),
               const SizedBox(height: 6),
               _StyledField(
                 controller: _fullNameController,
@@ -106,7 +107,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               const SizedBox(height: 16),
 
               // ── 2. Date de naissance / anniversaire ───────────────────────
-              _SectionLabel('Date de naissance'),
+              const _SectionLabel('Date de naissance'),
               const SizedBox(height: 6),
               _DatePickerField(
                 value: _birthDate,
@@ -118,7 +119,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               // ── 3. Email ───────────────────────────────────────────────────
               Row(
                 children: [
-                  _SectionLabel('Email'),
+                  const _SectionLabel('Email'),
                   const SizedBox(width: 8),
                   Container(
                     padding:
@@ -207,8 +208,8 @@ class _StyledField extends StatelessWidget {
       style: AppTextStyles.bodyMedium(),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle:
-            AppTextStyles.bodyMedium(color: AppColors.encre.withValues(alpha: 0.35)),
+        hintStyle: AppTextStyles.bodyMedium(
+            color: AppColors.encre.withValues(alpha: 0.35)),
         filled: true,
         fillColor: AppColors.saugePale.withValues(alpha: 0.4),
         contentPadding:

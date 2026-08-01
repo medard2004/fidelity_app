@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/shared/brass_bordered_container.dart';
@@ -15,7 +16,8 @@ import '../../widgets/shared/phone_input_with_country_picker.dart';
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  void _openEditProfileModal(BuildContext context, WidgetRef ref, user) {
+  void _openEditProfileModal(
+      BuildContext context, WidgetRef ref, AppUser user) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.porcelaine,
@@ -85,9 +87,42 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(authProvider).user;
     final cards = ref.watch(walletProvider);
     final rewards = ref.watch(rewardsProvider);
-    final unreadNotifs = ref.watch(notificationsProvider.notifier).unreadCount;
+    final unreadNotifs =
+        ref.watch(notificationsProvider).where((n) => !n.isRead).length;
 
-    if (user == null) return const SizedBox.shrink();
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.porcelaine,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.person_outline,
+                    size: 40, color: AppColors.laitonBrosse),
+                const SizedBox(height: 16),
+                Text('Vous n\'êtes pas connecté',
+                    style: AppTextStyles.displayMedium()),
+                const SizedBox(height: 8),
+                Text(
+                  'Connectez-vous pour accéder à votre profil.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium(
+                      color: AppColors.encre.withValues(alpha: 0.6)),
+                ),
+                const SizedBox(height: 20),
+                InvitationButton(
+                  label: 'Se connecter',
+                  filled: true,
+                  onTap: () => context.go('/auth'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     final titleStyle = GoogleFonts.bodoniModa(
       fontSize: 25,
@@ -123,48 +158,56 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   // Bouton Notification uniforme avec badge
-                  GestureDetector(
-                    onTap: () => context.push('/notifications'),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.porcelaine,
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: AppColors.laitonLisere(opacity: 0.35),
+                  Semantics(
+                    button: true,
+                    label: unreadNotifs > 0
+                        ? 'Notifications, $unreadNotifs non lues'
+                        : 'Notifications',
+                    child: GestureDetector(
+                      onTap: () => context.push('/notifications'),
+                      behavior: HitTestBehavior.opaque,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.porcelaine,
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: AppColors.laitonLisere(opacity: 0.35),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.notifications_none,
+                              color: AppColors.encre,
+                              size: 20,
                             ),
                           ),
-                          child: const Icon(
-                            Icons.notifications_none,
-                            color: AppColors.encre,
-                            size: 20,
-                          ),
-                        ),
-                        if (unreadNotifs > 0)
-                          Positioned(
-                            top: -2,
-                            right: -2,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: AppColors.bordeauxProfond,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '$unreadNotifs',
-                                style: const TextStyle(
-                                  color: AppColors.porcelaine,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
+                          if (unreadNotifs > 0)
+                            Positioned(
+                              top: 2,
+                              right: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.bordeauxProfond,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '$unreadNotifs',
+                                  style: const TextStyle(
+                                    color: AppColors.porcelaine,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -361,7 +404,7 @@ class ProfileScreen extends ConsumerWidget {
                   ],
 
                   // Section Informations Personnelles
-                  _SectionHeader(title: 'INFORMATIONS PERSONNELLES'),
+                  const _SectionHeader(title: 'INFORMATIONS PERSONNELLES'),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
@@ -411,7 +454,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
 
                   // Section Parrainage
-                  _SectionHeader(title: 'PARRAINAGE EXCLUSIF'),
+                  const _SectionHeader(title: 'PARRAINAGE EXCLUSIF'),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -493,7 +536,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
 
                   // Section Notifications par Restaurant
-                  _SectionHeader(title: 'PREFERENCES DE NOTIFICATION'),
+                  const _SectionHeader(title: 'PREFERENCES DE NOTIFICATION'),
                   const SizedBox(height: 8),
                   Container(
                     padding:
@@ -508,8 +551,10 @@ class ProfileScreen extends ConsumerWidget {
                     child: Column(
                       children: cards
                           .map<Widget>(
-                            (card) =>
-                                _NotifToggleRow(name: card.restaurantName),
+                            (card) => _NotifToggleRow(
+                              cardId: card.id,
+                              name: card.restaurantName,
+                            ),
                           )
                           .toList(),
                     ),
@@ -550,7 +595,7 @@ class ProfileScreen extends ConsumerWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _EditProfileModal extends StatefulWidget {
-  final dynamic user;
+  final AppUser user;
   const _EditProfileModal({required this.user});
 
   @override
@@ -901,19 +946,15 @@ class _ItemDivider extends StatelessWidget {
   }
 }
 
-class _NotifToggleRow extends StatefulWidget {
+class _NotifToggleRow extends ConsumerWidget {
+  final String cardId;
   final String name;
-  const _NotifToggleRow({required this.name});
+  const _NotifToggleRow({required this.cardId, required this.name});
 
   @override
-  State<_NotifToggleRow> createState() => _NotifToggleRowState();
-}
-
-class _NotifToggleRowState extends State<_NotifToggleRow> {
-  bool _enabled = true;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled =
+        ref.watch(notificationPrefsProvider.select((p) => p[cardId] ?? true));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -921,13 +962,14 @@ class _NotifToggleRowState extends State<_NotifToggleRow> {
         children: [
           Expanded(
             child: Text(
-              widget.name,
+              name,
               style: AppTextStyles.bodyMedium(color: AppColors.encre),
             ),
           ),
           Switch(
-            value: _enabled,
-            onChanged: (v) => setState(() => _enabled = v),
+            value: enabled,
+            onChanged: (v) =>
+                ref.read(notificationPrefsProvider.notifier).toggle(cardId, v),
             activeThumbColor: AppColors.vertBouteille,
             inactiveThumbColor: AppColors.porcelaine,
             trackColor: WidgetStateProperty.resolveWith<Color?>((states) {

@@ -8,7 +8,7 @@ import 'loyalty_card_widget.dart';
 
 /// Empilement façon Apple Wallet : les cartes se chevauchent
 /// verticalement (~64px visibles par carte), légèrement en éventail.
-/// 
+///
 /// Supporte le glisser-déposer interactif (drag & drop) avec physique
 /// de ressort (Spring), effet de parallaxe tridimensionnelle, inclinaison
 /// dynamique au déplacement et retours haptiques.
@@ -43,6 +43,11 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
   double _tiltAngle = 0.0;
   bool _isDragging = false;
 
+  /// Incrémenté à chaque nouveau drag : permet à `_runSpringAnimation` de
+  /// détecter qu'un nouveau geste a démarré pendant qu'une animation de
+  /// retour précédente se terminait encore, et d'ignorer ce callback périmé.
+  int _dragSession = 0;
+
   @override
   void initState() {
     super.initState();
@@ -61,10 +66,19 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
   }
 
   void _runSpringAnimation(double targetTop) {
-    final spring = SpringDescription(
+    // Capture la session et les indices maintenant : si un nouveau drag
+    // démarre avant que cette animation ne se termine, `stop()` complètera
+    // quand même ce `.then` (Flutter complète le future même en cas
+    // d'annulation), donc on doit comparer la session au lieu de relire
+    // les champs d'instance qui auraient déjà été réécrits par le nouveau drag.
+    final session = _dragSession;
+    final oldIdx = _draggedIndex;
+    final newIdx = _hoverIndex;
+
+    const spring = SpringDescription(
       mass: 1.0,
       stiffness: 220.0, // Ressort ferme et réactif
-      damping: 20.0,    // Amortissement pour éviter les rebonds infinis
+      damping: 20.0, // Amortissement pour éviter les rebonds infinis
     );
     final simulation = SpringSimulation(
       spring,
@@ -73,9 +87,8 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
       0.0,
     );
     _springController.animateWith(simulation).then((_) {
-      if (_draggedIndex != null && _hoverIndex != null) {
-        final oldIdx = _draggedIndex!;
-        final newIdx = _hoverIndex!;
+      if (!mounted || session != _dragSession) return;
+      if (oldIdx != null && newIdx != null) {
         if (oldIdx != newIdx) {
           ref.read(walletProvider.notifier).reorder(oldIdx, newIdx);
         }
@@ -138,10 +151,10 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
 
     if (_isDragging) {
       if (isThisDragged) {
-        scaleFactor = 1.06;   // Légère surélévation
-        elevation = 20.0;     // Ombre marquée de profondeur
+        scaleFactor = 1.06; // Légère surélévation
+        elevation = 20.0; // Ombre marquée de profondeur
       } else {
-        scaleFactor = 0.97;   // Recul en arrière-plan
+        scaleFactor = 0.97; // Recul en arrière-plan
         opacityFactor = 0.88; // Transparence pour focus sur la carte active
         elevation = 2.0;
       }
@@ -153,7 +166,8 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
 
     return AnimatedPositioned(
       key: ValueKey(card.id),
-      duration: isThisDragged ? Duration.zero : const Duration(milliseconds: 280),
+      duration:
+          isThisDragged ? Duration.zero : const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
       top: topPos,
       left: 0,
@@ -178,6 +192,7 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
                 HapticFeedback.lightImpact();
                 _springController.stop(); // Interrompt toute animation en cours
                 setState(() {
+                  _dragSession++;
                   _draggedIndex = index;
                   _hoverIndex = index;
                   _isDragging = true;
@@ -189,22 +204,27 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
               },
               onLongPressMoveUpdate: (details) {
                 if (!_isDragging || _draggedIndex != index) return;
-                final deltaY = details.globalPosition.dy - _initialTouchGlobal.dy;
-                final deltaX = details.globalPosition.dx - _initialTouchGlobal.dx;
+                final deltaY =
+                    details.globalPosition.dy - _initialTouchGlobal.dy;
+                final deltaX =
+                    details.globalPosition.dx - _initialTouchGlobal.dx;
 
                 final maxTop = widget.peekOffset * (total - 1);
 
                 setState(() {
-                  _currentTop = (_initialTop + deltaY).clamp(-20.0, maxTop + 30.0);
+                  _currentTop =
+                      (_initialTop + deltaY).clamp(-20.0, maxTop + 30.0);
                   _tiltAngle = (deltaX * 0.0004).clamp(-0.06, 0.06);
 
                   // Calcul du nouvel index de survol
-                  int newHover = (_currentTop + widget.peekOffset / 2) ~/ widget.peekOffset;
+                  int newHover = (_currentTop + widget.peekOffset / 2) ~/
+                      widget.peekOffset;
                   newHover = newHover.clamp(0, total - 1);
 
                   if (newHover != _hoverIndex) {
                     _hoverIndex = newHover;
-                    HapticFeedback.selectionClick(); // Retour haptique de survol
+                    HapticFeedback
+                        .selectionClick(); // Retour haptique de survol
                   }
                 });
               },
@@ -218,9 +238,10 @@ class _LoyaltyCardStackState extends ConsumerState<LoyaltyCardStack>
                 child: Material(
                   elevation: elevation,
                   borderRadius: BorderRadius.circular(20),
-                  shadowColor: Colors.black.withOpacity(0.35),
+                  shadowColor: Colors.black.withValues(alpha: 0.35),
                   color: Colors.transparent,
-                  child: LoyaltyCardWidget(card: card, height: widget.cardHeight),
+                  child:
+                      LoyaltyCardWidget(card: card, height: widget.cardHeight),
                 ),
               ),
             ),

@@ -6,24 +6,31 @@ import '../../core/theme/app_text_styles.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
+import 'package:flutter/services.dart';
 import '../../widgets/shared/grain_overlay.dart';
 import '../../models/reward.dart';
 import 'card_export_service.dart';
 
 class CardDetailScreen extends ConsumerWidget {
   final String cardId;
-  const CardDetailScreen({super.key, required this.cardId});
+  CardDetailScreen({super.key, required this.cardId});
+
+  // Stable pour la durée de vie de cet écran : sert à capturer le visuel
+  // exact de la carte (QR + plaque) lors de l'export/partage.
+  final GlobalKey _exportBoundaryKey = GlobalKey();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final card = ref.watch(walletProvider.select((cards) {
       try {
-        return cards.firstWhere((c) => c.id == cardId || c.fallbackId == cardId);
+        return cards
+            .firstWhere((c) => c.id == cardId || c.fallbackId == cardId);
       } catch (_) {
         return null;
       }
     }));
-    final rewards = ref.watch(rewardsProvider).where((r) => r.cardId == cardId).toList();
+    final rewards =
+        ref.watch(rewardsProvider).where((r) => r.cardId == cardId).toList();
 
     if (card == null) {
       return const Scaffold(body: Center(child: Text('Carte introuvable')));
@@ -41,13 +48,16 @@ class CardDetailScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back, color: AppColors.encre, size: 20),
+                    icon: const Icon(Icons.arrow_back,
+                        color: AppColors.encre, size: 20),
                   ),
                   Expanded(
                     child: Text(
                       'VOTRE CARTE',
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
+                      style:
+                          AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
+                              .copyWith(
                         letterSpacing: 2.5,
                         fontWeight: FontWeight.w500,
                         fontSize: 10,
@@ -55,8 +65,10 @@ class CardDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => _showExportModal(context, card),
-                    icon: const Icon(Icons.ios_share_outlined, color: AppColors.laitonBrosse, size: 20),
+                    onPressed: () =>
+                        _showExportModal(context, card, _exportBoundaryKey),
+                    icon: const Icon(Icons.ios_share_outlined,
+                        color: AppColors.laitonBrosse, size: 20),
                     tooltip: 'Exporter / Partager',
                   ),
                 ],
@@ -71,13 +83,20 @@ class CardDetailScreen extends ConsumerWidget {
                   children: [
                     const SizedBox(height: 2),
 
-                    // Top QR Code Plate Container (Compacted for direct visibility without scroll)
-                    _TopQrPlateCard(card: card),
-
-                    const SizedBox(height: 8),
-
-                    // Middle Restaurant Card Widget (Compacted to height 140)
-                    _MiddleCardWidget(card: card),
+                    // Visuel capturé pour l'export/partage : QR + plaque restaurant.
+                    RepaintBoundary(
+                      key: _exportBoundaryKey,
+                      child: Container(
+                        color: AppColors.porcelaine,
+                        child: Column(
+                          children: [
+                            _TopQrPlateCard(card: card),
+                            const SizedBox(height: 8),
+                            _MiddleCardWidget(card: card),
+                          ],
+                        ),
+                      ),
+                    ),
 
                     const SizedBox(height: 12),
 
@@ -92,9 +111,19 @@ class CardDetailScreen extends ConsumerWidget {
 
                     const SizedBox(height: 6),
 
-                    // Reward Card Widget (Visible without scroll!)
+                    // Récompenses de cette carte : défilement horizontal s'il y en a plusieurs.
                     if (rewards.isNotEmpty)
-                      _DetailedRewardCard(reward: rewards.first)
+                      SizedBox(
+                        height: 132,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: rewards.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 10),
+                          itemBuilder: (context, i) =>
+                              _DetailedRewardCard(reward: rewards[i]),
+                        ),
+                      )
                     else
                       const _DetailedRewardCard(
                         reward: Reward(
@@ -102,7 +131,8 @@ class CardDetailScreen extends ConsumerWidget {
                           cardId: 'default',
                           restaurantName: 'Offre',
                           title: 'Récompense à venir',
-                          description: 'Continuez à cumuler pour débloquer votre prochain privilège.',
+                          description:
+                              'Continuez à cumuler pour débloquer votre prochain privilège.',
                           status: RewardStatus.locked,
                         ),
                       ),
@@ -125,7 +155,8 @@ class CardDetailScreen extends ConsumerWidget {
 }
 
 /// Modal d'Exportation et de Partage de la carte
-void _showExportModal(BuildContext context, LoyaltyCard card) {
+void _showExportModal(
+    BuildContext context, LoyaltyCard card, GlobalKey exportKey) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -157,7 +188,9 @@ void _showExportModal(BuildContext context, LoyaltyCard card) {
                   children: [
                     Text(
                       'EXPORTATION',
-                      style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
+                      style:
+                          AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
+                              .copyWith(
                         letterSpacing: 2.0,
                         fontSize: 10,
                       ),
@@ -165,13 +198,15 @@ void _showExportModal(BuildContext context, LoyaltyCard card) {
                     const SizedBox(height: 2),
                     Text(
                       card.restaurantName,
-                      style: AppTextStyles.displayMedium().copyWith(fontSize: 20),
+                      style:
+                          AppTextStyles.displayMedium().copyWith(fontSize: 20),
                     ),
                   ],
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: AppColors.encre, size: 20),
+                  icon:
+                      const Icon(Icons.close, color: AppColors.encre, size: 20),
                 ),
               ],
             ),
@@ -185,7 +220,8 @@ void _showExportModal(BuildContext context, LoyaltyCard card) {
               subtitle: 'Conserver dans votre Portefeuille d\'application',
               onTap: () {
                 Navigator.pop(context);
-                CardExportService.exportAndShareCard(context, card, 'save');
+                CardExportService.exportAndShareCard(
+                    context, card, 'save', exportKey);
               },
             ),
 
@@ -195,10 +231,12 @@ void _showExportModal(BuildContext context, LoyaltyCard card) {
             _ExportOptionTile(
               icon: Icons.download_outlined,
               title: 'Télécharger la carte',
-              subtitle: 'Enregistrer un visuel HD dans votre galerie (Pass format)',
+              subtitle:
+                  'Enregistrer un visuel HD dans votre galerie (Pass format)',
               onTap: () {
                 Navigator.pop(context);
-                CardExportService.exportAndShareCard(context, card, 'download');
+                CardExportService.exportAndShareCard(
+                    context, card, 'download', exportKey);
               },
             ),
 
@@ -212,7 +250,8 @@ void _showExportModal(BuildContext context, LoyaltyCard card) {
               isHighlight: true,
               onTap: () {
                 Navigator.pop(context);
-                CardExportService.exportAndShareCard(context, card, 'share');
+                CardExportService.exportAndShareCard(
+                    context, card, 'share', exportKey);
               },
             ),
 
@@ -258,7 +297,8 @@ class _ExportOptionTile extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isHighlight ? AppColors.porcelaine : AppColors.laitonBrosse,
+              color:
+                  isHighlight ? AppColors.porcelaine : AppColors.laitonBrosse,
               size: 22,
             ),
             const SizedBox(width: 14),
@@ -269,7 +309,8 @@ class _ExportOptionTile extends StatelessWidget {
                   Text(
                     title,
                     style: AppTextStyles.label(
-                      color: isHighlight ? AppColors.porcelaine : AppColors.encre,
+                      color:
+                          isHighlight ? AppColors.porcelaine : AppColors.encre,
                     ).copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 2),
@@ -277,8 +318,8 @@ class _ExportOptionTile extends StatelessWidget {
                     subtitle,
                     style: AppTextStyles.bodySmall(
                       color: isHighlight
-                          ? AppColors.porcelaine.withOpacity(0.8)
-                          : AppColors.encre.withOpacity(0.65),
+                          ? AppColors.porcelaine.withValues(alpha: 0.8)
+                          : AppColors.encre.withValues(alpha: 0.65),
                     ).copyWith(fontSize: 11),
                   ),
                 ],
@@ -287,8 +328,8 @@ class _ExportOptionTile extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               color: isHighlight
-                  ? AppColors.porcelaine.withOpacity(0.7)
-                  : AppColors.encre.withOpacity(0.3),
+                  ? AppColors.porcelaine.withValues(alpha: 0.7)
+                  : AppColors.encre.withValues(alpha: 0.3),
               size: 18,
             ),
           ],
@@ -317,7 +358,7 @@ class _TopQrPlateCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -336,7 +377,7 @@ class _TopQrPlateCard extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFE8E4D9)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 6,
                     offset: const Offset(0, 3),
                   ),
@@ -360,11 +401,14 @@ class _TopQrPlateCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.open_in_full, size: 12, color: AppColors.encre.withOpacity(0.85)),
+                Icon(Icons.open_in_full,
+                    size: 12, color: AppColors.encre.withValues(alpha: 0.85)),
                 const SizedBox(width: 6),
                 Text(
                   'Plein écran',
-                  style: AppTextStyles.bodyMedium(color: AppColors.encre.withOpacity(0.95)).copyWith(
+                  style: AppTextStyles.bodyMedium(
+                          color: AppColors.encre.withValues(alpha: 0.95))
+                      .copyWith(
                     fontWeight: FontWeight.w500,
                     fontSize: 12,
                   ),
@@ -381,7 +425,8 @@ class _TopQrPlateCard extends StatelessWidget {
             children: [
               Text(
                 card.fallbackId.replaceAll('-', ' - '),
-                style: AppTextStyles.monoMedium(color: AppColors.encre).copyWith(
+                style:
+                    AppTextStyles.monoMedium(color: AppColors.encre).copyWith(
                   letterSpacing: 2.5,
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
@@ -389,15 +434,22 @@ class _TopQrPlateCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Identifiant copié')),
-                  );
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: card.fallbackId));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Identifiant copié')),
+                    );
+                  }
                 },
-                child: const Icon(
-                  Icons.copy_outlined,
-                  size: 15,
-                  color: AppColors.laitonBrosse,
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.copy_outlined,
+                    size: 15,
+                    color: AppColors.laitonBrosse,
+                  ),
                 ),
               ),
             ],
@@ -424,7 +476,7 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
             border: Border.all(color: const Color(0xFFE8E4D9)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.18),
+                color: Colors.black.withValues(alpha: 0.18),
                 blurRadius: 24,
                 offset: const Offset(0, 10),
               ),
@@ -445,7 +497,8 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: AppColors.encre, size: 20),
+                    icon: const Icon(Icons.close,
+                        color: AppColors.encre, size: 20),
                   ),
                 ],
               ),
@@ -458,7 +511,7 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
                   border: Border.all(color: const Color(0xFFE8E4D9)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -475,7 +528,8 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
               const SizedBox(height: 20),
               Text(
                 card.fallbackId.replaceAll('-', ' - '),
-                style: AppTextStyles.monoMedium(color: AppColors.encre).copyWith(
+                style:
+                    AppTextStyles.monoMedium(color: AppColors.encre).copyWith(
                   letterSpacing: 2.5,
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -485,7 +539,8 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
               Text(
                 'Présentez ce QR Code lors de votre passage en caisse',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bodySmall(color: AppColors.encre.withOpacity(0.7)),
+                style: AppTextStyles.bodySmall(
+                    color: AppColors.encre.withValues(alpha: 0.7)),
               ),
             ],
           ),
@@ -505,7 +560,7 @@ class _MiddleCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = _isDark ? AppColors.porcelaine : AppColors.encre;
-    final subtextColor = textColor.withOpacity(0.75);
+    final subtextColor = textColor.withValues(alpha: 0.75);
 
     return Hero(
       tag: 'card_${card.id}',
@@ -520,12 +575,12 @@ class _MiddleCardWidget extends StatelessWidget {
             border: Border.all(
               color: _isDark
                   ? AppColors.laitonLisere(opacity: 0.3)
-                  : AppColors.encre.withOpacity(0.1),
+                  : AppColors.encre.withValues(alpha: 0.1),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.encre.withOpacity(0.10),
+                color: AppColors.encre.withValues(alpha: 0.10),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -549,7 +604,9 @@ class _MiddleCardWidget extends StatelessWidget {
                           Expanded(
                             child: Text(
                               card.restaurantCategory.toUpperCase(),
-                              style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor)
+                                      .copyWith(
                                 letterSpacing: 1.8,
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
@@ -561,7 +618,8 @@ class _MiddleCardWidget extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             card.fallbackId,
-                            style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                            style: AppTextStyles.monoSmall(color: subtextColor)
+                                .copyWith(
                               letterSpacing: 1.2,
                               fontSize: 9.5,
                               fontWeight: FontWeight.w500,
@@ -573,11 +631,14 @@ class _MiddleCardWidget extends StatelessWidget {
                       // Titre Restaurant
                       Text(
                         card.restaurantName,
-                        style: AppTextStyles.displayLarge(color: textColor).copyWith(
+                        style: AppTextStyles.displayLarge(color: textColor)
+                            .copyWith(
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
                           height: 1.05,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
 
                       // Section mécanique
@@ -587,7 +648,9 @@ class _MiddleCardWidget extends StatelessWidget {
                           children: [
                             Text(
                               'CASHBACK',
-                              style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor)
+                                      .copyWith(
                                 letterSpacing: 1.5,
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
@@ -599,8 +662,11 @@ class _MiddleCardWidget extends StatelessWidget {
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
-                                  _formatGroupedNumber(card.cashbackBalanceFcfa),
-                                  style: AppTextStyles.monoLarge(color: textColor).copyWith(
+                                  _formatGroupedNumber(
+                                      card.cashbackBalanceFcfa),
+                                  style:
+                                      AppTextStyles.monoLarge(color: textColor)
+                                          .copyWith(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 1.5,
@@ -609,7 +675,9 @@ class _MiddleCardWidget extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Text(
                                   'FCFA',
-                                  style: AppTextStyles.monoMedium(color: textColor).copyWith(
+                                  style:
+                                      AppTextStyles.monoMedium(color: textColor)
+                                          .copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 0.8,
@@ -625,7 +693,9 @@ class _MiddleCardWidget extends StatelessWidget {
                           children: [
                             Text(
                               'SOLDE',
-                              style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor)
+                                      .copyWith(
                                 letterSpacing: 1.5,
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
@@ -638,7 +708,9 @@ class _MiddleCardWidget extends StatelessWidget {
                               children: [
                                 Text(
                                   _formatGroupedNumber(card.pointsBalance),
-                                  style: AppTextStyles.monoLarge(color: textColor).copyWith(
+                                  style:
+                                      AppTextStyles.monoLarge(color: textColor)
+                                          .copyWith(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w600,
                                     letterSpacing: 1.5,
@@ -647,7 +719,9 @@ class _MiddleCardWidget extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Text(
                                   'PTS',
-                                  style: AppTextStyles.monoMedium(color: textColor).copyWith(
+                                  style:
+                                      AppTextStyles.monoMedium(color: textColor)
+                                          .copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 0.8,
@@ -663,7 +737,9 @@ class _MiddleCardWidget extends StatelessWidget {
                           children: [
                             Text(
                               'STATUT',
-                              style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor)
+                                      .copyWith(
                                 letterSpacing: 1.5,
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
@@ -673,18 +749,35 @@ class _MiddleCardWidget extends StatelessWidget {
                             Row(
                               children: [
                                 Container(
-                                  width: 40,
-                                  height: 18,
+                                  constraints: const BoxConstraints(
+                                      minWidth: 40, minHeight: 18),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 9, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: AppColors.laitonBrosse,
                                     borderRadius: BorderRadius.circular(9),
+                                  ),
+                                  child: Text(
+                                    card.vipTier.label.toUpperCase(),
+                                    style: AppTextStyles.monoSmall(
+                                            color: AppColors.porcelaine)
+                                        .copyWith(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 1.0),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    'Platinum dans ${((1 - card.vipProgressToNextTier) * 12).ceil()} visites',
-                                    style: AppTextStyles.bodyMedium(color: textColor).copyWith(
+                                    card.vipTier == VipTier.platinum
+                                        ? 'Palier maximum atteint'
+                                        : 'Platinum dans ${((1 - card.vipProgressToNextTier) * 12).ceil()} visites',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTextStyles.bodyMedium(
+                                            color: textColor)
+                                        .copyWith(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
                                       height: 1.1,
@@ -701,7 +794,9 @@ class _MiddleCardWidget extends StatelessWidget {
                           children: [
                             Text(
                               'TAMPONS',
-                              style: AppTextStyles.monoSmall(color: subtextColor).copyWith(
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor)
+                                      .copyWith(
                                 letterSpacing: 1.5,
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.w500,
@@ -710,7 +805,8 @@ class _MiddleCardWidget extends StatelessWidget {
                             const SizedBox(height: 2),
                             Text(
                               '${card.stampsCurrent} / ${card.stampsGoal}',
-                              style: AppTextStyles.monoLarge(color: textColor).copyWith(
+                              style: AppTextStyles.monoLarge(color: textColor)
+                                  .copyWith(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 1.5,
@@ -722,7 +818,6 @@ class _MiddleCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 if (card.mechanic == LoyaltyMechanic.vip)
                   Positioned(
                     left: 18,
@@ -730,7 +825,7 @@ class _MiddleCardWidget extends StatelessWidget {
                     child: Container(
                       height: 1,
                       width: 40,
-                      color: AppColors.laitonBrosse.withOpacity(0.8),
+                      color: AppColors.laitonBrosse.withValues(alpha: 0.8),
                     ),
                   ),
               ],
@@ -758,19 +853,17 @@ class _DetailedRewardCard extends StatelessWidget {
         width: 250,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isReady
-              ? const Color(0xFFF2EEE4)
-              : const Color(0xFFEBE8DD),
+          color: isReady ? const Color(0xFFF2EEE4) : const Color(0xFFEBE8DD),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isReady
-                ? AppColors.laitonBrosse.withOpacity(0.65)
+                ? AppColors.laitonBrosse.withValues(alpha: 0.65)
                 : const Color(0xFFDFDACB),
             width: isReady ? 1.2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isReady ? 0.04 : 0.02),
+              color: Colors.black.withValues(alpha: isReady ? 0.04 : 0.02),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -795,7 +888,8 @@ class _DetailedRewardCard extends StatelessWidget {
                   ),
                 ),
                 if (isReady)
-                  const Icon(Icons.star_rounded, size: 14, color: AppColors.laitonBrosse),
+                  const Icon(Icons.star_rounded,
+                      size: 14, color: AppColors.laitonBrosse),
               ],
             ),
 
@@ -821,7 +915,7 @@ class _DetailedRewardCard extends StatelessWidget {
               reward.description,
               style: AppTextStyles.bodyMedium().copyWith(
                 fontSize: 11.5,
-                color: AppColors.encre.withOpacity(0.7),
+                color: AppColors.encre.withValues(alpha: 0.7),
                 height: 1.25,
               ),
               maxLines: 2,
@@ -833,7 +927,7 @@ class _DetailedRewardCard extends StatelessWidget {
               Container(
                 height: 1,
                 width: double.infinity,
-                color: AppColors.laitonBrosse.withOpacity(0.4),
+                color: AppColors.laitonBrosse.withValues(alpha: 0.4),
               ),
               const SizedBox(height: 6),
               Text(
@@ -864,8 +958,59 @@ class _HistoryAccordionBar extends StatefulWidget {
 class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
   bool _expanded = false;
 
+  /// Historique synthétique dérivé des vraies données de la carte
+  /// (pas de modèle de visites individuelles côté backend pour l'instant),
+  /// pour éviter d'afficher les 3 mêmes lignes sur toutes les cartes.
+  List<_HistoryEntry> _historyFor(LoyaltyCard card) {
+    final now = DateTime.now();
+    final entries = <_HistoryEntry>[];
+    switch (card.mechanic) {
+      case LoyaltyMechanic.stamps:
+        for (int i = card.stampsCurrent; i >= 1; i--) {
+          entries.add(_HistoryEntry(
+            date:
+                now.subtract(Duration(days: (card.stampsCurrent - i + 1) * 9)),
+            detail: '+1 tampon · Passage en caisse',
+          ));
+        }
+        break;
+      case LoyaltyMechanic.points:
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 4)),
+            detail: '+80 points · Passage en caisse'));
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 19)),
+            detail: '+120 points · Passage en caisse'));
+        break;
+      case LoyaltyMechanic.cashback:
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 3)),
+            detail: '+500 FCFA · Passage en caisse'));
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 15)),
+            detail: '+900 FCFA · Passage en caisse'));
+        break;
+      case LoyaltyMechanic.vip:
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 6)),
+            detail: 'Visite comptabilisée'));
+        entries.add(_HistoryEntry(
+            date: now.subtract(const Duration(days: 20)),
+            detail: 'Visite comptabilisée'));
+        break;
+    }
+    entries.add(_HistoryEntry(
+      date: now.subtract(const Duration(days: 34)),
+      detail: card.welcomeOffer.isNotEmpty
+          ? card.welcomeOffer
+          : 'Inscription à la carte',
+    ));
+    return entries;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final history = _historyFor(widget.card);
     return Column(
       children: [
         GestureDetector(
@@ -882,17 +1027,20 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
                 AnimatedRotation(
                   turns: _expanded ? 0.25 : 0.0,
                   duration: const Duration(milliseconds: 200),
-                  child: const Icon(Icons.play_arrow, color: AppColors.encre, size: 16),
+                  child: const Icon(Icons.play_arrow,
+                      color: AppColors.encre, size: 16),
                 ),
                 const Spacer(),
                 Text(
                   'Historique',
-                  style: AppTextStyles.displayMedium().copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+                  style: AppTextStyles.displayMedium()
+                      .copyWith(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
                 Text(
-                  '3 VISITES',
-                  style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
+                  '${history.length} VISITE${history.length > 1 ? 'S' : ''}',
+                  style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
+                      .copyWith(
                     letterSpacing: 1.5,
                     fontWeight: FontWeight.w500,
                     fontSize: 11,
@@ -902,7 +1050,6 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
             ),
           ),
         ),
-
         if (_expanded)
           Container(
             margin: const EdgeInsets.only(top: 8),
@@ -913,12 +1060,11 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
               border: Border.all(color: const Color(0xFFE8E4D9)),
             ),
             child: Column(
-              children: const [
-                _HistoryRow(date: '14 Juillet 2026', detail: '+1 tampon · Passage en caisse'),
-                Divider(height: 16),
-                _HistoryRow(date: '02 Juin 2026', detail: '+1 tampon · Passage en caisse'),
-                Divider(height: 16),
-                _HistoryRow(date: '18 Mai 2026', detail: 'Offre de bienvenue validée'),
+              children: [
+                for (int i = 0; i < history.length; i++) ...[
+                  if (i > 0) const Divider(height: 16),
+                  _HistoryRow(entry: history[i]),
+                ],
               ],
             ),
           ),
@@ -927,18 +1073,52 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
   }
 }
 
-class _HistoryRow extends StatelessWidget {
-  final String date;
+class _HistoryEntry {
+  final DateTime date;
   final String detail;
-  const _HistoryRow({required this.date, required this.detail});
+  const _HistoryEntry({required this.date, required this.detail});
+}
+
+const _fullMonths = [
+  'Janvier',
+  'Février',
+  'Mars',
+  'Avril',
+  'Mai',
+  'Juin',
+  'Juillet',
+  'Août',
+  'Septembre',
+  'Octobre',
+  'Novembre',
+  'Décembre',
+];
+
+class _HistoryRow extends StatelessWidget {
+  final _HistoryEntry entry;
+  const _HistoryRow({required this.entry});
 
   @override
   Widget build(BuildContext context) {
+    final date = entry.date;
+    final formatted =
+        '${date.day.toString().padLeft(2, '0')} ${_fullMonths[date.month - 1]} ${date.year}';
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(date, style: AppTextStyles.bodySmall(color: AppColors.encre).copyWith(fontSize: 11)),
-        Text(detail, style: AppTextStyles.monoSmall().copyWith(fontSize: 10)),
+        Flexible(
+          child: Text(formatted,
+              style: AppTextStyles.bodySmall(color: AppColors.encre)
+                  .copyWith(fontSize: 11)),
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            entry.detail,
+            textAlign: TextAlign.end,
+            style: AppTextStyles.monoSmall().copyWith(fontSize: 10),
+          ),
+        ),
       ],
     );
   }
@@ -972,7 +1152,8 @@ class _QrPainter extends CustomPainter {
         if ((r < 7 && c < 7) || (r < 7 && c > 13) || (r > 13 && c < 7)) {
           continue;
         }
-        final isFilled = ((r * 21 + c + hash) % 3) == 0 || ((r * c + hash) % 5) == 0;
+        final isFilled =
+            ((r * 21 + c + hash) % 3) == 0 || ((r * c + hash) % 5) == 0;
         if (isFilled) {
           final rect = Rect.fromLTWH(
             c * cellWidth + cellWidth * 0.08,
@@ -991,10 +1172,12 @@ class _QrPainter extends CustomPainter {
     // Dessin des 3 Finder Patterns
     _drawFinderPattern(canvas, 0, 0, cellWidth, cellHeight, paint);
     _drawFinderPattern(canvas, 14 * cellWidth, 0, cellWidth, cellHeight, paint);
-    _drawFinderPattern(canvas, 0, 14 * cellHeight, cellWidth, cellHeight, paint);
+    _drawFinderPattern(
+        canvas, 0, 14 * cellHeight, cellWidth, cellHeight, paint);
   }
 
-  void _drawFinderPattern(Canvas canvas, double x, double y, double cw, double ch, Paint paint) {
+  void _drawFinderPattern(
+      Canvas canvas, double x, double y, double cw, double ch, Paint paint) {
     final outerRect = Rect.fromLTWH(x, y, 7 * cw, 7 * ch);
     canvas.drawRRect(
       RRect.fromRectAndRadius(outerRect, Radius.circular(cw * 1.5)),
@@ -1016,5 +1199,6 @@ class _QrPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _QrPainter oldDelegate) => oldDelegate.seed != seed;
+  bool shouldRepaint(covariant _QrPainter oldDelegate) =>
+      oldDelegate.seed != seed;
 }
