@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import '../utils/toast_service.dart';
-import '../../widgets/shared/loading_overlay.dart';
 import 'app_error.dart';
 import 'error_translator.dart';
+import '../utils/loading_overlay_service.dart';
 
 /// Aiguillage unique des erreurs pour les écrans à formulaire.
 ///
@@ -34,12 +34,13 @@ mixin FormErrorHandler<T extends StatefulWidget> on State<T> {
   final Map<String, String> _fieldErrors = {};
   bool _busy = false;
 
-  /// Vrai pendant qu'une opération sous overlay est en cours.
+  /// Vrai pendant qu'une opération lancée par [runGuarded] est en cours.
   ///
-  /// À utiliser pour désactiver le bouton correspondant (`onTap: isBusy ? null
-  /// : _handler`) : la latence native de Google/Apple Sign-In laisse largement
-  /// le temps à un utilisateur impatient de taper deux fois, ce qui lancerait
-  /// deux connexions concurrentes sans cette protection.
+  /// Sert uniquement à désactiver le bouton correspondant (`onTap: isBusy ?
+  /// null : _handler`) : la latence native de Google/Apple Sign-In laisse
+  /// largement le temps à un utilisateur impatient de taper deux fois, ce qui
+  /// lancerait deux connexions concurrentes sans cette protection. Aucun
+  /// indicateur de chargement n'y est associé.
   bool get isBusy => _busy;
 
   /// Message d'erreur serveur en attente d'affichage pour [field].
@@ -92,24 +93,35 @@ mixin FormErrorHandler<T extends StatefulWidget> on State<T> {
     return appError;
   }
 
-  /// Exécute [action] sous l'overlay de chargement, avec une double garantie :
-  ///   - [isBusy] repasse toujours à `false` à la fin, même en cas d'exception
-  ///     (le bouton ne peut pas rester désactivé indéfiniment) ;
-  ///   - l'overlay lui-même disparaît toujours (délégué à `LoadingOverlay.run`).
+  /// Exécute [action] avec protection contre les doubles soumissions.
+  ///
+  /// N'affiche rien : le seul effet observable est [isBusy], qui sert à
+  /// désactiver le bouton déclencheur le temps de l'appel.
+  ///
+  /// [isBusy] repasse toujours à `false` à la fin, même en cas d'exception
+  /// (le bouton ne peut pas rester désactivé indéfiniment).
   ///
   /// L'appelant reste responsable de vérifier `isBusy` avant d'invoquer cette
-  /// méthode (typiquement via `onTap: isBusy ? null : _handler`), pour que le
-  /// bouton donne un retour visuel immédiat plutôt qu'un no-op silencieux.
-  Future<R?> runLoading<R>(
-    BuildContext context,
+  /// méthode (typiquement via `onTap: isBusy ? null : _handler`) plutôt que de
+  /// compter sur le no-op silencieux du garde ci-dessous.
+  Future<R?> runGuarded<R>(
     Future<R> Function() action, {
-    required String message,
+    bool useOverlay = false,
+    String? loadingMessage,
   }) async {
     if (_busy) return null;
     if (mounted) setState(() => _busy = true);
+    
+    if (useOverlay) {
+      LoadingOverlayService.show(message: loadingMessage);
+    }
+    
     try {
-      return await LoadingOverlay.run(context, action, message: message);
+      return await action();
     } finally {
+      if (useOverlay) {
+        await LoadingOverlayService.hide();
+      }
       if (mounted) setState(() => _busy = false);
     }
   }

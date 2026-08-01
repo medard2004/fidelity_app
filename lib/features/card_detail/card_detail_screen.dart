@@ -17,7 +17,9 @@ class CardDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final card = ref.watch(walletProvider.select((cards) {
+    final card = ref.watch(walletProvider.select((cardsAsync) {
+      final cards = cardsAsync.valueOrNull;
+      if (cards == null) return null;
       try {
         return cards.firstWhere((c) => c.id == cardId || c.fallbackId == cardId);
       } catch (_) {

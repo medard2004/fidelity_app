@@ -10,7 +10,6 @@ import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/shared/brass_bordered_container.dart';
 import '../../core/utils/toast_service.dart';
-import '../../widgets/shared/loading_overlay.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -58,13 +57,11 @@ class ProfileScreen extends ConsumerWidget {
             ),
             onPressed: () async {
               dialogContext.pop(); // fermer la modale
-              LoadingOverlay.show(context, message: 'Déconnexion…');
               try {
                 await ref.read(authProvider.notifier).signOut();
               } catch (_) {
-                // Ignore API errors, local state is already cleared in finally block.
+                // Ignore API errors, local state is already cleared.
               } finally {
-                LoadingOverlay.hide();
                 if (context.mounted) {
                   context.go('/auth');
                 }
@@ -80,7 +77,8 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
-    final cards = ref.watch(walletProvider);
+    final cardsAsync = ref.watch(walletProvider);
+    final cards = cardsAsync.valueOrNull ?? [];
     final rewards = ref.watch(rewardsProvider);
     final unreadNotifs = ref.watch(notificationsProvider.notifier).unreadCount;
 
@@ -441,69 +439,6 @@ class ProfileScreen extends ConsumerWidget {
 
                   const SizedBox(height: 20),
 
-                  // ── Sécurité ────────────────────────────────────────────
-                  _SectionHeader(title: 'SÉCURITÉ'),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () => context.push('/change-password'),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.porcelaine,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: AppColors.laitonLisere(opacity: 0.35),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.vertBouteille
-                                  .withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.lock_outline_rounded,
-                              color: AppColors.vertBouteille
-                                  .withValues(alpha: 0.8),
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Modifier le mot de passe',
-                                  style: AppTextStyles.bodyMedium(
-                                    color: AppColors.encre,
-                                  ).copyWith(fontWeight: FontWeight.w600),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Sécurisez votre compte',
-                                  style: AppTextStyles.bodySmall(
-                                    color:
-                                        AppColors.encre.withValues(alpha: 0.5),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            color: AppColors.encre.withValues(alpha: 0.3),
-                            size: 22,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
 
                   const SizedBox(height: 28),
 

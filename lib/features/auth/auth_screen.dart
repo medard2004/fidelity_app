@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_icons/simple_icons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/user.dart';
@@ -14,6 +15,8 @@ import '../../services/social_auth_service.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
+import '../../core/utils/loading_overlay_service.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Écran de connexion : numéro de téléphone ou fournisseur social.
 class AuthScreen extends ConsumerStatefulWidget {
@@ -54,10 +57,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
 
     if (confirmed && mounted) {
       try {
-        final success = await runLoading(
-          context,
+        final success = await runGuarded(
           () => ref.read(authProvider.notifier).login(fullPhone, password),
-          message: 'Connexion en cours…',
+          useOverlay: true,
+          loadingMessage: 'Connexion en cours...',
         );
         if (!mounted || success == null) return;
         if (success) {
@@ -77,8 +80,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
 
   Future<void> _continueWithGoogle() async {
     try {
-      final result = await runLoading(
-        context,
+      final result = await runGuarded(
         () async {
           final idToken = await SocialAuthService.signInWithGoogle();
           if (idToken == null) return null;
@@ -86,7 +88,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
               .read(authProvider.notifier)
               .socialLogin(AuthProvider.google, idToken, action: 'login');
         },
-        message: 'Connexion avec Google…',
+        useOverlay: true,
+        loadingMessage: 'Connexion via Google...',
       );
 
       if (!mounted || result == null) return;
@@ -116,8 +119,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
 
   Future<void> _continueWithApple() async {
     try {
-      final result = await runLoading(
-        context,
+      final result = await runGuarded(
         () async {
           final idToken = await SocialAuthService.signInWithApple();
           if (idToken == null) return null;
@@ -125,7 +127,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
               .read(authProvider.notifier)
               .socialLogin(AuthProvider.apple, idToken, action: 'login');
         },
-        message: 'Connexion avec Apple…',
+        useOverlay: true,
+        loadingMessage: 'Connexion via Apple...',
       );
 
       if (!mounted || result == null) return;
@@ -161,8 +164,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
       height: 1.1,
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -283,7 +287,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
                       InvitationButton(
                         label: 'Se connecter',
                         filled: true,
-                        onTap: _continueWithPhone,
+                        loading: isBusy,
+                        onTap: isBusy ? null : _continueWithPhone,
                       ),
 
                       const SizedBox(height: 18),
@@ -297,13 +302,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
                       InvitationButton(
                         label: 'Continuer avec Google',
                         leading: const _GoogleLogo(),
-                        onTap: _continueWithGoogle,
+                        onTap: isBusy ? null : _continueWithGoogle,
                       ),
                       const SizedBox(height: 10),
                       InvitationButton(
                         label: 'Continuer avec Apple',
                         icon: SimpleIcons.apple,
-                        onTap: _continueWithApple,
+                        onTap: isBusy ? null : _continueWithApple,
                       ),
 
                       const SizedBox(height: 24),
@@ -340,6 +345,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with FormErrorHandler {
             );
           },
         ),
+        ),
       ),
     );
   }
@@ -354,10 +360,10 @@ class _GoogleLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      SimpleIcons.google,
-      size: 16,
-      color: AppColors.encre,
+    return SvgPicture.asset(
+      'assets/icons/google_logo.svg',
+      width: 16,
+      height: 16,
     );
   }
 }

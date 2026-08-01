@@ -20,13 +20,19 @@ class SocialAuthService {
     try {
       await _ensureInitialized();
       
-      // Déconnecte l'utilisateur de Google d'abord pour forcer le choix du compte si besoin
-      await GoogleSignIn.instance.signOut();
-      
-      // Lance le flux d'authentification natif Google
-      final GoogleSignInAccount account = await GoogleSignIn.instance.authenticate(
-        scopeHint: ['email', 'profile'],
-      );
+      // Tente d'abord une connexion silencieuse (très rapide)
+      GoogleSignInAccount? account;
+      final Future<GoogleSignInAccount?>? lightweightAuthFuture = GoogleSignIn.instance.attemptLightweightAuthentication();
+      if (lightweightAuthFuture != null) {
+        account = await lightweightAuthFuture;
+      }
+
+      // Si la connexion silencieuse a échoué (ou n'est pas supportée), on lance le flux interactif
+      if (account == null) {
+        account = await GoogleSignIn.instance.authenticate(
+          scopeHint: ['email', 'profile'],
+        );
+      }
       
       // Récupère les tokens d'authentification Google
       final GoogleSignInAuthentication googleAuth = account.authentication;

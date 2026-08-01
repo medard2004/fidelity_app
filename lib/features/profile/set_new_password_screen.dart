@@ -10,7 +10,6 @@ import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/error_translator.dart';
 import '../../core/errors/form_error_handler.dart';
-import '../../widgets/shared/loading_overlay.dart';
 
 /// Page 2 du flux : saisie du nouveau mot de passe.
 /// Reçoit le mot de passe actuel vérifié en paramètre [currentPassword].
@@ -83,12 +82,10 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen>
 
     setState(() => _errorText = null);
 
-    LoadingOverlay.show(context, message: 'Enregistrement…');
     try {
       final success = await ref
           .read(authProvider.notifier)
           .changePassword(widget.currentPassword, newPwd);
-      LoadingOverlay.hide();
 
       if (mounted) {
         if (success) {
@@ -114,7 +111,6 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen>
         }
       }
     } catch (e) {
-      LoadingOverlay.hide();
       if (!mounted) return;
       final appError = ErrorTranslator.translate(
         e,
@@ -408,7 +404,7 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen>
                   return InvitationButton(
                     label: 'Enregistrer le mot de passe',
                     filled: true,
-                    onTap: _submit,
+                    onTap: isBusy ? null : _submit,
                   );
                 },
               ),

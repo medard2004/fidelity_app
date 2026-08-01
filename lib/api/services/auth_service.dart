@@ -119,30 +119,41 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> forgotPassword(String phone) => _guard(() async {
+  /// Construit la clé de payload appropriée pour un identifiant.
+  /// Si l'identifiant contient '@', c'est un email ; sinon un téléphone.
+  Map<String, String> _identifierPayload(String identifier) {
+    if (identifier.contains('@')) {
+      return {'email': identifier};
+    }
+    return {'phone': identifier};
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String identifier) =>
+      _guard(() async {
         final response = await _apiClient.dio
-            .post('/auth/forgot-password', data: {'phone': phone});
+            .post('/auth/forgot-password', data: _identifierPayload(identifier));
         return response.data as Map<String, dynamic>;
       });
 
-  Future<Map<String, dynamic>> verifyResetOtp(String phone, String otp) =>
+  Future<Map<String, dynamic>> verifyResetOtp(
+          String identifier, String otp) =>
       _guard(() async {
         final response = await _apiClient.dio.post('/auth/verify-otp', data: {
-          'phone': phone,
+          ..._identifierPayload(identifier),
           'otp': otp,
         });
         return response.data as Map<String, dynamic>;
       });
 
   Future<Map<String, dynamic>> resetPassword(
-    String phone,
+    String identifier,
     String resetToken,
     String password,
   ) =>
       _guard(() async {
         final response =
             await _apiClient.dio.post('/auth/reset-password', data: {
-          'phone': phone,
+          ..._identifierPayload(identifier),
           'reset_token': resetToken,
           'password': password,
           'password_confirmation': password,

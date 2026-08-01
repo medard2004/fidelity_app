@@ -38,7 +38,7 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
   Future<void> _join() async {
     setState(() => _joining = true);
     await Future.delayed(const Duration(milliseconds: 800));
-    ref.read(walletProvider.notifier).joinRestaurant(_demoCard);
+    await ref.read(walletProvider.notifier).joinRestaurant(_demoCard);
     if (mounted) context.go('/wallet');
   }
 

@@ -151,7 +151,6 @@ final signupFlowProvider =
 class AuthState {
   final bool isAuthenticated;
   final AppUser? user;
-  final bool isLoading;
 
   /// Dernière erreur brute survenue, conservée telle quelle.
   ///
@@ -164,21 +163,18 @@ class AuthState {
   const AuthState({
     this.isAuthenticated = false,
     this.user,
-    this.isLoading = false,
     this.lastError,
   });
 
   AuthState copyWith({
     bool? isAuthenticated,
     AppUser? user,
-    bool? isLoading,
     Object? lastError,
     bool clearError = false,
   }) =>
       AuthState(
         isAuthenticated: isAuthenticated ?? this.isAuthenticated,
         user: user ?? this.user,
-        isLoading: isLoading ?? this.isLoading,
         lastError: clearError ? null : (lastError ?? this.lastError),
       );
 }
@@ -200,7 +196,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Connexion par téléphone (API) ─────────────────────────────────────────
 
   Future<bool> login(String phone, String password) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final user = await _authRepository.login(phone, password);
       state = AuthState(
@@ -209,13 +205,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
 
   Future<bool> validateRegisterStep1(SignupFlowData flow) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final data = {
         'first_name': flow.fullName,
@@ -224,10 +220,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'birthdate': flow.birthDate!.toIso8601String().split('T')[0],
       };
       await _authRepository.validateRegisterStep1(data);
-      state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
@@ -235,7 +230,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Inscription par téléphone (API) ────────────────────────────────────────
 
   Future<bool> register(SignupFlowData flow, String password) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final data = {
         'first_name': flow.fullName,
@@ -252,47 +247,44 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
 
   // ── Password Recovery ──────────────────────────────────────────────────────
 
-  Future<bool> forgotPassword(String phone) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<bool> forgotPassword(String identifier) async {
+    state = state.copyWith(clearError: true);
     try {
-      await _authRepository.forgotPassword(phone);
-      state = state.copyWith(isLoading: false);
+      await _authRepository.forgotPassword(identifier);
       // We don't store the message in state, the UI will show success
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
 
-  Future<String?> verifyResetOtp(String phone, String otp) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Future<String?> verifyResetOtp(String identifier, String otp) async {
+    state = state.copyWith(clearError: true);
     try {
-      final token = await _authRepository.verifyResetOtp(phone, otp);
-      state = state.copyWith(isLoading: false);
+      final token = await _authRepository.verifyResetOtp(identifier, otp);
       return token;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return null;
     }
   }
 
   Future<bool> resetPassword(
-      String phone, String token, String password) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+      String identifier, String token, String password) async {
+    state = state.copyWith(clearError: true);
     try {
-      await _authRepository.resetPassword(phone, token, password);
-      state = state.copyWith(isLoading: false);
+      await _authRepository.resetPassword(identifier, token, password);
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
@@ -304,7 +296,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<Map<String, dynamic>> socialLogin(
       AuthProvider provider, String idToken,
       {String action = 'login'}) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final String providerString =
           provider == AuthProvider.google ? 'google' : 'apple';
@@ -325,7 +317,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         'client': client,
       };
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return {'success': false};
     }
   }
@@ -361,7 +353,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String? neighborhood,
     String? email,
   }) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final data = {
         'first_name': fullName,
@@ -381,7 +373,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
@@ -389,26 +381,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Verify / Change Password (authenticated) ──────────────────────────────
 
   Future<bool> verifyPassword(String currentPassword) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       final valid = await _authRepository.verifyPassword(currentPassword);
-      state = state.copyWith(isLoading: false);
       return valid;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
 
   Future<bool> changePassword(
       String currentPassword, String newPassword) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       await _authRepository.changePassword(currentPassword, newPassword);
-      state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, lastError: e);
+      state = state.copyWith(lastError: e);
       return false;
     }
   }
@@ -431,6 +421,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String? country,
   }) async {
     if (state.user == null) return;
+
+    // Snapshot avant mise à jour optimiste (pour rollback en cas d'échec).
+    final previousUser = state.user!;
 
     // Optimistic UI update
     state = state.copyWith(
@@ -470,13 +463,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = state.copyWith(user: updatedUser);
       }
     } catch (e) {
-      state = state.copyWith(lastError: e);
+      // Rollback : restaurer l'état précédent pour ne pas afficher de données
+      // non persistées en base.
+      state = state.copyWith(user: previousUser, lastError: e);
       rethrow;
     }
   }
 
   Future<void> signOut() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(clearError: true);
     try {
       await _authRepository.logout();
     } catch (_) {

@@ -1,10 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:country_flags/country_flags.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/constants/app_countries.dart';
 
 export '../../core/constants/app_countries.dart';
+
+/// Ouvre le sélecteur de pays maison (drapeaux vectoriels, recherche, sections
+/// Afrique / Reste du monde) — à réutiliser partout où un pays doit être choisi,
+/// avec ou sans indicatif téléphonique.
+Future<void> showAppCountryPicker({
+  required BuildContext context,
+  required ValueChanged<CountryInfo> onSelect,
+  CountryInfo? selectedCountry,
+  bool showDialCode = true,
+  String title = 'Sélectionner un pays',
+}) {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.porcelaine,
+    isScrollControlled: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) {
+      return _CountryPickerModal(
+        selectedCountry: selectedCountry ?? kAfricanCountries.first,
+        showDialCode: showDialCode,
+        title: title,
+        onSelect: (country) {
+          onSelect(country);
+          Navigator.pop(context);
+        },
+      );
+    },
+  );
+}
 
 /// Champ de saisie du numéro de téléphone avec sélecteur d'indicateur pays.
 class PhoneInputWithCountryPicker extends StatefulWidget {
@@ -43,23 +76,12 @@ class PhoneInputWithCountryPickerState
   }
 
   void _showCountryPicker() {
-    showModalBottomSheet(
+    showAppCountryPicker(
       context: context,
-      backgroundColor: AppColors.porcelaine,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return _CountryPickerModal(
-          selectedCountry: selectedCountry,
-          onSelect: (country) {
-            setState(() => selectedCountry = country);
-            widget.onCountryChanged?.call(country);
-            Navigator.pop(context);
-          },
-        );
+      selectedCountry: selectedCountry,
+      onSelect: (country) {
+        setState(() => selectedCountry = country);
+        widget.onCountryChanged?.call(country);
       },
     );
   }
@@ -123,11 +145,13 @@ class PhoneInputWithCountryPickerState
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  selectedCountry.flag,
-                  style: const TextStyle(fontSize: 22),
+                CountryFlags.flag(
+                  selectedCountry.code,
+                  width: 24,
+                  height: 18,
+                  borderRadius: 3,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   selectedCountry.dialCode,
                   style: AppTextStyles.label().copyWith(
@@ -176,10 +200,14 @@ class PhoneInputWithCountryPickerState
 class _CountryPickerModal extends StatefulWidget {
   final CountryInfo selectedCountry;
   final ValueChanged<CountryInfo> onSelect;
+  final bool showDialCode;
+  final String title;
 
   const _CountryPickerModal({
     required this.selectedCountry,
     required this.onSelect,
+    this.showDialCode = true,
+    this.title = 'Indicatif pays',
   });
 
   @override
@@ -254,7 +282,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                 child: Row(
                   children: [
                     Text(
-                      'Indicatif pays',
+                      widget.title,
                       style: AppTextStyles.displayMedium().copyWith(
                         fontSize: 20,
                         color: AppColors.encre,
@@ -316,7 +344,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                     onChanged: _filter,
                     style: AppTextStyles.bodyMedium(),
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un pays (ex: Mali, +223)...',
+                      hintText: widget.showDialCode
+                          ? 'Rechercher un pays (ex: Mali, +223)...'
+                          : 'Rechercher un pays...',
                       hintStyle: AppTextStyles.bodyMedium(
                         color: AppColors.encre.withValues(alpha: 0.35),
                       ),
@@ -453,9 +483,12 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                 ],
               ),
               alignment: Alignment.center,
-              child: Text(
-                country.flag,
-                style: const TextStyle(fontSize: 20),
+              child: ClipOval(
+                child: CountryFlags.flag(
+                  country.code,
+                  width: 32,
+                  height: 32,
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -474,22 +507,23 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
             ),
             
             // Indicatif
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: isSelected 
-                    ? AppColors.vertBouteille.withValues(alpha: 0.1) 
-                    : AppColors.saugePale.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
+            if (widget.showDialCode)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.vertBouteille.withValues(alpha: 0.1)
+                      : AppColors.saugePale.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  country.dialCode,
+                  style: AppTextStyles.monoMedium(
+                    color: isSelected ? AppColors.vertBouteille : AppColors.encre.withValues(alpha: 0.7),
+                  ).copyWith(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500),
+                ),
               ),
-              child: Text(
-                country.dialCode,
-                style: AppTextStyles.monoMedium(
-                  color: isSelected ? AppColors.vertBouteille : AppColors.encre.withValues(alpha: 0.7),
-                ).copyWith(fontSize: 13, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500),
-              ),
-            ),
-            
+
             if (isSelected) ...[
               const SizedBox(width: 12),
               const Icon(

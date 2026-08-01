@@ -11,7 +11,7 @@ import '../../widgets/shared/phone_confirmation_dialog.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
-import '../../widgets/shared/loading_overlay.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Étape post-connexion sociale (Google/Apple).
 /// Collecte : Nom complet · Téléphone · Date de naissance.
@@ -65,14 +65,14 @@ class _CompleteSocialProfileScreenState
 
     if (confirmed && mounted) {
       try {
-        final success = await runLoading(
-          context,
+        final success = await runGuarded(
           () => ref.read(authProvider.notifier).completeSocialProfile(
                 fullName: _fullNameController.text.trim(),
                 phone: fullPhone,
                 birthDate: _birthDate,
               ),
-          message: 'Enregistrement…',
+          useOverlay: true,
+          loadingMessage: 'Création du compte...',
         );
 
         if (!mounted || success == null) return;
@@ -110,7 +110,7 @@ class _CompleteSocialProfileScreenState
 
     return Scaffold(
       backgroundColor: AppColors.porcelaine,
-      body: PopScope(
+      body: KeyboardDismissPopScope(
         canPop: false,
         child: SafeArea(
           child: LayoutBuilder(
@@ -182,7 +182,8 @@ class _CompleteSocialProfileScreenState
                             return InvitationButton(
                               label: 'Accéder à l\'application',
                               filled: true,
-                              onTap: _submit,
+                              loading: isBusy,
+                              onTap: isBusy ? null : _submit,
                             );
                           },
                         ),

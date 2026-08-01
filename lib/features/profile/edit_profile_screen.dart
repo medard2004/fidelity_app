@@ -7,7 +7,6 @@ import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 import '../../widgets/shared/phone_confirmation_dialog.dart';
-import 'package:country_picker/country_picker.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
@@ -75,12 +74,12 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
     final user = ref.read(authProvider).user;
     if (user == null) return;
 
-    // Champ vide : message sous le champ, et surtout pas de spinner bloqué.
+    // Champ vide : message sous le champ, sans partir en appel réseau.
     clearAllFieldErrors();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Confirmation téléphone : interaction UI, résolue avant d'ouvrir l'overlay
-    // de chargement (qui ne doit couvrir que l'appel réseau lui-même).
+    // Confirmation téléphone : interaction UI, résolue avant de prendre le
+    // verrou anti-double-soumission (qui ne couvre que l'appel réseau).
     String? confirmedPhone;
     if (widget.fieldType == EditFieldType.phone) {
       final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
@@ -97,8 +96,7 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
     }
 
     try {
-      await runLoading(
-        context,
+      await runGuarded(
         () async {
           switch (widget.fieldType) {
             case EditFieldType.fullName:
@@ -159,7 +157,6 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
                   );
           }
         },
-        message: 'Enregistrement…',
       );
 
       if (mounted) {
@@ -226,21 +223,12 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
                   ),
                   elevation: 0,
                 ),
-                child: isBusy
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: AppColors.porcelaine,
-                        ),
-                      )
-                    : Text(
-                        'Enregistrer',
-                        style: AppTextStyles.bodyMedium(
-                          color: AppColors.porcelaine,
-                        ).copyWith(fontWeight: FontWeight.w600),
-                      ),
+                child: Text(
+                  'Enregistrer',
+                  style: AppTextStyles.bodyMedium(
+                    color: AppColors.porcelaine,
+                  ).copyWith(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ],
@@ -391,13 +379,11 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
-                // Ignore lint rule since we need this import dynamically or we just add it to the file top
-                // Wait, I need to add the import to the top of the file!
-                // I will add it using another ReplaceContent
-                showCountryPicker(
+                showAppCountryPicker(
                   context: context,
-                  showPhoneCode: false,
-                  onSelect: (Country country) {
+                  showDialCode: false,
+                  title: 'Sélectionner un pays',
+                  onSelect: (country) {
                     setState(() {
                       _selectedCountry = country.name;
                     });

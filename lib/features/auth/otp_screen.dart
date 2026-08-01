@@ -8,7 +8,8 @@ import '../../providers/app_providers.dart';
 import '../../widgets/shared/otp_input_row.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/form_error_handler.dart';
-import '../../widgets/shared/loading_overlay.dart';
+import '../../core/utils/loading_overlay_service.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Contexte d'utilisation de l'OTP, transmis via `extra` du router.
 /// - `login`        → connexion classique, redirige vers /wallet
@@ -18,12 +19,13 @@ import '../../widgets/shared/loading_overlay.dart';
 enum OtpContext { login, signup, social, forgotPassword }
 
 class OtpScreen extends ConsumerStatefulWidget {
-  final String phoneNumber;
+  /// L'identifiant de l'utilisateur (téléphone ou email).
+  final String identifier;
   final OtpContext otpContext;
 
   const OtpScreen({
     super.key,
-    required this.phoneNumber,
+    required this.identifier,
     this.otpContext = OtpContext.login,
   });
 
@@ -32,6 +34,7 @@ class OtpScreen extends ConsumerStatefulWidget {
 }
 
 class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
+  final GlobalKey<OtpInputRowState> _otpKey = GlobalKey<OtpInputRowState>();
   int _secondsLeft = 30;
   Timer? _timer;
 
@@ -51,6 +54,34 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
         setState(() => _secondsLeft--);
       }
     });
+  }
+
+  Future<void> _resendCode() async {
+    if (isBusy) return;
+
+    try {
+      if (widget.otpContext == OtpContext.forgotPassword) {
+        final success = await runGuarded(
+          () => ref.read(authProvider.notifier).forgotPassword(widget.identifier),
+          useOverlay: true,
+          loadingMessage: 'Renvoi du code...',
+        );
+        if (mounted && (success ?? false)) {
+          showSuccessToast('Le code a été renvoyé.');
+          _startCountdown();
+          _otpKey.currentState?.clear();
+        } else if (mounted) {
+          handleError(ref.read(authProvider).lastError, context: ErrorContext.forgotPassword);
+        }
+      } else {
+        // Pour les autres contextes non encore implémentés,
+        // on se contente de relancer le compteur visuellement.
+        _startCountdown();
+        _otpKey.currentState?.clear();
+      }
+    } catch (e) {
+      if (mounted) handleError(e, context: ErrorContext.forgotPassword);
+    }
   }
 
   @override
@@ -75,14 +106,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
       case OtpContext.social:
         try {
           final flow = ref.read(signupFlowProvider);
-          await runLoading(
-            context,
+          await runGuarded(
             () => ref.read(authProvider.notifier).completeSocialProfile(
                   fullName: flow.fullName,
                   phone: flow.phone,
                   birthDate: flow.birthDate,
                 ),
-            message: 'Vérification…',
+            useOverlay: true,
+            loadingMessage: 'Validation...',
           );
           if (mounted) context.go('/wallet');
         } catch (e) {
@@ -91,18 +122,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
 
       case OtpContext.forgotPassword:
         try {
-          final resetToken = await runLoading(
-            context,
+          final resetToken = await runGuarded(
             () => ref.read(authProvider.notifier).verifyResetOtp(
-                  widget.phoneNumber,
+                  widget.identifier,
                   code,
                 ),
-            message: 'Vérification du code…',
+            useOverlay: true,
+            loadingMessage: 'Vérification du code...',
           );
 
           if (resetToken != null && mounted) {
             context.push('/reset-password', extra: {
-              'phone': widget.phoneNumber,
+              'phone': widget.identifier,
               'token': resetToken,
             });
           } else if (mounted) {
@@ -111,9 +142,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
               ref.read(authProvider).lastError,
               context: ErrorContext.verifyOtp,
             );
+            _otpKey.currentState?.clear();
           }
         } catch (e) {
-          if (mounted) handleError(e, context: ErrorContext.verifyOtp);
+          if (mounted) {
+            handleError(e, context: ErrorContext.verifyOtp);
+            _otpKey.currentState?.clear();
+          }
         }
     }
   }
@@ -127,8 +162,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
       OtpContext.forgotPassword => 'Récupération',
     };
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       appBar: AppBar(
         backgroundColor: AppColors.porcelaine,
         elevation: 0,
@@ -152,18 +188,22 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
             Text('Vérification', style: AppTextStyles.displayXL()),
             const SizedBox(height: 8),
             Text(
-              'Un code à 6 chiffres a été envoyé au\n'
-              '${widget.phoneNumber.isEmpty ? "+228 •• •• •• ••" : widget.phoneNumber}',
+              'Un code à 6 chiffres a été envoyé '
+              '${widget.identifier.contains('@') ? 'à' : 'au'}\n'
+              '${widget.identifier.isEmpty ? "+228 •• •• •• ••" : widget.identifier}',
               style: AppTextStyles.bodyMedium(
                 color: AppColors.encre.withValues(alpha: 0.65),
               ),
             ),
             const SizedBox(height: 44),
-            OtpInputRow(onCompleted: _onCompleted),
+            OtpInputRow(
+              key: _otpKey,
+              onCompleted: _onCompleted,
+            ),
             const Spacer(),
             Center(
               child: TextButton(
-                onPressed: _secondsLeft > 0 ? null : _startCountdown,
+                onPressed: _secondsLeft > 0 ? null : _resendCode,
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.laitonBrosse,
                   disabledForegroundColor:
@@ -182,6 +222,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
             ),
             const SizedBox(height: 32),
           ],
+        ),
         ),
       ),
     );

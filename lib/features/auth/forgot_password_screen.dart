@@ -11,7 +11,7 @@ import '../../providers/app_providers.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
-import '../../widgets/shared/loading_overlay.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -61,10 +61,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
     }
 
     try {
-      final success = await runLoading(
-        context,
+      final success = await runGuarded(
         () => ref.read(authProvider.notifier).forgotPassword(identifier),
-        message: 'Envoi en cours…',
+        useOverlay: true,
+        loadingMessage: 'Envoi du code...',
       );
       if (!mounted || success == null) return;
 
@@ -102,121 +102,137 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen>
       height: 1.1,
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       appBar: AppBar(
         backgroundColor: AppColors.porcelaine,
         elevation: 0,
         leading: const BackButton(color: AppColors.encre),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Mot de passe oublié', style: titleStyle),
-                const SizedBox(height: 16),
-                Text(
-                  'Entrez votre ${_useEmail ? "adresse email" : "numéro de téléphone"} pour recevoir un code de réinitialisation.',
-                  style: AppTextStyles.bodyMedium(
-                    color: AppColors.encre.withValues(alpha: 0.65),
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 32, // -32 pour le padding vertical (16 + 16)
                 ),
-                const SizedBox(height: 32),
-                if (_useEmail) ...[
-                  Text('Adresse email', style: AppTextStyles.label()),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    style: AppTextStyles.bodyMedium(),
-                    onChanged: (_) => clearFieldError('email'),
-                    validator: fieldValidator(
-                      'email',
-                      requiredMessage: ErrorMessages.fieldRequired,
-                      extra: (v) => v.contains('@') && v.contains('.')
-                          ? null
-                          : ErrorMessages.emailInvalid,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'jean.dupont@example.com',
-                      hintStyle: AppTextStyles.bodyMedium(
-                        color: AppColors.encre.withValues(alpha: 0.35),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 15),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: AppColors.laitonLisere(opacity: 0.3)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: AppColors.laitonLisere(opacity: 0.3)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: AppColors.laitonBrosse,
-                          width: 1.2,
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Mot de passe oublié', style: titleStyle),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Entrez votre ${_useEmail ? "adresse email" : "numéro de téléphone"} pour recevoir un code de réinitialisation.',
+                          style: AppTextStyles.bodyMedium(
+                            color: AppColors.encre.withValues(alpha: 0.65),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 32),
+                        if (_useEmail) ...[
+                          Text('Adresse email', style: AppTextStyles.label()),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: AppTextStyles.bodyMedium(),
+                            onChanged: (_) => clearFieldError('email'),
+                            validator: fieldValidator(
+                              'email',
+                              requiredMessage: ErrorMessages.fieldRequired,
+                              extra: (v) => v.contains('@') && v.contains('.')
+                                  ? null
+                                  : ErrorMessages.emailInvalid,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'jean.dupont@example.com',
+                              hintStyle: AppTextStyles.bodyMedium(
+                                color: AppColors.encre.withValues(alpha: 0.35),
+                              ),
+                              filled: true,
+                              fillColor: AppColors.saugePale.withValues(alpha: 0.4),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 15),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: AppColors.laitonLisere(opacity: 0.3)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                    color: AppColors.laitonLisere(opacity: 0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: const BorderSide(
+                                  color: AppColors.laitonBrosse,
+                                  width: 1.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          Text('Numéro de téléphone', style: AppTextStyles.label()),
+                          const SizedBox(height: 8),
+                          PhoneInputWithCountryPicker(
+                            key: _phoneInputKey,
+                            controller: _phoneController,
+                            validator: fieldValidator(
+                              'phone',
+                              requiredMessage: ErrorMessages.fieldRequired,
+                            ),
+                          ),
+                        ],
+                        const Spacer(),
+                        const SizedBox(height: 32),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            return InvitationButton(
+                              label: 'Envoyer le code',
+                              filled: true,
+                              loading: isBusy,
+                              onTap: isBusy ? null : _submit,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _useEmail = !_useEmail;
+                              });
+                            },
+                            child: Text(
+                              _useEmail
+                                  ? 'Utiliser mon numéro de téléphone'
+                                  : 'Utiliser mon adresse email',
+                              style: AppTextStyles.bodyMedium(
+                                color: AppColors.laitonBrosse,
+                              ).copyWith(
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ),
                   ),
-                ] else ...[
-                  Text('Numéro de téléphone', style: AppTextStyles.label()),
-                  const SizedBox(height: 8),
-                  PhoneInputWithCountryPicker(
-                    key: _phoneInputKey,
-                    controller: _phoneController,
-                    validator: fieldValidator(
-                      'phone',
-                      requiredMessage: ErrorMessages.fieldRequired,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 48),
-                Consumer(
-                  builder: (context, ref, child) {
-                    return InvitationButton(
-                      label: 'Envoyer le code',
-                      filled: true,
-                      onTap: _submit,
-                    );
-                  },
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _useEmail = !_useEmail;
-                      });
-                    },
-                    child: Text(
-                      _useEmail
-                          ? 'Utiliser mon numéro de téléphone'
-                          : 'Utiliser mon adresse email',
-                      style: AppTextStyles.bodyMedium(
-                        color: AppColors.laitonBrosse,
-                      ).copyWith(
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
+    ),
     );
   }
 }

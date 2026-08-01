@@ -9,6 +9,7 @@ import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
 import 'package:country_picker/country_picker.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Étape post-inscription : Nom complet · Date de naissance · Email (optionnel).
 class CompleteProfileScreen extends ConsumerStatefulWidget {
@@ -53,8 +54,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen>
       final valEmail = _emailController.text.trim();
       final valCity = _cityController.text.trim();
 
-      await runLoading(
-        context,
+      await runGuarded(
         () => ref.read(authProvider.notifier).updateFullProfile(
               fullName: valName.isNotEmpty ? valName : user.fullName,
               phoneNumber: user.phoneNumber,
@@ -63,7 +63,8 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen>
               city: valCity,
               country: _selectedCountry,
             ),
-        message: 'Enregistrement…',
+        useOverlay: true,
+        loadingMessage: 'Mise à jour du profil...',
       );
 
       // Also mark as profile completed locally (updateFullProfile already does this)
@@ -91,8 +92,9 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen>
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -278,7 +280,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen>
                 InvitationButton(
                   label: 'Accéder à l\'application',
                   filled: true,
-                  isLoading: isBusy,
+                  loading: isBusy,
                   onTap: isBusy ? null : _complete,
                 ),
 
@@ -300,6 +302,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen>
               ],
             ),
           ),
+        ),
         ),
       ),
     );

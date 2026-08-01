@@ -63,10 +63,8 @@ class _VerifyCurrentPasswordScreenState
     setState(() => _errorText = null);
 
     try {
-      final valid = await runLoading(
-        context,
+      final valid = await runGuarded(
         () => ref.read(authProvider.notifier).verifyPassword(password),
-        message: 'Vérification en cours…',
       );
       if (!mounted || valid == null) return;
 
@@ -334,7 +332,6 @@ class _VerifyCurrentPasswordScreenState
                   return InvitationButton(
                     label: 'Continuer',
                     filled: true,
-                    isLoading: isBusy,
                     onTap: isBusy ? null : _verify,
                   );
                 },

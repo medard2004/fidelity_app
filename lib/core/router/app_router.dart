@@ -34,11 +34,11 @@ import '../../widgets/shared/app_shell.dart';
 OtpScreen _buildOtpScreen(GoRouterState state) {
   final extra = state.extra;
 
-  String phone = '';
+  String identifier = '';
   OtpContext otpContext = OtpContext.login;
 
   if (extra is Map<String, dynamic>) {
-    phone = extra['phone'] as String? ?? '';
+    identifier = extra['phone'] as String? ?? '';
     final ctx = extra['context'] as String? ?? 'login';
     otpContext = switch (ctx) {
       'signup' => OtpContext.signup,
@@ -47,10 +47,10 @@ OtpScreen _buildOtpScreen(GoRouterState state) {
       _ => OtpContext.login,
     };
   } else if (extra is String) {
-    phone = extra;
+    identifier = extra;
   }
 
-  return OtpScreen(phoneNumber: phone, otpContext: otpContext);
+  return OtpScreen(identifier: identifier, otpContext: otpContext);
 }
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -205,7 +205,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     GoRoute(
       path: '/edit-profile',
       builder: (context, state) {
-        final fieldType = state.extra as EditFieldType;
+        final fieldType = (state.extra as EditFieldType?) ?? EditFieldType.fullName;
         return EditFieldScreen(fieldType: fieldType);
       },
     ),

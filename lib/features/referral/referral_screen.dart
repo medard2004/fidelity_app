@@ -74,14 +74,17 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cards = ref.watch(walletProvider);
+    final cardsAsync = ref.watch(walletProvider);
+    final cards = cardsAsync.valueOrNull ?? [];
     final refState = ref.watch(referralProvider);
 
     // Trouver le partenaire actuellement sélectionné
-    final selectedCard = cards.firstWhere(
+    final selectedCard = cards.isEmpty ? null : cards.firstWhere(
       (c) => c.id == refState.selectedRestaurantId,
       orElse: () => cards.first,
     );
+
+    if (selectedCard == null) return const Scaffold(backgroundColor: AppColors.porcelaine);
 
     return Scaffold(
       backgroundColor: AppColors.porcelaine,
@@ -254,7 +257,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               label: 'Partager l\'invitation (${refState.recipients.length} destinataire${refState.recipients.length > 1 ? "s" : ""})',
               filled: true,
               icon: Icons.send_rounded,
-              onTap: () => _sendShares(selectedCard),
+              onTap: selectedCard == null ? null : () => _sendShares(selectedCard),
             ),
 
             const SizedBox(height: 28),

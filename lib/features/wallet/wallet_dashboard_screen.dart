@@ -109,11 +109,10 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    final cards = ref.watch(walletProvider);
+    final cardsAsync = ref.watch(walletProvider);
     final auth = ref.watch(authProvider);
     final unread = ref.watch(notificationsProvider).where((n) => !n.isRead).length;
     final firstName = auth.user?.firstName ?? 'vous';
-    final filteredCards = _filteredCards(cards);
 
     return Scaffold(
       backgroundColor: AppColors.porcelaine,
@@ -234,12 +233,27 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-                child: filteredCards.isEmpty
-                    ? _buildEmptyState(cards.isEmpty)
-                    : LoyaltyCardStack(
-                        cards: filteredCards,
-                        onCardTap: (card) => context.push('/card/${card.id}'),
+                child: cardsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (error, stack) => Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(
+                        'Impossible de charger les cartes.',
+                        style: AppTextStyles.bodyMedium(color: AppColors.bordeauxProfond),
                       ),
+                    ),
+                  ),
+                  data: (cards) {
+                    final filteredCards = _filteredCards(cards);
+                    return filteredCards.isEmpty
+                        ? _buildEmptyState(cards.isEmpty)
+                        : LoyaltyCardStack(
+                            cards: filteredCards,
+                            onCardTap: (card) => context.push('/card/${card.id}'),
+                          );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 20),

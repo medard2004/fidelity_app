@@ -9,7 +9,7 @@ import '../../widgets/shared/invitation_button.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
-import '../../widgets/shared/loading_overlay.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Écran de création de mot de passe (étape finale de l'inscription).
 class CreatePasswordScreen extends ConsumerStatefulWidget {
@@ -64,10 +64,10 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen>
     final flow = ref.read(signupFlowProvider);
 
     try {
-      final success = await runLoading(
-        context,
+      final success = await runGuarded(
         () => ref.read(authProvider.notifier).register(flow, password),
-        message: 'Création du compte…',
+        useOverlay: true,
+        loadingMessage: 'Création du compte...',
       );
       if (!mounted || success == null) return;
 
@@ -100,8 +100,9 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen>
       height: 1.1,
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -213,13 +214,15 @@ class _CreatePasswordScreenState extends ConsumerState<CreatePasswordScreen>
                     InvitationButton(
                       label: 'Créer mon compte',
                       filled: true,
-                      onTap: _submit,
+                      loading: isBusy,
+                      onTap: isBusy ? null : _submit,
                     ),
                   ],
                 ),
               ),
             );
           },
+        ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_icons/simple_icons.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/user.dart';
@@ -14,6 +15,8 @@ import '../../services/social_auth_service.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
 import '../../core/errors/form_error_handler.dart';
+import '../../core/utils/loading_overlay_service.dart';
+import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 
 /// Formulaire d'inscription complet : Nom · Date de naissance · Téléphone → /wallet
 class SignupScreen extends ConsumerStatefulWidget {
@@ -60,10 +63,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
         );
 
         final flowData = ref.read(signupFlowProvider);
-        final isValid = await runLoading(
-          context,
+        final isValid = await runGuarded(
           () => ref.read(authProvider.notifier).validateRegisterStep1(flowData),
-          message: 'Validation en cours…',
+          useOverlay: true,
+          loadingMessage: 'Vérification...',
         );
 
         if (!mounted || isValid == null) return;
@@ -89,8 +92,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
 
   Future<void> _continueWithGoogle() async {
     try {
-      final result = await runLoading(
-        context,
+      final result = await runGuarded(
         () async {
           final idToken = await SocialAuthService.signInWithGoogle();
           if (idToken == null) return null;
@@ -98,7 +100,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
               .read(authProvider.notifier)
               .socialLogin(AuthProvider.google, idToken, action: 'signup');
         },
-        message: 'Connexion avec Google…',
+        useOverlay: true,
+        loadingMessage: 'Inscription via Google...',
       );
 
       if (!mounted || result == null) return;
@@ -127,8 +130,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
 
   Future<void> _continueWithApple() async {
     try {
-      final result = await runLoading(
-        context,
+      final result = await runGuarded(
         () async {
           final idToken = await SocialAuthService.signInWithApple();
           if (idToken == null) return null;
@@ -136,7 +138,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
               .read(authProvider.notifier)
               .socialLogin(AuthProvider.apple, idToken, action: 'signup');
         },
-        message: 'Connexion avec Apple…',
+        useOverlay: true,
+        loadingMessage: 'Inscription via Apple...',
       );
 
       if (!mounted || result == null) return;
@@ -172,8 +175,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
       height: 1.1,
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+    return KeyboardDismissPopScope(
+      child: Scaffold(
+        backgroundColor: AppColors.porcelaine,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -241,7 +245,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
                           return InvitationButton(
                             label: 'Suivant',
                             filled: true,
-                            onTap: _submit,
+                            loading: isBusy,
+                            onTap: isBusy ? null : _submit,
                           );
                         },
                       ),
@@ -278,15 +283,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
                       // ── Inscription sociale ─────────────────────────────
                       InvitationButton(
                         label: 'S\'inscrire avec Google',
-                        leading: const Icon(SimpleIcons.google,
-                            size: 16, color: AppColors.encre),
-                        onTap: _continueWithGoogle,
+                        leading: SvgPicture.asset(
+                          'assets/icons/google_logo.svg',
+                          width: 16,
+                          height: 16,
+                        ),
+                        onTap: isBusy ? null : _continueWithGoogle,
                       ),
                       const SizedBox(height: 10),
                       InvitationButton(
                         label: 'S\'inscrire avec Apple',
                         icon: SimpleIcons.apple,
-                        onTap: _continueWithApple,
+                        onTap: isBusy ? null : _continueWithApple,
                       ),
 
                       const SizedBox(height: 20),
@@ -322,6 +330,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen>
               ),
             );
           },
+        ),
         ),
       ),
     );

@@ -168,6 +168,73 @@ class PersonalInfoScreen extends ConsumerWidget {
               ],
             ),
           ),
+
+          if (!user.isSocialUser) ...[
+            const SizedBox(height: 28),
+            Text(
+              'Sécurité',
+              style: AppTextStyles.monoSmall(
+                color: AppColors.laitonBrosse,
+              ).copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => context.push('/change-password'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.porcelaine,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.laitonLisere(opacity: 0.35),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.vertBouteille.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.lock_outline_rounded,
+                        color: AppColors.vertBouteille.withValues(alpha: 0.8),
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Modifier le mot de passe',
+                            style: AppTextStyles.bodyMedium(
+                              color: AppColors.encre,
+                            ).copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Sécurisez votre compte',
+                            style: AppTextStyles.bodySmall(
+                              color: AppColors.encre.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.encre.withValues(alpha: 0.3),
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

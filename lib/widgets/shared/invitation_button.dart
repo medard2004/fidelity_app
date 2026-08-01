@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
+import 'loading_dots.dart';
 
 /// Bouton "carton d'invitation" : fond porcelaine, liseré laiton fin,
 /// scale subtil (0.98) au tap, jamais de rebond visible.
@@ -12,7 +13,7 @@ class InvitationButton extends StatefulWidget {
   final Widget? leading;
   final bool filled; // vert bouteille plein — réservé au CTA principal
   final bool fullWidth;
-  final bool isLoading;
+  final bool loading;
 
   const InvitationButton({
     super.key,
@@ -22,7 +23,7 @@ class InvitationButton extends StatefulWidget {
     this.leading,
     this.filled = false,
     this.fullWidth = true,
-    this.isLoading = false,
+    this.loading = false,
   });
 
   @override
@@ -41,7 +42,7 @@ class _InvitationButtonState extends State<InvitationButton> {
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onTap,
+      onTap: widget.loading ? null : widget.onTap,
       child: AnimatedScale(
         scale: _pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 90),
@@ -56,28 +57,20 @@ class _InvitationButtonState extends State<InvitationButton> {
                 ? null
                 : Border.all(color: AppColors.laitonLisere(opacity: 0.55)),
           ),
-          child: Row(
-            mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.isLoading)
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: fg,
-                  ),
-                )
-              else ...[
-                if (widget.leading != null || widget.icon != null) ...[
-                  widget.leading ?? Icon(widget.icon, size: 17, color: fg),
-                  const SizedBox(width: 8),
-                ],
-                Text(widget.label, style: AppTextStyles.label(color: fg)),
-              ],
-            ],
-          ),
+          child: widget.loading
+              ? Center(child: LoadingDots(color: fg))
+              : Row(
+                  mainAxisSize:
+                      widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.leading != null || widget.icon != null) ...[
+                      widget.leading ?? Icon(widget.icon, size: 17, color: fg),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(widget.label, style: AppTextStyles.label(color: fg)),
+                  ],
+                ),
         ),
       ),
     );

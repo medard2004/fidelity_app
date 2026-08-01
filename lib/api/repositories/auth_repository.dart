@@ -71,20 +71,20 @@ class AuthRepository {
     return token != null;
   }
 
-  Future<String> forgotPassword(String phone) async {
-    final response = await _authService.forgotPassword(phone);
+  Future<String> forgotPassword(String identifier) async {
+    final response = await _authService.forgotPassword(identifier);
     return response['message'] ?? 'Code envoyé';
   }
 
-  Future<String> verifyResetOtp(String phone, String otp) async {
-    final response = await _authService.verifyResetOtp(phone, otp);
+  Future<String> verifyResetOtp(String identifier, String otp) async {
+    final response = await _authService.verifyResetOtp(identifier, otp);
     return response['reset_token'] as String;
   }
 
   Future<String> resetPassword(
-      String phone, String resetToken, String password) async {
+      String identifier, String resetToken, String password) async {
     final response =
-        await _authService.resetPassword(phone, resetToken, password);
+        await _authService.resetPassword(identifier, resetToken, password);
     return response['message'] ?? 'Mot de passe réinitialisé';
   }
 
