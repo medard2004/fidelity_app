@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Carte a besoin d'accéder à l'appareil photo pour changer votre photo de profil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Carte a besoin d'accéder à vos photos pour changer votre photo de profil.</string>
 </dict>
 </plist>
