@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../services/auth_service.dart';
 import '../storage/token_storage.dart';
 import '../../models/user.dart';
@@ -90,6 +91,16 @@ class AuthRepository {
 
   Future<AppUser> updateProfile(Map<String, dynamic> data) async {
     final response = await _authService.updateProfile(data);
+    return AppUser.fromJson(response['client'] ?? {});
+  }
+
+  Future<AppUser> uploadAvatar(File file) async {
+    final response = await _authService.uploadAvatar(file);
+    return AppUser.fromJson(response['client'] ?? {});
+  }
+
+  Future<AppUser> deleteAvatar() async {
+    final response = await _authService.deleteAvatar();
     return AppUser.fromJson(response['client'] ?? {});
   }
 

@@ -42,6 +42,7 @@ enum ErrorContext {
   resetPassword,
   completeProfile,
   updateProfile,
+  updateAvatar,
   verifyPassword,
   changePassword,
 }

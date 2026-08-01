@@ -144,6 +144,8 @@ class ErrorTranslator {
         return ErrorMessages.nameInvalid;
       case 'birthdate':
         return ErrorMessages.birthdateInvalid;
+      case 'avatar':
+        return ErrorMessages.avatarInvalid;
       case 'referral_code':
         return ErrorMessages.referralCodeInvalid;
       case 'otp':
@@ -250,6 +252,8 @@ class ErrorTranslator {
         return ErrorMessages.profileCompleteFailed;
       case ErrorContext.updateProfile:
         return ErrorMessages.profileSaveFailed;
+      case ErrorContext.updateAvatar:
+        return ErrorMessages.avatarUpdateFailed;
       case ErrorContext.verifyPassword:
       case ErrorContext.changePassword:
         return ErrorMessages.passwordChangeFailed;

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../core/api_client.dart';
 import '../core/api_exceptions.dart';
@@ -164,6 +165,20 @@ class AuthService {
   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) =>
       _guard(() async {
         final response = await _apiClient.dio.put('/auth/profile', data: data);
+        return response.data as Map<String, dynamic>;
+      });
+
+  Future<Map<String, dynamic>> uploadAvatar(File file) => _guard(() async {
+        final formData = FormData.fromMap({
+          'avatar': await MultipartFile.fromFile(file.path, filename: 'avatar.jpg'),
+        });
+        final response =
+            await _apiClient.dio.post('/auth/profile/avatar', data: formData);
+        return response.data as Map<String, dynamic>;
+      });
+
+  Future<Map<String, dynamic>> deleteAvatar() => _guard(() async {
+        final response = await _apiClient.dio.delete('/auth/profile/avatar');
         return response.data as Map<String, dynamic>;
       });
 

@@ -80,6 +80,12 @@ class ErrorMessages {
       "Les informations ont bien été enregistrées.";
   static const profileCompleteFailed =
       "Impossible d'enregistrer votre profil. Réessayez.";
+  static const avatarUpdateFailed =
+      "Impossible de mettre à jour la photo de profil. Réessayez.";
+  static const avatarUpdateSuccess = "Photo de profil mise à jour.";
+  static const avatarRemoveSuccess = "Photo de profil supprimée.";
+  static const avatarInvalid =
+      "Cette image ne peut pas être utilisée. Essayez-en une autre.";
   static const passwordCurrentIncorrect =
       "Le mot de passe actuel est incorrect.";
   static const passwordChangeSuccess = "Votre mot de passe a bien été modifié.";

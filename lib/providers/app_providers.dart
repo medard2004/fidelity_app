@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/mock_data.dart';
 import '../models/reward.dart';
@@ -468,6 +469,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(user: previousUser, lastError: e);
       rethrow;
     }
+  }
+
+  /// Pas de mise à jour optimiste ici : contrairement à [updateFullProfile],
+  /// rien n'est affiché avant la confirmation serveur (voir spec avatar).
+  Future<void> updateAvatar(File file) async {
+    if (state.user == null) return;
+    final updatedUser = await _authRepository.uploadAvatar(file);
+    state = state.copyWith(user: updatedUser);
+  }
+
+  Future<void> removeAvatar() async {
+    if (state.user == null) return;
+    final updatedUser = await _authRepository.deleteAvatar();
+    state = state.copyWith(user: updatedUser);
   }
 
   Future<void> signOut() async {
