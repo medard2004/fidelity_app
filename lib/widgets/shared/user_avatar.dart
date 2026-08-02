@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 class UserAvatar extends StatelessWidget {
   final String fullName;
   final String? photoUrl;
+  final File? localImage;
   final double radius;
   final bool isLoading;
 
@@ -15,6 +17,7 @@ class UserAvatar extends StatelessWidget {
     super.key,
     required this.fullName,
     this.photoUrl,
+    this.localImage,
     this.radius = 32,
     this.isLoading = false,
   });
@@ -40,15 +43,23 @@ class UserAvatar extends StatelessWidget {
             ],
           ),
           child: ClipOval(
-            child: (photoUrl != null && photoUrl!.isNotEmpty)
-                ? Image.network(
-                    photoUrl!,
+            child: localImage != null
+                ? Image.file(
+                    localImage!,
                     fit: BoxFit.cover,
                     width: size,
                     height: size,
                     errorBuilder: (context, error, stackTrace) => _initials(),
                   )
-                : _initials(),
+                : (photoUrl != null && photoUrl!.isNotEmpty)
+                    ? Image.network(
+                        photoUrl!,
+                        fit: BoxFit.cover,
+                        width: size,
+                        height: size,
+                        errorBuilder: (context, error, stackTrace) => _initials(),
+                      )
+                    : _initials(),
           ),
         ),
         if (isLoading)

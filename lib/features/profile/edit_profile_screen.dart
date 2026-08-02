@@ -78,20 +78,46 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
     clearAllFieldErrors();
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // Confirmation téléphone : interaction UI, résolue avant de prendre le
-    // verrou anti-double-soumission (qui ne couvre que l'appel réseau).
+    bool hasChanged = false;
     String? confirmedPhone;
-    if (widget.fieldType == EditFieldType.phone) {
-      final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
-          _controller.text.trim();
-      final confirmed =
-          await PhoneConfirmationDialog.show(context, phoneNumber: fullPhone);
-      if (!confirmed || !mounted) return;
-      confirmedPhone = fullPhone;
+
+    switch (widget.fieldType) {
+      case EditFieldType.fullName:
+        hasChanged = _controller.text.trim() != user.fullName;
+        break;
+      case EditFieldType.phone:
+        final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ?? _controller.text.trim();
+        if (fullPhone == user.phoneNumber) {
+          hasChanged = false;
+        } else {
+          hasChanged = true;
+          // Confirmation téléphone : interaction UI avant de prendre le verrou
+          final confirmed = await PhoneConfirmationDialog.show(context, phoneNumber: fullPhone);
+          if (!confirmed || !mounted) return;
+          confirmedPhone = fullPhone;
+        }
+        break;
+      case EditFieldType.birthDate:
+        if (_birthDate == null) {
+          showErrorToast(ErrorMessages.birthdateRequired);
+          return;
+        }
+        hasChanged = _birthDate != user.birthDate;
+        break;
+      case EditFieldType.email:
+        hasChanged = _controller.text.trim() != user.email;
+        break;
+      case EditFieldType.city:
+        hasChanged = _controller.text.trim() != user.city;
+        break;
+      case EditFieldType.country:
+        hasChanged = _selectedCountry != user.country;
+        break;
     }
 
-    if (widget.fieldType == EditFieldType.birthDate && _birthDate == null) {
-      showErrorToast(ErrorMessages.birthdateRequired);
+    if (!hasChanged) {
+      // Si aucune modification n'a été apportée, on quitte directement
+      if (mounted) context.pop();
       return;
     }
 
@@ -100,61 +126,35 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
         () async {
           switch (widget.fieldType) {
             case EditFieldType.fullName:
-              final val = _controller.text.trim();
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: val,
-                    phoneNumber: user.phoneNumber,
-                    birthDate: user.birthDate,
-                    email: user.email,
-                    country: user.country,
+                    fullName: _controller.text.trim(),
                   );
-
+              break;
             case EditFieldType.phone:
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: user.fullName,
                     phoneNumber: confirmedPhone!,
-                    birthDate: user.birthDate,
-                    email: user.email,
-                    country: user.country,
                   );
-
+              break;
             case EditFieldType.birthDate:
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: user.fullName,
-                    phoneNumber: user.phoneNumber,
                     birthDate: _birthDate,
-                    email: user.email,
-                    country: user.country,
                   );
-
+              break;
             case EditFieldType.email:
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: user.fullName,
-                    phoneNumber: user.phoneNumber,
-                    birthDate: user.birthDate,
                     email: _controller.text.trim(),
-                    country: user.country,
                   );
-
+              break;
             case EditFieldType.city:
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: user.fullName,
-                    phoneNumber: user.phoneNumber,
-                    birthDate: user.birthDate,
-                    email: user.email,
                     city: _controller.text.trim(),
-                    country: user.country,
                   );
-
+              break;
             case EditFieldType.country:
               await ref.read(authProvider.notifier).updateFullProfile(
-                    fullName: user.fullName,
-                    phoneNumber: user.phoneNumber,
-                    birthDate: user.birthDate,
-                    email: user.email,
-                    city: user.city,
                     country: _selectedCountry,
                   );
+              break;
           }
         },
       );
@@ -247,7 +247,6 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
             const SizedBox(height: 8),
             TextFormField(
               controller: _controller,
-              autofocus: true,
               style: AppTextStyles.bodyMedium(),
               decoration: _decoration('Prénom Nom'),
               onChanged: (_) => clearFieldError('first_name'),
@@ -255,6 +254,7 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
                 'first_name',
                 requiredMessage: ErrorMessages.fieldRequired,
               ),
+              onFieldSubmitted: (_) => _save(),
             ),
           ],
         );
@@ -271,7 +271,11 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
               validator: fieldValidator(
                 'phone',
                 requiredMessage: ErrorMessages.fieldRequired,
+                extra: (v) => v.replaceAll(RegExp(r'\D'), '').length >= 6 
+                    ? null 
+                    : ErrorMessages.phoneInvalid,
               ),
+              onFieldSubmitted: (_) => _save(),
             ),
           ],
         );
@@ -336,18 +340,19 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
             const SizedBox(height: 8),
             TextFormField(
               controller: _controller,
-              autofocus: true,
               keyboardType: TextInputType.emailAddress,
               style: AppTextStyles.bodyMedium(),
               decoration: _decoration('votre@email.com'),
               onChanged: (_) => clearFieldError('email'),
-              // Facultatif : format vérifié seulement si l'utilisateur saisit.
               validator: fieldValidator(
                 'email',
-                extra: (v) => v.contains('@') && v.contains('.')
-                    ? null
-                    : ErrorMessages.emailInvalid,
+                requiredMessage: ErrorMessages.fieldRequired,
+                extra: (v) {
+                  final regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  return regex.hasMatch(v) ? null : ErrorMessages.emailInvalid;
+                },
               ),
+              onFieldSubmitted: (_) => _save(),
             ),
           ],
         );
@@ -360,13 +365,16 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
             const SizedBox(height: 8),
             TextFormField(
               controller: _controller,
-              autofocus: true,
               keyboardType: TextInputType.text,
               textCapitalization: TextCapitalization.words,
               style: AppTextStyles.bodyMedium(),
               decoration: _decoration('Votre ville'),
               onChanged: (_) => clearFieldError('city'),
-              validator: fieldValidator('city'),
+              validator: fieldValidator(
+                'city',
+                requiredMessage: ErrorMessages.fieldRequired,
+              ),
+              onFieldSubmitted: (_) => _save(),
             ),
           ],
         );
@@ -379,9 +387,16 @@ class _EditFieldScreenState extends ConsumerState<EditFieldScreen>
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
+                CountryInfo? current;
+                if (_selectedCountry != null) {
+                  try {
+                    current = kAllCountries.firstWhere((c) => c.name == _selectedCountry);
+                  } catch (_) {}
+                }
                 showAppCountryPicker(
                   context: context,
                   showDialCode: false,
+                  selectedCountry: current,
                   title: 'Sélectionner un pays',
                   onSelect: (country) {
                     setState(() {

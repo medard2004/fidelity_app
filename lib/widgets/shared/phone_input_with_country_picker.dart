@@ -46,6 +46,7 @@ class PhoneInputWithCountryPicker extends StatefulWidget {
   final ValueChanged<CountryInfo>? onCountryChanged;
   final String? Function(String?)? validator;
   final String hintText;
+  final ValueChanged<String>? onFieldSubmitted;
 
   const PhoneInputWithCountryPicker({
     super.key,
@@ -54,6 +55,7 @@ class PhoneInputWithCountryPicker extends StatefulWidget {
     this.onCountryChanged,
     this.validator,
     this.hintText = '90 12 34 56',
+    this.onFieldSubmitted,
   });
 
   @override
@@ -120,6 +122,7 @@ class PhoneInputWithCountryPickerState
       style: AppTextStyles.bodyMedium().copyWith(letterSpacing: 1.2),
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      onFieldSubmitted: widget.onFieldSubmitted,
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: AppTextStyles.bodyMedium(

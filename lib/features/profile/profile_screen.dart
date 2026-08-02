@@ -10,9 +10,6 @@ import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/shared/brass_bordered_container.dart';
 import '../../core/utils/toast_service.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import '../../models/user.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/errors/error_messages.dart';
@@ -87,122 +84,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with FormErrorHan
     );
   }
 
-  Future<void> _showAvatarOptions(AppUser user) {
-    final hasPhoto = user.photoUrl != null && user.photoUrl!.isNotEmpty;
-
-    return showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.porcelaine,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 48,
-              height: 5,
-              decoration: BoxDecoration(
-                color: AppColors.encre.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.encre),
-              title: Text('Prendre une photo', style: AppTextStyles.bodyMedium()),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickAndUploadAvatar(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.encre),
-              title: Text('Choisir dans la galerie', style: AppTextStyles.bodyMedium()),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                _pickAndUploadAvatar(ImageSource.gallery);
-              },
-            ),
-            if (hasPhoto)
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.bordeauxProfond),
-                title: Text(
-                  'Supprimer la photo',
-                  style: AppTextStyles.bodyMedium(color: AppColors.bordeauxProfond),
-                ),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  _removeAvatar();
-                },
-              ),
-            ListTile(
-              title: Center(
-                child: Text(
-                  'Annuler',
-                  style: AppTextStyles.bodyMedium(color: AppColors.encre.withValues(alpha: 0.5)),
-                ),
-              ),
-              onTap: () => Navigator.pop(sheetContext),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickAndUploadAvatar(ImageSource source) async {
-    final XFile? picked = await ImagePicker().pickImage(source: source, imageQuality: 90);
-    if (picked == null || !mounted) return;
-
-    final CroppedFile? cropped = await ImageCropper().cropImage(
-      sourcePath: picked.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      maxWidth: 1024,
-      maxHeight: 1024,
-      compressFormat: ImageCompressFormat.jpg,
-      compressQuality: 85,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Recadrer la photo',
-          toolbarColor: AppColors.porcelaine,
-          toolbarWidgetColor: AppColors.encre,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true,
-        ),
-        IOSUiSettings(
-          title: 'Recadrer la photo',
-          aspectRatioLockEnabled: true,
-        ),
-      ],
-    );
-    if (cropped == null || !mounted) return;
-
-    try {
-      await runGuarded(
-        () => ref.read(authProvider.notifier).updateAvatar(File(cropped.path)),
-      );
-      if (mounted) showSuccessToast(ErrorMessages.avatarUpdateSuccess);
-    } catch (e) {
-      if (mounted) handleError(e, context: ErrorContext.updateAvatar);
-    }
-  }
-
-  Future<void> _removeAvatar() async {
-    try {
-      await runGuarded(() => ref.read(authProvider.notifier).removeAvatar());
-      if (mounted) showSuccessToast(ErrorMessages.avatarRemoveSuccess);
-    } catch (e) {
-      if (mounted) handleError(e, context: ErrorContext.updateAvatar);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authProvider).user;
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
     final cardsAsync = ref.watch(walletProvider);
     final cards = cardsAsync.valueOrNull ?? [];
     final rewards = ref.watch(rewardsProvider);
@@ -309,14 +194,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with FormErrorHan
                       padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
-                          GestureDetector(
-                            onTap: isBusy ? null : () => _showAvatarOptions(user),
-                            child: UserAvatar(
-                              fullName: user.fullName,
-                              photoUrl: user.photoUrl,
-                              radius: 32,
-                              isLoading: isBusy,
-                            ),
+                          UserAvatar(
+                            fullName: user.fullName,
+                            photoUrl: user.photoUrl,
+                            localImage: authState.localAvatar,
+                            radius: 32,
+                            isLoading: false,
                           ),
                           const SizedBox(width: 16),
                           Expanded(

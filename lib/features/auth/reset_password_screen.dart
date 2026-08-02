@@ -14,9 +14,10 @@ import '../../widgets/shared/keyboard_dismiss_pop_scope.dart';
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String accountId; // phone or email
   final String token; // reset token from verify-otp
+  final bool isAuthReset; // whether this is an authenticated reset
 
   const ResetPasswordScreen(
-      {super.key, required this.accountId, required this.token});
+      {super.key, required this.accountId, required this.token, this.isAuthReset = false});
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -78,7 +79,22 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen>
 
       if (success) {
         showSuccessToast(ErrorMessages.resetSuccess);
-        context.go('/login');
+        if (widget.isAuthReset) {
+          context.go('/profile');
+        } else {
+          // Auto-login avec le nouveau mot de passe pour rediriger vers l'accueil
+          final loggedIn = await ref.read(authProvider.notifier).login(
+            widget.accountId,
+            password,
+          );
+          if (mounted) {
+            if (loggedIn) {
+              context.go('/wallet');
+            } else {
+              context.go('/login');
+            }
+          }
+        }
       } else {
         final appError = handleError(
           ref.read(authProvider).lastError,

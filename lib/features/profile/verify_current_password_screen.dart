@@ -92,6 +92,10 @@ class _VerifyCurrentPasswordScreenState
     }
   }
 
+  void _onForgotPasswordTap() {
+    context.push('/confirm-identity');
+  }
+
   @override
   Widget build(BuildContext context) {
     final titleStyle = GoogleFonts.bodoniModa(
@@ -203,7 +207,6 @@ class _VerifyCurrentPasswordScreenState
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscure,
-                        autofocus: true,
                         onChanged: (_) => setState(() => _errorText = null),
                         onFieldSubmitted: (_) => _verify(),
                         style: AppTextStyles.bodyMedium(),
@@ -301,7 +304,7 @@ class _VerifyCurrentPasswordScreenState
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () => context.push('/forgot-password'),
+                          onPressed: _onForgotPasswordTap,
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(0, 0),

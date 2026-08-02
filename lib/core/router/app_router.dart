@@ -23,6 +23,7 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/profile/personal_info_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/profile/verify_current_password_screen.dart';
+import '../../features/profile/confirm_identity_screen.dart';
 import '../../features/profile/set_new_password_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../widgets/shared/app_shell.dart';
@@ -50,7 +51,13 @@ OtpScreen _buildOtpScreen(GoRouterState state) {
     identifier = extra;
   }
 
-  return OtpScreen(identifier: identifier, otpContext: otpContext);
+  final isAuthReset = (extra is Map<String, dynamic>) ? (extra['isAuthReset'] as bool? ?? false) : false;
+
+  return OtpScreen(
+    identifier: identifier, 
+    otpContext: otpContext,
+    isAuthReset: isAuthReset,
+  );
 }
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -59,7 +66,10 @@ class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
-    _ref.listen(authProvider, (_, __) => notifyListeners());
+    _ref.listen(
+      authProvider.select((state) => state.isAuthenticated),
+      (_, __) => notifyListeners(),
+    );
     _ref.listen(appStartupProvider, (_, __) => notifyListeners());
   }
 }
@@ -87,6 +97,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.uri.path.startsWith('/forgot-password') ||
           state.uri.path.startsWith('/reset-password');
 
+      final isStrictAuth = state.uri.path == '/auth' ||
+          state.uri.path.startsWith('/login') ||
+          state.uri.path.startsWith('/signup') ||
+          state.uri.path.startsWith('/create-password');
+
       // 1. Splash / Loading State
       if (startupState.isLoading || !startupState.hasValue) {
         return isGoingToSplash ? null : '/splash';
@@ -112,8 +127,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/auth';
         }
       } else {
-        // Prevent logged-in users from seeing auth screens
-        if (isGoingToAuth) {
+        // Prevent logged-in users from seeing strict auth screens (login/signup)
+        if (isStrictAuth) {
           return '/wallet';
         }
       }
@@ -193,6 +208,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return ResetPasswordScreen(
           accountId: extra['phone'] as String? ?? '',
           token: extra['token'] as String? ?? '',
+          isAuthReset: extra['isAuthReset'] as bool? ?? false,
         );
       },
     ),
@@ -203,15 +219,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       builder: (context, state) => const PersonalInfoScreen(),
     ),
     GoRoute(
-      path: '/edit-profile',
+      path: '/edit-profile/:field',
       builder: (context, state) {
-        final fieldType = (state.extra as EditFieldType?) ?? EditFieldType.fullName;
+        final fieldString = state.pathParameters['field'];
+        final fieldType = EditFieldType.values.firstWhere(
+            (e) => e.name == fieldString, 
+            orElse: () => EditFieldType.fullName);
         return EditFieldScreen(fieldType: fieldType);
       },
     ),
     GoRoute(
       path: '/change-password',
       builder: (context, state) => const VerifyCurrentPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/confirm-identity',
+      builder: (context, state) => const ConfirmIdentityScreen(),
     ),
     GoRoute(
       path: '/set-new-password',

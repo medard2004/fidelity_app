@@ -152,19 +152,14 @@ final signupFlowProvider =
 class AuthState {
   final bool isAuthenticated;
   final AppUser? user;
-
-  /// Dernière erreur brute survenue, conservée telle quelle.
-  ///
-  /// Le notifier ne formule volontairement aucun message : seul l'écran connaît
-  /// son contexte (une même erreur ne se dit pas pareil à la connexion et sur
-  /// le profil) et sait si elle concerne un champ précis. L'écran la traduit
-  /// via `FormErrorHandler.handleError`.
   final Object? lastError;
+  final File? localAvatar;
 
   const AuthState({
     this.isAuthenticated = false,
     this.user,
     this.lastError,
+    this.localAvatar,
   });
 
   AuthState copyWith({
@@ -172,11 +167,14 @@ class AuthState {
     AppUser? user,
     Object? lastError,
     bool clearError = false,
+    File? localAvatar,
+    bool clearLocalAvatar = false,
   }) =>
       AuthState(
         isAuthenticated: isAuthenticated ?? this.isAuthenticated,
         user: user ?? this.user,
         lastError: clearError ? null : (lastError ?? this.lastError),
+        localAvatar: clearLocalAvatar ? null : (localAvatar ?? this.localAvatar),
       );
 }
 
@@ -471,16 +469,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Pas de mise à jour optimiste ici : contrairement à [updateFullProfile],
-  /// rien n'est affiché avant la confirmation serveur (voir spec avatar).
+  /// Mise à jour avec cache local global
   Future<void> updateAvatar(File file) async {
     if (state.user == null) return;
-    final updatedUser = await _authRepository.uploadAvatar(file);
-    state = state.copyWith(user: updatedUser);
+    state = state.copyWith(localAvatar: file);
+    try {
+      final updatedUser = await _authRepository.uploadAvatar(file);
+      state = state.copyWith(user: updatedUser);
+    } catch (e) {
+      state = state.copyWith(clearLocalAvatar: true, lastError: e);
+      rethrow;
+    }
   }
 
   Future<void> removeAvatar() async {
     if (state.user == null) return;
+    state = state.copyWith(clearLocalAvatar: true);
     final updatedUser = await _authRepository.deleteAvatar();
     state = state.copyWith(user: updatedUser);
   }

@@ -47,12 +47,6 @@ class OtpInputRowState extends State<OtpInputRow>
     for (int i = 0; i < 6; i++) {
       _focusNodes[i].addListener(_onFocusChange);
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _focusNodes.first.requestFocus();
-      }
-    });
   }
 
   void _onFocusChange() {
@@ -128,44 +122,46 @@ class OtpInputRowState extends State<OtpInputRow>
     if (code.length == 6) widget.onCompleted(code);
   }
 
+  // Espace entre deux cases voisines, et espace (plus large) entre les deux
+  // groupes de 3 — cet écart supplémentaire à lui seul suffit à grouper
+  // visuellement 3+3 chiffres, sans élément décoratif séparé à faire entrer
+  // dans le calcul de largeur.
+  static const double _gap = 8;
+  static const double _midGap = 20;
+  static const double _minCellSize = 40;
+  static const double _maxCellSize = 56;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(6, (i) {
-        final isActive = i == _activeIndex && _hasFocus;
-        final isFilled = _controllers[i].text.isNotEmpty;
-
-        // Séparateur visuel au milieu (entre index 2 et 3)
-        final needsSeparator = i == 3;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const totalGaps = _gap * 4 + _midGap;
+        final rawSize = (constraints.maxWidth - totalGaps) / 6;
+        final cellSize = rawSize.clamp(_minCellSize, _maxCellSize);
 
         return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (needsSeparator)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Container(
-                  width: 12,
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    color: AppColors.laitonBrosse.withValues(alpha: 0.45),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-            if (i > 0 && !needsSeparator) const SizedBox(width: 10),
-            _buildCell(i, isActive, isFilled),
-          ],
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(6, (i) {
+            final isActive = i == _activeIndex && _hasFocus;
+            final isFilled = _controllers[i].text.isNotEmpty;
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (i > 0) SizedBox(width: i == 3 ? _midGap : _gap),
+                _buildCell(i, isActive, isFilled, cellSize),
+              ],
+            );
+          }),
         );
-      }),
+      },
     );
   }
 
-  Widget _buildCell(int index, bool isActive, bool isFilled) {
+  Widget _buildCell(int index, bool isActive, bool isFilled, double cellSize) {
     return AnimatedContainer(
-      width: 50,
-      height: 62,
+      width: cellSize,
+      height: cellSize * 1.24,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
@@ -222,7 +218,7 @@ class OtpInputRowState extends State<OtpInputRow>
                   style: AppTextStyles.monoLarge(
                     color: AppColors.encre,
                   ).copyWith(
-                    fontSize: 24,
+                    fontSize: cellSize * 0.46,
                     height: 1,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
@@ -235,11 +231,11 @@ class OtpInputRowState extends State<OtpInputRow>
           // ── Curseur clignotant ─────────────────────────────────────
           if (isActive && !isFilled)
             Positioned(
-              bottom: 14,
+              bottom: cellSize * 0.225,
               child: FadeTransition(
                 opacity: _cursorAnimation,
                 child: Container(
-                  width: 22,
+                  width: cellSize * 0.36,
                   height: 2.5,
                   decoration: BoxDecoration(
                     color: AppColors.laitonBrosse,
@@ -266,7 +262,7 @@ class OtpInputRowState extends State<OtpInputRow>
             showCursor: false,
             enableInteractiveSelection: true,
             selectionControls: MaterialTextSelectionControls(),
-            style: const TextStyle(color: Colors.transparent, fontSize: 24),
+            style: TextStyle(color: Colors.transparent, fontSize: cellSize * 0.46),
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(1),

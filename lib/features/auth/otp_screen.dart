@@ -22,11 +22,13 @@ class OtpScreen extends ConsumerStatefulWidget {
   /// L'identifiant de l'utilisateur (téléphone ou email).
   final String identifier;
   final OtpContext otpContext;
+  final bool isAuthReset;
 
   const OtpScreen({
     super.key,
     required this.identifier,
     this.otpContext = OtpContext.login,
+    this.isAuthReset = false,
   });
 
   @override
@@ -135,6 +137,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> with FormErrorHandler {
             context.push('/reset-password', extra: {
               'phone': widget.identifier,
               'token': resetToken,
+              'isAuthReset': widget.isAuthReset,
             });
           } else if (mounted) {
             // Le code saisi occupe tout l'écran : le retour passe par un Toast.
