@@ -24,7 +24,7 @@ class CardExportService {
       context: context,
       barrierDismissible: false,
       builder: (c) => const Center(
-        child: CircularProgressIndicator(color: AppColors.laitonBrosse),
+        child: CircularProgressIndicator(color: AppColors.primary),
       ),
     );
 
@@ -95,8 +95,8 @@ class CardExportService {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? AppColors.bordeauxProfond : AppColors.encre,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: isError ? AppColors.error : AppColors.ink,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

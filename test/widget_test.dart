@@ -11,7 +11,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify that onboarding starts with the first slide.
-    expect(find.text("L'Écrin de vos Cartes"), findsOneWidget);
+    expect(find.text('Toutes vos cartes,\nun seul portefeuille'), findsOneWidget);
 
     // Tap "Passer" to go to Auth Screen (Connexion)
     final skipButton = find.text("Passer");

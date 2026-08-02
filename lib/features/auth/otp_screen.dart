@@ -91,19 +91,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     };
 
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.porcelaine,
-        elevation: 0,
-        leading: const BackButton(color: AppColors.encre),
-        title: Text(
-          contextLabel.toUpperCase(),
-          style:
-              AppTextStyles.monoSmall(color: AppColors.laitonBrosse).copyWith(
-            letterSpacing: 2.5,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        leading: const BackButton(color: AppColors.ink),
+        title: Text(contextLabel.toUpperCase(), style: AppTextStyles.eyebrow(color: AppColors.primary)),
         centerTitle: true,
       ),
       body: Padding(
@@ -117,9 +108,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             Text(
               'Un code à 6 chiffres a été envoyé au\n'
               '${widget.phoneNumber.isEmpty ? "+228 •• •• •• ••" : widget.phoneNumber}',
-              style: AppTextStyles.bodyMedium(
-                color: AppColors.encre.withValues(alpha: 0.65),
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65)),
             ),
             const SizedBox(height: 44),
             OtpInputRow(onCompleted: _onCompleted),
@@ -132,11 +121,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     )
                   : TextButton(
                       onPressed: _startCountdown,
-                      child: Text(
-                        'Renvoyer le code',
-                        style: AppTextStyles.bodyMedium(
-                            color: AppColors.vertBouteille),
-                      ),
+                      child: Text('Renvoyer le code', style: AppTextStyles.bodyMedium(color: AppColors.primary)),
                     ),
             ),
           ],

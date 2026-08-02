@@ -1,48 +1,66 @@
 import 'package:flutter/material.dart';
 
-/// Palette "Édition Porcelaine" — 6 teintes nommées.
-/// À respecter au pixel près : jamais de blanc pur, jamais de noir pur,
-/// jamais de gris froid pour les ombres.
+/// Design system "Carte" — palette neutre et technique,
+/// inspirée d'Apple Wallet / Revolut / Stripe / Monzo.
+/// Fonds neutres froids, un seul accent de marque, tokens sémantiques
+/// explicites pour succès / avertissement / erreur.
 class AppColors {
   AppColors._();
 
-  /// Fond principal — blanc cassé chaud, jamais un blanc pur.
-  static const Color porcelaine = Color(0xFFF6F3EC);
+  // --- Neutres ---------------------------------------------------------
 
-  /// Texte principal — quasi-noir chaud.
-  static const Color encre = Color(0xFF1B1A17);
+  /// Texte principal — quasi-noir froid.
+  static const Color ink = Color(0xFF14151A);
 
-  /// Accent primaire — CTA, statuts actifs, QR actif.
-  static const Color vertBouteille = Color(0xFF223D31);
+  /// Texte secondaire — dérivé de [ink], jamais une nouvelle teinte.
+  static Color inkMuted({double opacity = 0.6}) => ink.withValues(alpha: opacity);
 
-  /// Accent secondaire — métal mat, jamais brillant.
-  static const Color laitonBrosse = Color(0xFF9C7A3C);
+  /// Fond principal de l'app — gris très clair, jamais un blanc pur.
+  static const Color surface = Color(0xFFF7F7F9);
 
-  /// Surface d'élévation — cartes secondaires, séparations douces.
-  static const Color saugePale = Color(0xFFE4E1D6);
+  /// Surface élevée — cartes, feuilles, modales.
+  static const Color surfaceCard = Color(0xFFFFFFFF);
 
-  /// Rare — statut VIP Platinum, accents d'urgence.
-  static const Color bordeauxProfond = Color(0xFF5B2A2E);
+  /// Fill discret — inputs, chips, fonds de section.
+  static const Color surfaceMuted = Color(0xFFEEEFF2);
 
-  // --- Dérivés d'usage (toujours issus des 6 teintes ci-dessus) ---
+  /// Bordure fine (hairline).
+  static const Color border = Color(0xFFE4E5EA);
 
-  /// Liseré laiton à faible opacité pour les bordures fines (1px).
-  static Color laitonLisere({double opacity = 0.55}) =>
-      laitonBrosse.withValues(alpha: opacity);
+  // --- Accent de marque --------------------------------------------------
 
-  /// Ombre portée chaude — jamais un gris froid.
-  static Color ombreChaude({double opacity = 0.14}) =>
-      encre.withValues(alpha: opacity);
+  /// Accent primaire — CTA, éléments actifs, liens.
+  static const Color primary = Color(0xFF4F46E5);
 
-  /// Fond du desktop / device frame — porcelaine légèrement assombrie.
-  static const Color porcelaineAssombrie = Color(0xFFEAE6DA);
+  /// État pressé/actif de [primary].
+  static const Color primaryDark = Color(0xFF4338CA);
 
-  /// Doublures désaturées par établissement (exemples de démonstration).
-  static const Color doublureComptoir =
-      Color(0xFF2E3B33); // vert profond feutré
-  static const Color doublurePalais =
-      Color(0xFFEDEADF); // reste porcelaine/sauge
-  static const Color doublureSunset =
-      Color(0xFF1D3A2C); // vert bouteille soutenu
-  static const Color doublureMacBouffe = Color(0xFF3A2C24); // brun feutré
+  /// Fond teinté léger pour badges/sélections sur [primary].
+  static const Color primaryTint = Color(0xFFEEF0FF);
+
+  // --- Sémantique ---------------------------------------------------------
+
+  static const Color success = Color(0xFF16A34A);
+  static const Color successTint = Color(0xFFECFDF3);
+
+  static const Color warning = Color(0xFFD97706);
+  static const Color warningTint = Color(0xFFFFF7ED);
+
+  static const Color error = Color(0xFFDC2626);
+  static const Color errorTint = Color(0xFFFEF2F2);
+
+  // --- Doublures des cartes de fidélité (identité par établissement) ------
+
+  static const Color liningCharcoal = Color(0xFF1C1D22);
+  static const Color liningIndigo = Color(0xFF3730A3);
+  static const Color liningEmerald = Color(0xFF0F766E);
+  static const Color liningTerracotta = Color(0xFFB45309);
+  static const Color liningPlum = Color(0xFF6D28D9);
+  static const Color liningNavy = Color(0xFF1E3A5F);
+
+  /// Traitement VIP — graphite sobre, jamais un métallique criard.
+  static const Color liningVip = Color(0xFF23252B);
+
+  /// Fond du device frame desktop (au-delà de 620px de large).
+  static const Color surfaceDesktopFrame = Color(0xFFE7E8ED);
 }

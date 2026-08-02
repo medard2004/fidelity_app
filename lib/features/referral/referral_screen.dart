@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/referral_provider.dart';
-import '../../widgets/shared/invitation_button.dart';
+import '../../widgets/components/components.dart';
 
 /// Écran de Parrainage Partenaire
 /// Permet de :
@@ -48,7 +49,6 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Ce destinataire est déjà dans votre liste d\'envoi.'),
-          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -73,7 +73,6 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message.toString()),
-          behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
         ),
       );
@@ -82,7 +81,6 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         const SnackBar(
           content: Text(
               'Veuillez ajouter au moins un destinataire avant d\'envoyer.'),
-          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -95,36 +93,17 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
     if (cards.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.porcelaine,
+        backgroundColor: AppColors.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.porcelaine,
-          elevation: 0,
           centerTitle: true,
-          title: Text(
-            'Parrainage',
-            style: AppTextStyles.displayMedium().copyWith(fontSize: 20),
-          ),
+          title: Text('Parrainage', style: AppTextStyles.displayMedium().copyWith(fontSize: 20)),
         ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.people_outline,
-                    size: 40, color: AppColors.laitonBrosse),
-                const SizedBox(height: 16),
-                Text('Aucune carte à parrainer',
-                    style: AppTextStyles.displayMedium()),
-                const SizedBox(height: 8),
-                Text(
-                  'Rejoignez au moins un établissement pour pouvoir le recommander à vos proches.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium(
-                      color: AppColors.encre.withValues(alpha: 0.6)),
-                ),
-              ],
-            ),
+        body: const Center(
+          child: EmptyState(
+            icon: Icons.people_outline,
+            title: 'Aucune carte à parrainer',
+            message:
+                'Rejoignez au moins un établissement pour pouvoir le recommander à vos proches.',
           ),
         ),
       );
@@ -137,44 +116,31 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: AppColors.porcelaine,
-        elevation: 0,
         centerTitle: true,
-        title: Text(
-          'Parrainage',
-          style: AppTextStyles.displayMedium().copyWith(fontSize: 20),
-        ),
+        title: Text('Parrainage', style: AppTextStyles.displayMedium().copyWith(fontSize: 20)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── En-tête explicatif ──────────────────────────────────────────
             Text(
               'Faites découvrir vos commerces et partenaires favoris à vos proches et cumulez des points de fidélité.',
-              style: AppTextStyles.bodyMedium(
-                color: AppColors.encre.withValues(alpha: 0.65),
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65)),
             ),
 
             const SizedBox(height: 20),
 
-            // ── Carte de Progression (Règle : 100 partages valides = 3 points) ──
             _ProgressionCard(refState: refState),
 
             const SizedBox(height: 24),
 
-            // ── Étape 1 : Choisir un partenaire ──────────────────
-            const _StepHeader(
-              stepNumber: '1',
-              title: 'Choisir le partenaire à parrainer',
-            ),
+            const _StepHeader(stepNumber: '1', title: 'Choisir le partenaire à parrainer'),
             const SizedBox(height: 10),
             SizedBox(
-              height: 70,
+              height: 72,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cards.length,
@@ -186,11 +152,8 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                     card: card,
                     isSelected: isSelected,
                     onTap: () {
-                      ref
-                          .read(referralProvider.notifier)
-                          .selectRestaurant(card);
-                      _messageController.text =
-                          ref.read(referralProvider).customMessage;
+                      ref.read(referralProvider.notifier).selectRestaurant(card);
+                      _messageController.text = ref.read(referralProvider).customMessage;
                     },
                   );
                 },
@@ -199,48 +162,17 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Étape 2 : Personnaliser le message d'invitation ─────────────
-            const _StepHeader(
-              stepNumber: '2',
-              title: 'Personnaliser votre invitation',
-            ),
+            const _StepHeader(stepNumber: '2', title: 'Personnaliser votre invitation'),
             const SizedBox(height: 10),
             TextField(
               controller: _messageController,
               maxLines: 3,
-              style: AppTextStyles.bodyMedium(),
-              onChanged: (val) {
-                ref.read(referralProvider.notifier).updateMessage(val);
-              },
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.all(14),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide:
-                      BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide:
-                      BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(
-                      color: AppColors.laitonBrosse, width: 1.2),
-                ),
-              ),
+              onChanged: (val) => ref.read(referralProvider.notifier).updateMessage(val),
             ),
 
             const SizedBox(height: 24),
 
-            // ── Étape 3 : Sélectionner plusieurs destinataires ─────────────
-            const _StepHeader(
-              stepNumber: '3',
-              title: 'Ajouter des destinataires',
-            ),
+            const _StepHeader(stepNumber: '3', title: 'Ajouter des destinataires'),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -249,43 +181,17 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                     controller: _recipientController,
                     keyboardType: TextInputType.text,
                     textCapitalization: TextCapitalization.words,
-                    style: AppTextStyles.bodyMedium(),
-                    decoration: InputDecoration(
-                      hintText: '+228 90 00 00 00 ou Nom',
-                      hintStyle: AppTextStyles.bodyMedium(
-                        color: AppColors.encre.withValues(alpha: 0.35),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 14),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                            color: AppColors.laitonLisere(opacity: 0.3)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                            color: AppColors.laitonLisere(opacity: 0.3)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                            color: AppColors.laitonBrosse, width: 1.2),
-                      ),
-                    ),
+                    decoration: const InputDecoration(hintText: '+228 90 00 00 00 ou Nom'),
                     onSubmitted: (_) => _addRecipient(),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
                   onPressed: _addRecipient,
-                  icon: const Icon(Icons.add, color: AppColors.porcelaine),
+                  icon: const Icon(Icons.add, color: Colors.white),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.vertBouteille,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.all(14),
                   ),
                 ),
@@ -298,17 +204,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: refState.recipients.map((r) {
-                  return Chip(
-                    backgroundColor: AppColors.saugePale,
-                    side:
-                        BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-                    label: Text(r,
-                        style: AppTextStyles.bodySmall(color: AppColors.encre)),
-                    deleteIcon: const Icon(Icons.close,
-                        size: 14, color: AppColors.encre),
-                    onDeleted: () {
-                      ref.read(referralProvider.notifier).removeRecipient(r);
-                    },
+                  return SelectableChip(
+                    label: r,
+                    onDeleted: () => ref.read(referralProvider.notifier).removeRecipient(r),
                   );
                 }).toList(),
               ),
@@ -316,18 +214,15 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
             const SizedBox(height: 28),
 
-            // ── Étape 4 : Bouton de Partage & Action ────────────────────────
-            InvitationButton(
+            AppButton(
               label:
                   'Partager l\'invitation (${refState.recipients.length} destinataire${refState.recipients.length > 1 ? "s" : ""})',
-              filled: true,
               icon: Icons.send_rounded,
               onTap: () => _sendShares(selectedCard),
             ),
 
             const SizedBox(height: 28),
 
-            // ── Section Anti-Fraude & Suivi des Partages ─────────────────────
             _AntiFraudHistorySection(records: refState.records),
 
             const SizedBox(height: 32),
@@ -339,7 +234,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Widgets Composants du Parrainage
+// Widgets composants du parrainage
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _StepHeader extends StatelessWidget {
@@ -356,26 +251,18 @@ class _StepHeader extends StatelessWidget {
           width: 22,
           height: 22,
           decoration: const BoxDecoration(
-            color: AppColors.laitonBrosse,
+            color: AppColors.primary,
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               stepNumber,
-              style:
-                  AppTextStyles.monoSmall(color: AppColors.porcelaine).copyWith(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTextStyles.monoSmall(color: Colors.white).copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: AppTextStyles.label()
-              .copyWith(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
+        Text(title, style: AppTextStyles.titleMedium().copyWith(fontSize: 14)),
       ],
     );
   }
@@ -398,26 +285,15 @@ class _RestaurantSelectorChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        width: 145,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.vertBouteille : Colors.white,
+          color: isSelected ? AppColors.primary : AppColors.surfaceCard,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected
-                ? AppColors.vertBouteille
-                : AppColors.laitonLisere(opacity: 0.3),
-            width: isSelected ? 1.5 : 1,
+            color: isSelected ? AppColors.primary : AppColors.border,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.vertBouteille.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
+          boxShadow: isSelected ? null : AppShadows.resting,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,20 +301,16 @@ class _RestaurantSelectorChip extends StatelessWidget {
           children: [
             Text(
               card.restaurantName,
-              style: AppTextStyles.label(
-                color: isSelected ? AppColors.porcelaine : AppColors.encre,
-              ).copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+              style: AppTextStyles.label(color: isSelected ? Colors.white : AppColors.ink),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
               card.restaurantCategory,
-              style: AppTextStyles.monoSmall(
-                color: isSelected
-                    ? AppColors.porcelaine.withValues(alpha: 0.75)
-                    : AppColors.encre.withValues(alpha: 0.55),
-              ).copyWith(fontSize: 8.5),
+              style: AppTextStyles.bodySmall(
+                color: isSelected ? Colors.white.withValues(alpha: 0.75) : AppColors.inkMuted(opacity: 0.55),
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -459,84 +331,59 @@ class _ProgressionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.encre,
+        color: AppColors.ink,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.laitonBrosse, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.encre.withValues(alpha: 0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: AppShadows.raised,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'VOS POINTS PARRAINAGE',
-                style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
-                    .copyWith(
-                  letterSpacing: 1.8,
-                  fontSize: 10,
+              Flexible(
+                child: Text(
+                  'VOS POINTS PARRAINAGE',
+                  style: AppTextStyles.eyebrow(color: Colors.white.withValues(alpha: 0.6)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.laitonBrosse.withValues(alpha: 0.2),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.laitonBrosse.withValues(alpha: 0.4)),
                 ),
                 child: Text(
                   '100 partages = 3 pts',
-                  style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
-                      .copyWith(
-                    fontSize: 9,
-                  ),
+                  style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.8)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(
-                '${refState.pointsEarned}',
-                style: AppTextStyles.monoLarge(color: AppColors.porcelaine)
-                    .copyWith(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text('${refState.pointsEarned}', style: AppTextStyles.monoLarge(color: Colors.white)),
               const SizedBox(width: 6),
               Text(
                 'POINTS ACCUMULÉS',
-                style: AppTextStyles.monoSmall(
-                        color: AppColors.porcelaine.withValues(alpha: 0.7))
-                    .copyWith(
-                  fontSize: 11,
-                ),
+                style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.6)),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Barre de progression
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: refState.progressRatio,
               minHeight: 7,
-              backgroundColor: Colors.white12,
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.laitonBrosse),
+              backgroundColor: Colors.white.withValues(alpha: 0.12),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
           const SizedBox(height: 8),
@@ -545,14 +392,11 @@ class _ProgressionCard extends StatelessWidget {
             children: [
               Text(
                 '${refState.totalUniqueShares} partages uniques validés',
-                style: AppTextStyles.bodySmall(
-                        color: AppColors.porcelaine.withValues(alpha: 0.8))
-                    .copyWith(fontSize: 11),
+                style: AppTextStyles.bodySmall(color: Colors.white.withValues(alpha: 0.75)),
               ),
               Text(
-                'Encore ${refState.sharesToNextReward} partages (+3 pts)',
-                style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
-                    .copyWith(fontSize: 9.5),
+                'Encore ${refState.sharesToNextReward} partages',
+                style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.6)),
               ),
             ],
           ),
@@ -573,39 +417,26 @@ class _AntiFraudHistorySection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.shield_outlined,
-                size: 16, color: AppColors.laitonBrosse),
+            const Icon(Icons.shield_outlined, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
-            Text(
-              'Suivi Anti-Fraude & Clics Validés',
-              style: AppTextStyles.label()
-                  .copyWith(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
+            Text('Suivi anti-fraude & clics validés', style: AppTextStyles.titleMedium().copyWith(fontSize: 13)),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           'Seuls les partages uniques avec clics confirmés comptent pour débloquer des points.',
-          style: AppTextStyles.bodySmall(
-                  color: AppColors.encre.withValues(alpha: 0.6))
-              .copyWith(fontSize: 11),
+          style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.6)),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.laitonLisere(opacity: 0.25)),
-          ),
+        AppCard(
+          padding: const EdgeInsets.all(14),
           child: records.isEmpty
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Center(
                     child: Text(
                       'Aucun partage effectué pour le moment.',
-                      style: AppTextStyles.bodySmall(
-                          color: AppColors.encre.withValues(alpha: 0.5)),
+                      style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5)),
                     ),
                   ),
                 )
@@ -613,58 +444,29 @@ class _AntiFraudHistorySection extends StatelessWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: records.length > 5 ? 5 : records.length,
-                  separatorBuilder: (_, __) => const Divider(height: 12),
+                  separatorBuilder: (_, __) => const Divider(height: 20, color: AppColors.border),
                   itemBuilder: (context, i) {
                     final rec = records[i];
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${rec.restaurantName} • ${rec.recipient}',
-                              style: AppTextStyles.bodySmall(
-                                      color: AppColors.encre)
-                                  .copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11.5,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${rec.restaurantName} • ${rec.recipient}',
+                                style: AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w600),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              rec.fraudNote,
-                              style: AppTextStyles.monoSmall(
-                                color: rec.isValidatedClick
-                                    ? Colors.green.shade700
-                                    : Colors.red.shade700,
-                              ).copyWith(fontSize: 9.5),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Text(rec.fraudNote, style: AppTextStyles.monoSmall()),
+                            ],
+                          ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: rec.isValidatedClick
-                                ? Colors.green.shade50
-                                : Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: rec.isValidatedClick
-                                  ? Colors.green.shade200
-                                  : Colors.red.shade200,
-                            ),
-                          ),
-                          child: Text(
-                            rec.isValidatedClick ? '+1 VALIDE' : 'REJETÉ',
-                            style: AppTextStyles.monoSmall(
-                              color: rec.isValidatedClick
-                                  ? Colors.green.shade800
-                                  : Colors.red.shade800,
-                            ).copyWith(
-                                fontSize: 8.5, fontWeight: FontWeight.w600),
-                          ),
+                        const SizedBox(width: 8),
+                        StatusBadge(
+                          label: rec.isValidatedClick ? '+1 VALIDE' : 'REJETÉ',
+                          tone: rec.isValidatedClick ? StatusTone.success : StatusTone.error,
                         ),
                       ],
                     );

@@ -7,7 +7,8 @@ import '../../../providers/wallet_provider.dart';
 import 'loyalty_card_widget.dart';
 
 /// Empilement façon Apple Wallet : les cartes se chevauchent
-/// verticalement (~64px visibles par carte), légèrement en éventail.
+/// verticalement (~92px visibles par carte, assez pour ne jamais
+/// tronquer le titre de l'enseigne), légèrement en éventail.
 ///
 /// Supporte le glisser-déposer interactif (drag & drop) avec physique
 /// de ressort (Spring), effet de parallaxe tridimensionnelle, inclinaison
@@ -23,7 +24,7 @@ class LoyaltyCardStack extends ConsumerStatefulWidget {
     required this.cards,
     required this.onCardTap,
     this.cardHeight = 190,
-    this.peekOffset = 64,
+    this.peekOffset = 92,
   });
 
   @override

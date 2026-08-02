@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_radius.dart';
 
 class NavItem {
   final IconData icon;
+  final IconData activeIcon;
   final String label;
-  const NavItem(this.icon, this.label);
+  const NavItem(this.icon, this.activeIcon, this.label);
 }
 
 const _navItems = [
-  NavItem(Icons.wallet_outlined, 'Wallet'),
-  NavItem(Icons.card_giftcard_outlined, 'Récompenses'),
-  NavItem(Icons.people_outline, 'Parrainage'),
-  NavItem(Icons.person_outline, 'Profil'),
+  NavItem(Icons.wallet_outlined, Icons.wallet_rounded, 'Wallet'),
+  NavItem(
+      Icons.card_giftcard_outlined, Icons.card_giftcard_rounded, 'Récompenses'),
+  NavItem(Icons.people_outline, Icons.people_rounded, 'Parrainage'),
+  NavItem(Icons.person_outline, Icons.person_rounded, 'Profil'),
 ];
 
-/// Bottom tab bar porcelaine, liseré laiton supérieur fin,
-/// icônes en trait fin, onglet actif souligné d'un point laiton.
+/// Bottom tab bar — fond blanc, bordure hairline supérieure, indicateur
+/// actif en pastille pleine (pattern Revolut/Stripe) plutôt qu'un point.
 class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -30,24 +33,22 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.porcelaine,
-        border: Border(
-          top:
-              BorderSide(color: AppColors.laitonLisere(opacity: 0.3), width: 1),
-        ),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceCard,
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
       ),
       padding: EdgeInsets.only(
         top: 10,
         bottom: MediaQuery.of(context).padding.bottom + 8,
+        left: 12,
+        right: 12,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(_navItems.length, (i) {
           final item = _navItems[i];
           final active = i == currentIndex;
-          final color =
-              active ? AppColors.encre : AppColors.encre.withValues(alpha: 0.4);
+          final color = active ? AppColors.primary : AppColors.inkMuted(opacity: 0.45);
           return Expanded(
             child: GestureDetector(
               onTap: () => onTap(i),
@@ -55,28 +56,21 @@ class AppBottomNavBar extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(item.icon, size: 23, color: color),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: active ? AppColors.primaryTint : Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                    ),
+                    child: Icon(active ? item.activeIcon : item.icon,
+                        size: 22, color: color),
+                  ),
                   const SizedBox(height: 4),
                   FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Text(
-                        item.label,
-                        style: AppTextStyles.bodySmall(color: color),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 4,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color:
-                          active ? AppColors.laitonBrosse : Colors.transparent,
-                    ),
+                    child: Text(item.label, style: AppTextStyles.bodySmall(color: color)),
                   ),
                 ],
               ),

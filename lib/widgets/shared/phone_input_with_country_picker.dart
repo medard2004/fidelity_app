@@ -83,11 +83,7 @@ class PhoneInputWithCountryPickerState
   void _showCountryPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.porcelaine,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
         return _CountryPickerModal(
           selectedCountry: selectedCountry,
@@ -113,76 +109,31 @@ class PhoneInputWithCountryPickerState
     return TextFormField(
       controller: widget.controller,
       keyboardType: TextInputType.phone,
-      style: AppTextStyles.bodyMedium(),
       validator: widget.validator,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: AppTextStyles.bodyMedium(
-          color: AppColors.encre.withValues(alpha: 0.35),
-        ),
-        filled: true,
-        fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         prefixIcon: GestureDetector(
           onTap: _showCountryPicker,
           child: Container(
             padding: const EdgeInsets.only(left: 12, right: 8),
             margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
-                  color: AppColors.laitonLisere(opacity: 0.3),
-                  width: 1,
-                ),
-              ),
+            decoration: const BoxDecoration(
+              border: Border(right: BorderSide(color: AppColors.border, width: 1)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  selectedCountry.flag,
-                  style: const TextStyle(fontSize: 18),
-                ),
+                Text(selectedCountry.flag, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 4),
                 Text(
                   selectedCountry.dialCode,
-                  style: AppTextStyles.label().copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.label().copyWith(fontWeight: FontWeight.w600),
                 ),
-                const Icon(
-                  Icons.arrow_drop_down,
-                  size: 18,
-                  color: AppColors.laitonBrosse,
-                ),
+                const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.primary),
               ],
             ),
           ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: AppColors.laitonBrosse,
-            width: 1.2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent, width: 1.2),
         ),
       ),
     );
@@ -235,17 +186,6 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             children: [
-              // Poignée de glissement
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.encre.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
               Text(
                 'Sélectionnez un indicatif',
                 style: AppTextStyles.label().copyWith(
@@ -260,21 +200,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
               TextField(
                 controller: _searchController,
                 onChanged: _filter,
-                style: AppTextStyles.bodyMedium(),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Rechercher un pays ou un indicatif...',
-                  hintStyle: AppTextStyles.bodySmall(
-                    color: AppColors.encre.withValues(alpha: 0.4),
-                  ),
-                  prefixIcon: const Icon(Icons.search, size: 18),
-                  filled: true,
-                  fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
+                  prefixIcon: Icon(Icons.search_rounded, size: 18),
                 ),
               ),
 
@@ -284,10 +212,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                 child: ListView.separated(
                   controller: scrollController,
                   itemCount: _filteredCountries.length,
-                  separatorBuilder: (_, __) => Divider(
-                    height: 1,
-                    color: AppColors.encre.withValues(alpha: 0.08),
-                  ),
+                  separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
                   itemBuilder: (context, index) {
                     final country = _filteredCountries[index];
                     final isSelected =
@@ -303,9 +228,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                       title: Text(
                         country.name,
                         style: AppTextStyles.bodyMedium(
-                          color: isSelected
-                              ? AppColors.vertBouteille
-                              : AppColors.encre,
+                          color: isSelected ? AppColors.primary : AppColors.ink,
                         ).copyWith(
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -314,9 +237,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                       trailing: Text(
                         country.dialCode,
                         style: AppTextStyles.monoMedium(
-                          color: isSelected
-                              ? AppColors.vertBouteille
-                              : AppColors.encre.withValues(alpha: 0.6),
+                          color: isSelected ? AppColors.primary : AppColors.inkMuted(opacity: 0.6),
                         ),
                       ),
                       onTap: () => widget.onSelect(country),

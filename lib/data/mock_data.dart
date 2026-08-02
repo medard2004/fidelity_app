@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../core/theme/app_colors.dart';
 import '../models/loyalty_card.dart';
 import '../models/reward.dart';
 import '../models/app_notification.dart';
@@ -29,7 +29,7 @@ class MockData {
           restaurantName: 'Bistrot de Quartier',
           restaurantCategory: 'BISTROT DE QUARTIER',
           mechanic: LoyaltyMechanic.stamps,
-          liningColor: Color(0xFFEAE5D9),
+          liningColor: AppColors.liningTerracotta,
           stampsCurrent: 5,
           stampsGoal: 8,
           fallbackId: 'COM-11829',
@@ -40,7 +40,7 @@ class MockData {
           restaurantName: 'Le Palais',
           restaurantCategory: 'TABLE GASTRONOMIQUE',
           mechanic: LoyaltyMechanic.points,
-          liningColor: Color(0xFFE3E0CE),
+          liningColor: AppColors.liningIndigo,
           pointsBalance: 1240,
           fallbackId: 'PAL-40217',
           welcomeOffer: '100 points offerts à l\'inscription',
@@ -50,7 +50,7 @@ class MockData {
           restaurantName: 'Sunset Lounge',
           restaurantCategory: 'ROOFTOP & COCKTAILS',
           mechanic: LoyaltyMechanic.cashback,
-          liningColor: Color(0xFF1E3B2F),
+          liningColor: AppColors.liningPlum,
           cashbackBalanceFcfa: 3400,
           fallbackId: 'SUN-28392',
           welcomeOffer: '500 FCFA de cashback offerts',
@@ -60,7 +60,7 @@ class MockData {
           restaurantName: 'Mac Bouffe',
           restaurantCategory: 'CUISINE DU MONDE',
           mechanic: LoyaltyMechanic.vip,
-          liningColor: Color(0xFF421A1E),
+          liningColor: AppColors.liningVip,
           vipTier: VipTier.gold,
           vipProgressToNextTier: 0.65,
           fallbackId: 'MAC-90014',
@@ -134,7 +134,7 @@ class MockData {
       restaurantName: 'Le Jardin Doré',
       restaurantCategory: 'BRUNCH & PÂTISSERIE',
       mechanic: LoyaltyMechanic.stamps,
-      liningColor: Color(0xFF607B6E),
+      liningColor: AppColors.liningEmerald,
       stampsCurrent: 1,
       stampsGoal: 8,
       fallbackId: 'JARDIN-2024',

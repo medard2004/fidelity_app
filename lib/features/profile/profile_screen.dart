@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_radius.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
-import '../../widgets/shared/brass_bordered_container.dart';
-import '../../widgets/shared/invitation_button.dart';
+import '../../widgets/components/components.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -20,11 +18,7 @@ class ProfileScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, AppUser user) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.porcelaine,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) => _EditProfileModal(user: user),
     );
   }
@@ -33,43 +27,19 @@ class ProfileScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.porcelaine,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        title: Text(
-          'Déconnexion',
-          style: GoogleFonts.bodoniModa(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.encre,
-          ),
-        ),
+        title: Text('Déconnexion', style: AppTextStyles.titleMedium().copyWith(fontSize: 18)),
         content: Text(
           'Êtes-vous sûr de vouloir vous déconnecter de votre compte Carte ?',
-          style: AppTextStyles.bodyMedium(
-            color: AppColors.encre.withValues(alpha: 0.7),
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Annuler',
-              style: AppTextStyles.bodyMedium(
-                color: AppColors.encre.withValues(alpha: 0.6),
-              ),
-            ),
+            child: Text('Annuler',
+                style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.6))),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.vertBouteille,
-              foregroundColor: AppColors.porcelaine,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
+            style: ElevatedButton.styleFrom(minimumSize: const Size(0, 40)),
             onPressed: () {
               Navigator.pop(context);
               ref.read(authProvider.notifier).signOut();
@@ -92,53 +62,30 @@ class ProfileScreen extends ConsumerWidget {
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: AppColors.porcelaine,
+        backgroundColor: AppColors.surface,
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.person_outline,
-                    size: 40, color: AppColors.laitonBrosse),
-                const SizedBox(height: 16),
-                Text('Vous n\'êtes pas connecté',
-                    style: AppTextStyles.displayMedium()),
-                const SizedBox(height: 8),
-                Text(
-                  'Connectez-vous pour accéder à votre profil.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium(
-                      color: AppColors.encre.withValues(alpha: 0.6)),
-                ),
-                const SizedBox(height: 20),
-                InvitationButton(
-                  label: 'Se connecter',
-                  filled: true,
-                  onTap: () => context.go('/auth'),
-                ),
-              ],
+          child: EmptyState(
+            icon: Icons.person_outline,
+            title: 'Vous n\'êtes pas connecté',
+            message: 'Connectez-vous pour accéder à votre profil.',
+            action: AppButton(
+              label: 'Se connecter',
+              fullWidth: false,
+              onTap: () => context.go('/auth'),
             ),
           ),
         ),
       );
     }
 
-    final titleStyle = GoogleFonts.bodoniModa(
-      fontSize: 25,
-      fontWeight: FontWeight.w600,
-      color: AppColors.encre,
-      height: 1.1,
-    );
-
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
-            // ── En-tête Statique (Fixe au défilement) ─────────────────────────
+            // ── En-tête statique ─────────────────────────────────────────
             Container(
-              color: AppColors.porcelaine,
+              color: AppColors.surface,
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -146,18 +93,11 @@ class ProfileScreen extends ConsumerWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'ESPACE MEMBRE',
-                        style: AppTextStyles.monoSmall(
-                          color: AppColors.laitonBrosse,
-                        ),
-                      ),
+                      const SectionEyebrow('Espace membre'),
                       const SizedBox(height: 4),
-                      Text('Profil', style: titleStyle),
+                      Text('Profil', style: AppTextStyles.displayLarge()),
                     ],
                   ),
-
-                  // Bouton Notification uniforme avec badge
                   Semantics(
                     button: true,
                     label: unreadNotifs > 0
@@ -174,15 +114,13 @@ class ProfileScreen extends ConsumerWidget {
                             height: 44,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: AppColors.porcelaine,
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: AppColors.laitonLisere(opacity: 0.35),
-                              ),
+                              color: AppColors.surfaceCard,
+                              shape: BoxShape.circle,
+                              boxShadow: AppShadows.resting,
                             ),
                             child: const Icon(
-                              Icons.notifications_none,
-                              color: AppColors.encre,
+                              Icons.notifications_none_rounded,
+                              color: AppColors.ink,
                               size: 20,
                             ),
                           ),
@@ -193,13 +131,13 @@ class ProfileScreen extends ConsumerWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: AppColors.bordeauxProfond,
+                                  color: AppColors.error,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Text(
                                   '$unreadNotifs',
                                   style: const TextStyle(
-                                    color: AppColors.porcelaine,
+                                    color: Colors.white,
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -214,62 +152,39 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
 
-            // Separateur discret sous l'en-tête statique
-            Divider(
-              height: 1,
-              color: AppColors.encre.withValues(alpha: 0.06),
-            ),
+            const Divider(height: 1, color: AppColors.border),
 
-            // ── Contenu Défilant ──────────────────────────────────────────────
+            // ── Contenu défilant ─────────────────────────────────────────
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                 children: [
-                  // Carte En-tête Utilisateur (Cadre Laiton Brossé)
-                  BrassBorderedContainer(
-                    backgroundColor: AppColors.porcelaine,
-                    radius: AppRadius.card,
+                  AppCard(
                     padding: const EdgeInsets.all(18),
                     child: Column(
                       children: [
                         Row(
                           children: [
-                            // Avatar avec initiales
                             Container(
                               width: 64,
                               height: 64,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.vertBouteille,
-                                border: Border.all(
-                                  color: AppColors.laitonBrosse,
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.ombreChaude(opacity: 0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
+                                color: AppColors.primary,
                               ),
                               child: Center(
                                 child: Text(
                                   user.fullName.isNotEmpty
                                       ? user.fullName[0].toUpperCase()
                                       : '?',
-                                  style: GoogleFonts.bodoniModa(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.porcelaine,
-                                  ),
+                                  style: AppTextStyles.displayMedium(color: Colors.white)
+                                      .copyWith(fontSize: 26),
                                 ),
                               ),
                             ),
 
                             const SizedBox(width: 16),
 
-                            // Identité
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,29 +193,19 @@ class ProfileScreen extends ConsumerWidget {
                                     user.fullName.isNotEmpty
                                         ? user.fullName
                                         : 'Membre Carte',
-                                    style: GoogleFonts.bodoniModa(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.encre,
-                                    ),
+                                    style: AppTextStyles.titleMedium().copyWith(fontSize: 18),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     user.maskedPhoneNumber,
-                                    style: AppTextStyles.monoSmall(
-                                      color: AppColors.encre
-                                          .withValues(alpha: 0.65),
-                                    ),
+                                    style: AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.65)),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     user.memberSince,
-                                    style: AppTextStyles.bodySmall(
-                                      color: AppColors.encre
-                                          .withValues(alpha: 0.5),
-                                    ),
+                                    style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5)),
                                   ),
                                 ],
                               ),
@@ -310,16 +215,12 @@ class ProfileScreen extends ConsumerWidget {
 
                         const SizedBox(height: 16),
 
-                        // Bouton d'action "Modifier le profil"
-                        InvitationButton(
+                        AppButton(
                           label: 'Modifier le profil',
-                          leading: const Icon(
-                            Icons.edit_outlined,
-                            size: 15,
-                            color: AppColors.encre,
-                          ),
-                          onTap: () =>
-                              _openEditProfileModal(context, ref, user),
+                          variant: AppButtonVariant.outline,
+                          icon: Icons.edit_outlined,
+                          height: 46,
+                          onTap: () => _openEditProfileModal(context, ref, user),
                         ),
                       ],
                     ),
@@ -327,50 +228,29 @@ class ProfileScreen extends ConsumerWidget {
 
                   const SizedBox(height: 16),
 
-                  // Statistiques rapides
                   Row(
                     children: [
                       Expanded(
-                        child: _StatCard(
-                          label: 'Cartes',
-                          value: '${cards.length}',
-                          subtext: 'Actives',
-                        ),
+                        child: StatTile(value: '${cards.length}', label: 'Cartes'),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: _StatCard(
-                          label: 'Offres',
-                          value: '${rewards.length}',
-                          subtext: 'Débloquées',
-                        ),
+                        child: StatTile(value: '${rewards.length}', label: 'Offres'),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: _StatCard(
-                          label: 'Filleuls',
-                          value: '${user.friendsJoined}',
-                          subtext: 'Rejoints',
-                        ),
+                        child: StatTile(value: '${user.friendsJoined}', label: 'Filleuls'),
                       ),
                     ],
                   ),
 
                   const SizedBox(height: 20),
 
-                  // Bannière d'anniversaire (si applicable)
                   if (user.isBirthdayMonth) ...[
-                    Container(
+                    AppCard(
+                      backgroundColor: AppColors.primaryTint,
+                      bordered: false,
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color:
-                            AppColors.bordeauxProfond.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color:
-                              AppColors.bordeauxProfond.withValues(alpha: 0.3),
-                        ),
-                      ),
                       child: Row(
                         children: [
                           const Text('🎂', style: TextStyle(fontSize: 24)),
@@ -381,18 +261,12 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Joyeux mois d\'anniversaire !',
-                                  style: AppTextStyles.label().copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.bordeauxProfond,
-                                  ),
+                                  style: AppTextStyles.label(color: AppColors.primaryDark),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Des attentions exclusives vous attendent dans vos restaurants.',
-                                  style: AppTextStyles.bodySmall(
-                                    color:
-                                        AppColors.encre.withValues(alpha: 0.7),
-                                  ),
+                                  style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.7)),
                                 ),
                               ],
                             ),
@@ -403,35 +277,24 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 20),
                   ],
 
-                  // Section Informations Personnelles
-                  const _SectionHeader(title: 'INFORMATIONS PERSONNELLES'),
+                  const SectionEyebrow('Informations personnelles'),
                   const SizedBox(height: 8),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.porcelaine,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.laitonLisere(opacity: 0.35),
-                      ),
-                    ),
+                  AppCard(
+                    padding: EdgeInsets.zero,
                     child: Column(
                       children: [
                         _InfoRow(
                           label: 'Nom complet',
-                          value: user.fullName.isNotEmpty
-                              ? user.fullName
-                              : 'Non renseigné',
+                          value: user.fullName.isNotEmpty ? user.fullName : 'Non renseigné',
                           icon: Icons.person_outline,
                         ),
-                        const _ItemDivider(),
+                        const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
                           label: 'Téléphone',
-                          value: user.phoneNumber.isNotEmpty
-                              ? user.phoneNumber
-                              : 'Non renseigné',
+                          value: user.phoneNumber.isNotEmpty ? user.phoneNumber : 'Non renseigné',
                           icon: Icons.phone_outlined,
                         ),
-                        const _ItemDivider(),
+                        const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
                           label: 'Date de naissance',
                           value: user.birthDate != null
@@ -439,7 +302,7 @@ class ProfileScreen extends ConsumerWidget {
                               : 'Non renseignée',
                           icon: Icons.cake_outlined,
                         ),
-                        const _ItemDivider(),
+                        const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
                           label: 'Email',
                           value: (user.email != null && user.email!.isNotEmpty)
@@ -453,18 +316,12 @@ class ProfileScreen extends ConsumerWidget {
 
                   const SizedBox(height: 20),
 
-                  // Section Parrainage
-                  const _SectionHeader(title: 'PARRAINAGE EXCLUSIF'),
+                  const SectionEyebrow('Parrainage exclusif'),
                   const SizedBox(height: 8),
-                  Container(
+                  AppCard(
+                    backgroundColor: AppColors.primaryTint,
+                    bordered: false,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.saugePale.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.laitonLisere(opacity: 0.35),
-                      ),
-                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -473,58 +330,37 @@ class ProfileScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 'Votre code invitation',
-                                style: AppTextStyles.bodySmall(
-                                  color: AppColors.encre.withValues(alpha: 0.6),
-                                ),
+                                style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.6)),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                user.referralCode.isNotEmpty
-                                    ? user.referralCode
-                                    : 'CARTE-MEMBRE',
-                                style: AppTextStyles.monoMedium(
-                                  color: AppColors.vertBouteille,
-                                ).copyWith(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
+                                user.referralCode.isNotEmpty ? user.referralCode : 'CARTE-MEMBRE',
+                                style: AppTextStyles.monoMedium(color: AppColors.primaryDark)
+                                    .copyWith(fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                             ],
                           ),
                         ),
                         GestureDetector(
                           onTap: () {
-                            Clipboard.setData(
-                              ClipboardData(text: user.referralCode),
-                            );
+                            Clipboard.setData(ClipboardData(text: user.referralCode));
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text(
-                                    'Code parrainage copié dans le presse-papier !'),
-                                behavior: SnackBarBehavior.floating,
-                                duration: Duration(seconds: 2),
+                                content: Text('Code parrainage copié dans le presse-papier !'),
                               ),
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              color: AppColors.vertBouteille,
-                              borderRadius: BorderRadius.circular(8),
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
-                                  Icons.copy_rounded,
-                                  size: 14,
-                                  color: AppColors.porcelaine,
-                                ),
+                                const Icon(Icons.copy_rounded, size: 14, color: Colors.white),
                                 const SizedBox(width: 6),
-                                Text(
-                                  'Copier',
-                                  style: AppTextStyles.label(
-                                    color: AppColors.porcelaine,
-                                  ),
-                                ),
+                                Text('Copier', style: AppTextStyles.label(color: Colors.white)),
                               ],
                             ),
                           ),
@@ -535,26 +371,14 @@ class ProfileScreen extends ConsumerWidget {
 
                   const SizedBox(height: 20),
 
-                  // Section Notifications par Restaurant
-                  const _SectionHeader(title: 'PREFERENCES DE NOTIFICATION'),
+                  const SectionEyebrow('Préférences de notification'),
                   const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.porcelaine,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppColors.laitonLisere(opacity: 0.35),
-                      ),
-                    ),
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: cards
                           .map<Widget>(
-                            (card) => _NotifToggleRow(
-                              cardId: card.id,
-                              name: card.restaurantName,
-                            ),
+                            (card) => _NotifToggleRow(cardId: card.id, name: card.restaurantName),
                           )
                           .toList(),
                     ),
@@ -562,22 +386,14 @@ class ProfileScreen extends ConsumerWidget {
 
                   const SizedBox(height: 28),
 
-                  // Bouton Se déconnecter
                   Center(
-                    child: TextButton.icon(
-                      onPressed: () => _confirmSignOut(context, ref),
-                      icon: Icon(
-                        Icons.logout_rounded,
-                        size: 16,
-                        color: AppColors.bordeauxProfond.withValues(alpha: 0.8),
-                      ),
-                      label: Text(
-                        'Se déconnecter',
-                        style: AppTextStyles.bodyMedium(
-                          color:
-                              AppColors.bordeauxProfond.withValues(alpha: 0.9),
-                        ).copyWith(fontWeight: FontWeight.w600),
-                      ),
+                    child: AppButton(
+                      label: 'Se déconnecter',
+                      variant: AppButtonVariant.destructive,
+                      icon: Icons.logout_rounded,
+                      fullWidth: false,
+                      height: 44,
+                      onTap: () => _confirmSignOut(context, ref),
                     ),
                   ),
                 ],
@@ -647,11 +463,7 @@ class _EditProfileModalState extends State<_EditProfileModal> {
 
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil mis à jour avec succès !'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
-      ),
+      const SnackBar(content: Text('Profil mis à jour avec succès !')),
     );
   }
 
@@ -665,62 +477,28 @@ class _EditProfileModalState extends State<_EditProfileModal> {
           minChildSize: 0.5,
           maxChildSize: 0.95,
           builder: (context, scrollController) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Form(
                 key: _formKey,
                 child: ListView(
                   controller: scrollController,
                   children: [
-                    // Handle
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: AppColors.encre.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    Text(
-                      'Modifier le profil',
-                      style: GoogleFonts.bodoniModa(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.encre,
-                      ),
-                    ),
+                    Text('Modifier le profil', style: AppTextStyles.displayMedium()),
                     const SizedBox(height: 20),
 
-                    // Nom complet
                     Text('Nom complet', style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _fullNameController,
-                      style: AppTextStyles.bodyMedium(),
                       validator: (v) => (v == null || v.trim().isEmpty)
                           ? 'Veuillez saisir votre nom complet'
                           : null,
-                      decoration: InputDecoration(
-                        hintText: 'Prénom Nom',
-                        filled: true,
-                        fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                              color: AppColors.laitonLisere(opacity: 0.3)),
-                        ),
-                      ),
+                      decoration: const InputDecoration(hintText: 'Prénom Nom'),
                     ),
 
                     const SizedBox(height: 16),
 
-                    // Téléphone
                     Text('Numéro de téléphone', style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     PhoneInputWithCountryPicker(
@@ -730,83 +508,28 @@ class _EditProfileModalState extends State<_EditProfileModal> {
 
                     const SizedBox(height: 16),
 
-                    // Date de naissance
                     Text('Date de naissance', style: AppTextStyles.label()),
                     const SizedBox(height: 6),
-                    GestureDetector(
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _birthDate ?? DateTime(2000, 1, 1),
-                          firstDate: DateTime(1930),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _birthDate = picked);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.saugePale.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.laitonLisere(opacity: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _birthDate == null
-                                    ? 'Sélectionner une date'
-                                    : '${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.year}',
-                                style: AppTextStyles.bodyMedium(
-                                  color: _birthDate == null
-                                      ? AppColors.encre.withValues(alpha: 0.35)
-                                      : AppColors.encre,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.calendar_today_outlined,
-                              size: 16,
-                              color: AppColors.laitonBrosse,
-                            ),
-                          ],
-                        ),
-                      ),
+                    AppDatePickerField(
+                      value: _birthDate,
+                      lastDate: DateTime.now(),
+                      onChanged: (picked) => setState(() => _birthDate = picked),
                     ),
 
                     const SizedBox(height: 16),
 
-                    // Email
                     Text('Email', style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      style: AppTextStyles.bodyMedium(),
-                      decoration: InputDecoration(
-                        hintText: 'votre@email.com',
-                        filled: true,
-                        fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                              color: AppColors.laitonLisere(opacity: 0.3)),
-                        ),
-                      ),
+                      decoration: const InputDecoration(hintText: 'votre@email.com'),
                     ),
 
                     const SizedBox(height: 28),
 
-                    InvitationButton(
+                    AppButton(
                       label: 'Enregistrer les modifications',
-                      filled: true,
                       onTap: () => _save(ref),
                     ),
 
@@ -826,70 +549,6 @@ class _EditProfileModalState extends State<_EditProfileModal> {
 // Widgets locaux
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final String subtext;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.subtext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-      decoration: BoxDecoration(
-        color: AppColors.porcelaine,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.laitonLisere(opacity: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: AppTextStyles.monoSmall(color: AppColors.laitonBrosse)
-                .copyWith(fontSize: 10),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.bodoniModa(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.vertBouteille,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtext,
-            style: AppTextStyles.bodySmall(
-              color: AppColors.encre.withValues(alpha: 0.5),
-            ).copyWith(fontSize: 11),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: AppTextStyles.monoSmall(
-        color: AppColors.laitonBrosse,
-      ).copyWith(letterSpacing: 1.2, fontWeight: FontWeight.w600),
-    );
-  }
-}
-
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
@@ -904,44 +563,23 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.laitonBrosse),
+          Icon(icon, size: 18, color: AppColors.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: AppTextStyles.bodySmall(
-                    color: AppColors.encre.withValues(alpha: 0.5),
-                  ),
-                ),
+                Text(label, style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5))),
                 const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: AppTextStyles.bodyMedium(
-                    color: AppColors.encre,
-                  ).copyWith(fontWeight: FontWeight.w500),
-                ),
+                Text(value, style: AppTextStyles.bodyMedium().copyWith(fontWeight: FontWeight.w500)),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ItemDivider extends StatelessWidget {
-  const _ItemDivider();
-  @override
-  Widget build(BuildContext context) {
-    return Divider(
-      height: 1,
-      color: AppColors.encre.withValues(alpha: 0.08),
     );
   }
 }
@@ -956,28 +594,17 @@ class _NotifToggleRow extends ConsumerWidget {
     final enabled =
         ref.watch(notificationPrefsProvider.select((p) => p[cardId] ?? true));
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(
-              name,
-              style: AppTextStyles.bodyMedium(color: AppColors.encre),
-            ),
+            child: Text(name, style: AppTextStyles.bodyMedium()),
           ),
           Switch(
             value: enabled,
             onChanged: (v) =>
                 ref.read(notificationPrefsProvider.notifier).toggle(cardId, v),
-            activeThumbColor: AppColors.vertBouteille,
-            inactiveThumbColor: AppColors.porcelaine,
-            trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (states.contains(WidgetState.selected)) {
-                return AppColors.vertBouteille.withValues(alpha: 0.3);
-              }
-              return AppColors.encre.withValues(alpha: 0.15);
-            }),
           ),
         ],
       ),

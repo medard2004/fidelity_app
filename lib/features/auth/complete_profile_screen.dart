@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
-import '../../widgets/shared/invitation_button.dart';
+import '../../widgets/components/components.dart';
 
 /// Étape post-inscription : Nom complet · Date de naissance · Email (optionnel).
 class CompleteProfileScreen extends ConsumerStatefulWidget {
@@ -54,33 +54,25 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
     final user = ref.watch(authProvider).user;
 
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Encart de bienvenue compact ────────────────────────────────
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.vertBouteille,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              AppCard(
+                backgroundColor: AppColors.primary,
+                bordered: false,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline,
-                        color: AppColors.porcelaine, size: 20),
+                    const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Bienvenue${user != null && user.firstName.isNotEmpty ? ", ${user.firstName}" : ""} !\nVotre compte a été créé.',
-                        style: AppTextStyles.bodyMedium(
-                          color: AppColors.porcelaine,
-                        ).copyWith(height: 1.3),
+                        style: AppTextStyles.bodyMedium(color: Colors.white).copyWith(height: 1.3),
                       ),
                     ),
                   ],
@@ -89,70 +81,46 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
               const SizedBox(height: 20),
 
-              // ── Titre (22px) ───────────────────────────────────────────────
-              Text('Complétez votre profil',
-                  style: AppTextStyles.displayMedium()),
+              Text('Complétez votre profil', style: AppTextStyles.displayMedium()),
 
               const SizedBox(height: 20),
 
-              // ── 1. Nom complet ─────────────────────────────────────────────
-              const _SectionLabel('Nom complet'),
+              Text('Nom complet', style: AppTextStyles.label()),
               const SizedBox(height: 6),
-              _StyledField(
+              TextField(
                 controller: _fullNameController,
-                hintText: 'Prénom Nom',
                 keyboardType: TextInputType.name,
+                decoration: const InputDecoration(hintText: 'Prénom Nom'),
               ),
 
               const SizedBox(height: 16),
 
-              // ── 2. Date de naissance / anniversaire ───────────────────────
-              const _SectionLabel('Date de naissance'),
+              Text('Date de naissance', style: AppTextStyles.label()),
               const SizedBox(height: 6),
-              _DatePickerField(
+              AppDatePickerField(
                 value: _birthDate,
                 onChanged: (date) => setState(() => _birthDate = date),
               ),
 
               const SizedBox(height: 16),
 
-              // ── 3. Email ───────────────────────────────────────────────────
               Row(
                 children: [
-                  const _SectionLabel('Email'),
+                  Text('Email', style: AppTextStyles.label()),
                   const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.saugePale,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Optionnel',
-                      style: AppTextStyles.monoSmall().copyWith(
-                        letterSpacing: 0.8,
-                        color: AppColors.encre.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ),
+                  const StatusBadge(label: 'Optionnel'),
                 ],
               ),
               const SizedBox(height: 6),
-              _StyledField(
+              TextField(
                 controller: _emailController,
-                hintText: 'votre@email.com',
                 keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(hintText: 'votre@email.com'),
               ),
 
               const SizedBox(height: 28),
 
-              // ── CTA ────────────────────────────────────────────────────────
-              InvitationButton(
-                label: 'Accéder à l\'application',
-                filled: true,
-                onTap: _complete,
-              ),
+              AppButton(label: 'Accéder à l\'application', onTap: _complete),
 
               const SizedBox(height: 10),
 
@@ -161,9 +129,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                   onPressed: _skip,
                   child: Text(
                     'Passer cette étape',
-                    style: AppTextStyles.bodyMedium(
-                      color: AppColors.encre.withValues(alpha: 0.45),
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.45)),
                   ),
                 ),
               ),
@@ -171,131 +137,6 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               const SizedBox(height: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widgets locaux
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
-  @override
-  Widget build(BuildContext context) =>
-      Text(text, style: AppTextStyles.label());
-}
-
-class _StyledField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hintText;
-  final TextInputType keyboardType;
-
-  const _StyledField({
-    required this.controller,
-    required this.hintText,
-    this.keyboardType = TextInputType.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      style: AppTextStyles.bodyMedium(),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppTextStyles.bodyMedium(
-            color: AppColors.encre.withValues(alpha: 0.35)),
-        filled: true,
-        fillColor: AppColors.saugePale.withValues(alpha: 0.4),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppColors.laitonLisere(opacity: 0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide:
-              const BorderSide(color: AppColors.laitonBrosse, width: 1.2),
-        ),
-      ),
-    );
-  }
-}
-
-class _DatePickerField extends StatelessWidget {
-  final DateTime? value;
-  final void Function(DateTime) onChanged;
-
-  const _DatePickerField({
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: value ?? DateTime(2000, 1, 1),
-          firstDate: DateTime(1930),
-          lastDate: DateTime.now().subtract(
-            const Duration(days: 365 * 16),
-          ),
-          helpText: 'Date de naissance',
-          builder: (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: AppColors.vertBouteille,
-                surface: AppColors.porcelaine,
-              ),
-            ),
-            child: child!,
-          ),
-        );
-        if (picked != null) {
-          onChanged(picked);
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.saugePale.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.laitonLisere(opacity: 0.3),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                value == null
-                    ? 'Sélectionner le jour, le mois et l\'année'
-                    : '${value!.day.toString().padLeft(2, '0')}/'
-                        '${value!.month.toString().padLeft(2, '0')}/'
-                        '${value!.year}',
-                style: AppTextStyles.bodyMedium(
-                  color: value == null
-                      ? AppColors.encre.withValues(alpha: 0.35)
-                      : AppColors.encre,
-                ),
-              ),
-            ),
-            const Icon(Icons.calendar_today_outlined,
-                size: 16, color: AppColors.laitonBrosse),
-          ],
         ),
       ),
     );

@@ -102,30 +102,16 @@ class _OtpInputRowState extends State<OtpInputRow> {
               duration: const Duration(milliseconds: 180),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                gradient: active
-                    ? LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          AppColors.porcelaine,
-                          AppColors.saugePale.withAlpha(220),
-                        ],
-                      )
-                    : null,
-                color: active
-                    ? AppColors.porcelaine
-                    : AppColors.saugePale.withAlpha(180),
+                color: active ? AppColors.surfaceCard : AppColors.surfaceMuted,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: active
-                      ? AppColors.laitonBrosse
-                      : AppColors.laitonLisere(opacity: 0.36),
+                  color: active ? AppColors.primary : AppColors.border,
                   width: active ? 1.7 : 1.05,
                 ),
                 boxShadow: active
                     ? [
                         BoxShadow(
-                          color: AppColors.ombreChaude(opacity: 0.08),
+                          color: AppColors.primary.withValues(alpha: 0.12),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -143,7 +129,7 @@ class _OtpInputRowState extends State<OtpInputRow> {
                         child: Text(
                           value.text,
                           style: AppTextStyles.monoLarge(
-                            color: AppColors.encre,
+                            color: AppColors.ink,
                           ).copyWith(
                             fontSize: 22,
                             height: 1,

@@ -1,16 +1,18 @@
-/// Coins arrondis mesurés — plus proches d'une carte bancaire réelle
-/// que d'un bouton d'app mobile lambda.
+/// Rayons d'arrondi — généreux et cohérents, dans l'esprit
+/// Wallet/Revolut/Stripe (jamais des coins pointus, jamais un
+/// arrondi disparate d'un composant à l'autre).
 class AppRadius {
   AppRadius._();
 
-  static const double card = 17; // 16–18px
+  static const double chip = 8;
+  static const double input = 12;
   static const double button = 12;
-  static const double chip = 10;
-  static const double input = 10;
-  static const double sheet = 24;
+  static const double card = 20;
+  static const double sheet = 28;
+  static const double pill = 999;
 }
 
-/// Espacements — beaucoup de respiration, on n'a pas peur du vide.
+/// Espacements — échelle constante utilisée partout dans l'app.
 class AppSpacing {
   AppSpacing._();
 

@@ -5,8 +5,8 @@ import 'bottom_nav_bar.dart';
 
 const _shellRoutes = ['/wallet', '/rewards', '/referral', '/profile'];
 
-/// Coquille avec bottom tab bar. Le device frame desktop (fond porcelaine
-/// assombrie) est appliqué ici pour détacher l'app du chrome du navigateur
+/// Coquille avec bottom tab bar. Le device frame desktop (fond neutre
+/// assombri) est appliqué ici pour détacher l'app du chrome du navigateur
 /// sur les grands écrans.
 class AppShell extends StatelessWidget {
   final Widget child;
@@ -24,7 +24,7 @@ class AppShell extends StatelessWidget {
     final isWide = MediaQuery.of(context).size.width > 620;
 
     final scaffold = Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(bottom: false, child: child),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: currentIndex,
@@ -34,9 +34,9 @@ class AppShell extends StatelessWidget {
 
     if (!isWide) return scaffold;
 
-    // Version desktop : device frame centré sur fond porcelaine assombrie.
+    // Version desktop : device frame centré sur fond neutre.
     return ColoredBox(
-      color: AppColors.porcelaineAssombrie,
+      color: AppColors.surfaceDesktopFrame,
       child: Center(
         child: Container(
           width: 420,
@@ -44,10 +44,10 @@ class AppShell extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(36),
-            border: Border.all(color: AppColors.encre, width: 8),
+            border: Border.all(color: AppColors.ink, width: 8),
             boxShadow: [
               BoxShadow(
-                color: AppColors.ombreChaude(opacity: 0.25),
+                color: Colors.black.withValues(alpha: 0.22),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
               ),

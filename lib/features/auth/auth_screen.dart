@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_icons/simple_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
-import '../../widgets/shared/invitation_button.dart';
+import '../../widgets/components/components.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 
 /// Écran de connexion : numéro de téléphone ou fournisseur social.
@@ -58,34 +57,23 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final titleStyle = GoogleFonts.bodoniModa(
-      fontSize: 25,
-      fontWeight: FontWeight.w600,
-      color: AppColors.encre,
-      height: 1.1,
-    );
-
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 32,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── En-tête (25px) ─────────────────────────────────────────
-                    Text('Connexion', style: titleStyle),
+                    Text('Connexion', style: AppTextStyles.displayXL()),
 
                     const SizedBox(height: 24),
 
-                    // ── Champ téléphone avec indicateur pays ───────────────────
                     Text('Numéro de téléphone', style: AppTextStyles.label()),
                     const SizedBox(height: 8),
                     PhoneInputWithCountryPicker(
@@ -95,51 +83,42 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ── CTA Connexion ──────────────────────────────────────────
-                    InvitationButton(
-                      label: 'Se connecter',
-                      filled: true,
-                      onTap: _continueWithPhone,
-                    ),
+                    AppButton(label: 'Se connecter', onTap: _continueWithPhone),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
 
-                    // ── Séparateur ─────────────────────────────────────────────
-                    _Divider(),
+                    const OrDivider(),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
 
-                    // ── Connexion sociale ──────────────────────────────────────
-                    InvitationButton(
+                    AppButton(
                       label: 'Continuer avec Google',
-                      leading: const _GoogleLogo(),
+                      variant: AppButtonVariant.outline,
+                      leading: const Icon(SimpleIcons.google, size: 16, color: AppColors.ink),
                       onTap: _continueWithGoogle,
                     ),
                     const SizedBox(height: 10),
-                    InvitationButton(
+                    AppButton(
                       label: 'Continuer avec Apple',
+                      variant: AppButtonVariant.outline,
                       icon: SimpleIcons.apple,
                       onTap: _continueWithApple,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // ── Lien textuel Créer un compte ──────────────────────────
                     Center(
                       child: GestureDetector(
                         onTap: () => context.push('/signup'),
                         child: Text.rich(
                           TextSpan(
                             text: 'Pas encore membre ? ',
-                            style: AppTextStyles.bodyMedium(
-                              color: AppColors.encre.withValues(alpha: 0.55),
-                            ),
+                            style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.55)),
                             children: [
                               TextSpan(
                                 text: 'S\'inscrire',
-                                style: AppTextStyles.bodyMedium(
-                                  color: AppColors.laitonBrosse,
-                                ).copyWith(fontWeight: FontWeight.w600),
+                                style: AppTextStyles.bodyMedium(color: AppColors.primary)
+                                    .copyWith(fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -153,46 +132,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           },
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widgets locaux
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _GoogleLogo extends StatelessWidget {
-  const _GoogleLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Icon(
-      SimpleIcons.google,
-      size: 16,
-      color: AppColors.encre,
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-            child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'OU',
-            style: AppTextStyles.monoSmall(
-              color: AppColors.encre.withValues(alpha: 0.4),
-            ),
-          ),
-        ),
-        Expanded(
-            child: Divider(color: AppColors.encre.withValues(alpha: 0.15))),
-      ],
     );
   }
 }

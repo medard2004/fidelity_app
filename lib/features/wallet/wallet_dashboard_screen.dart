@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/components/components.dart';
 import 'widgets/card_stack.dart';
 
 class WalletDashboardScreen extends ConsumerStatefulWidget {
@@ -80,29 +82,20 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
   Widget _buildSearchField() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.saugePale,
+        color: AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.laitonLisere(opacity: 0.18)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.encre.withAlpha(8),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: AppShadows.resting,
       ),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
         onChanged: _onSearchChanged,
         textInputAction: TextInputAction.search,
-        style: AppTextStyles.bodyLarge(color: AppColors.encre),
+        style: AppTextStyles.bodyLarge(color: AppColors.ink),
         decoration: InputDecoration(
           hintText: 'Rechercher une carte ou une enseigne',
-          hintStyle:
-              AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(140)),
-          prefixIcon:
-              Icon(Icons.search_rounded, color: AppColors.encre.withAlpha(191)),
+          hintStyle: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.4)),
+          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
           prefixIconConstraints:
               const BoxConstraints(minWidth: 48, minHeight: 48),
           suffixIconConstraints:
@@ -110,7 +103,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
           suffixIcon: _searchQuery.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppColors.encre),
+                  icon: const Icon(Icons.close_rounded, color: AppColors.ink),
                   onPressed: _clearSearch,
                 ),
           border: InputBorder.none,
@@ -131,7 +124,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
     final filteredCards = _filteredCards(cards);
 
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -148,16 +141,10 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                         children: [
                           Text(
                             _greeting(),
-                            style: AppTextStyles.monoSmall(
-                                    color: AppColors.laitonBrosse)
-                                .copyWith(
-                                    letterSpacing: 2.2,
-                                    fontWeight: FontWeight.w600),
+                            style: AppTextStyles.eyebrow(color: AppColors.primary),
                           ),
                           const SizedBox(height: 4),
-                          Text(firstName,
-                              style: AppTextStyles.displayXL(
-                                  color: AppColors.encre)),
+                          Text(firstName, style: AppTextStyles.displayXL()),
                         ],
                       ),
                       Row(
@@ -175,27 +162,16 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                                 height: 44,
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
-                                  color: AppColors.porcelaine,
+                                  color: AppColors.surfaceCard,
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color:
-                                        AppColors.laitonLisere(opacity: 0.18),
-                                    width: 1.1,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.encre.withAlpha(8),
-                                      blurRadius: 18,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
+                                  boxShadow: AppShadows.resting,
                                 ),
                                 child: Icon(
                                   _isSearching
                                       ? Icons.close_rounded
                                       : Icons.search_rounded,
                                   size: 20,
-                                  color: AppColors.encre,
+                                  color: AppColors.ink,
                                 ),
                               ),
                             ),
@@ -217,25 +193,14 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                                     height: 44,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: AppColors.porcelaine,
+                                      color: AppColors.surfaceCard,
                                       shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: AppColors.laitonLisere(
-                                            opacity: 0.18),
-                                        width: 1.1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.encre.withAlpha(8),
-                                          blurRadius: 18,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
+                                      boxShadow: AppShadows.resting,
                                     ),
                                     child: const Icon(
                                         Icons.notifications_none_rounded,
-                                        size: 24,
-                                        color: AppColors.encre),
+                                        size: 22,
+                                        color: AppColors.ink),
                                   ),
                                   if (unread > 0)
                                     Positioned(
@@ -245,7 +210,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                                         width: 8,
                                         height: 8,
                                         decoration: const BoxDecoration(
-                                          color: AppColors.laitonBrosse,
+                                          color: AppColors.primary,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -261,8 +226,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                   const SizedBox(height: 24),
                   Text(
                     'Vos cartes, réunies. Touchez-en une pour l\'ouvrir.',
-                    style: AppTextStyles.bodyMedium(
-                        color: AppColors.encre.withAlpha(217)),
+                    style: AppTextStyles.bodyMedium(color: AppColors.inkMuted()),
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 260),
@@ -279,8 +243,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
             ),
             Expanded(
               child: RefreshIndicator(
-                color: AppColors.laitonBrosse,
-                backgroundColor: AppColors.porcelaine,
+                color: AppColors.primary,
+                backgroundColor: AppColors.surfaceCard,
                 onRefresh: () =>
                     Future.delayed(const Duration(milliseconds: 700)),
                 child: SingleChildScrollView(
@@ -306,20 +270,13 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
           width: 58,
           height: 58,
           decoration: BoxDecoration(
-            color: AppColors.porcelaine,
+            color: AppColors.primary,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.laitonBrosse, width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.encre.withAlpha(20),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: AppShadows.raised,
           ),
           child: IconButton(
             icon: const Icon(Icons.qr_code_scanner_outlined,
-                color: AppColors.encre, size: 26),
+                color: Colors.white, size: 26),
             onPressed: () => context.push('/onboarding/scan'),
           ),
         ),
@@ -332,23 +289,10 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
       return _EmptyWallet(onScan: () => context.push('/onboarding/scan'));
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60),
-      child: Column(
-        children: [
-          const Icon(Icons.search_off_rounded,
-              size: 40, color: AppColors.laitonBrosse),
-          const SizedBox(height: 16),
-          Text('Aucune carte trouvée', style: AppTextStyles.displayMedium()),
-          const SizedBox(height: 8),
-          Text(
-            'Essayez un autre nom ou une autre enseigne.',
-            textAlign: TextAlign.center,
-            style:
-                AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
-          ),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.search_off_rounded,
+      title: 'Aucune carte trouvée',
+      message: 'Essayez un autre nom ou une autre enseigne.',
     );
   }
 }
@@ -359,23 +303,15 @@ class _EmptyWallet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60),
-      child: Column(
-        children: [
-          const Icon(Icons.style_outlined,
-              size: 40, color: AppColors.laitonBrosse),
-          const SizedBox(height: 16),
-          Text('Aucune carte pour l\'instant',
-              style: AppTextStyles.displayMedium()),
-          const SizedBox(height: 8),
-          Text(
-            'Scannez votre premier QR pour commencer votre collection',
-            textAlign: TextAlign.center,
-            style:
-                AppTextStyles.bodyMedium(color: AppColors.encre.withAlpha(153)),
-          ),
-        ],
+    return EmptyState(
+      icon: Icons.style_outlined,
+      title: 'Aucune carte pour l\'instant',
+      message: 'Scannez votre premier QR pour commencer votre collection',
+      action: AppButton(
+        label: 'Scanner un QR code',
+        icon: Icons.qr_code_scanner_outlined,
+        fullWidth: false,
+        onTap: onScan,
       ),
     );
   }

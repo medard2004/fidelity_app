@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/app_notification.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/components/components.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -32,7 +33,7 @@ class NotificationsScreen extends ConsumerWidget {
     final notifications = ref.watch(notificationsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         title: Text('Notifications', style: AppTextStyles.displayMedium()),
         actions: [
@@ -40,15 +41,15 @@ class NotificationsScreen extends ConsumerWidget {
             onPressed: () =>
                 ref.read(notificationsProvider.notifier).markAllRead(),
             child: Text('Tout marquer lu',
-                style: AppTextStyles.bodySmall(color: AppColors.vertBouteille)),
+                style: AppTextStyles.bodySmall(color: AppColors.primary)),
           ),
         ],
       ),
       body: notifications.isEmpty
           ? const _EmptyNotifications()
           : RefreshIndicator(
-              color: AppColors.laitonBrosse,
-              backgroundColor: AppColors.porcelaine,
+              color: AppColors.primary,
+              backgroundColor: AppColors.surfaceCard,
               onRefresh: () =>
                   Future.delayed(const Duration(milliseconds: 700)),
               child: ListView.separated(
@@ -57,7 +58,7 @@ class NotificationsScreen extends ConsumerWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 itemCount: notifications.length,
                 separatorBuilder: (_, __) =>
-                    const Divider(color: AppColors.saugePale, height: 1),
+                    const Divider(color: AppColors.border, height: 1),
                 itemBuilder: (context, i) {
                   final n = notifications[i];
                   return Dismissible(
@@ -68,26 +69,35 @@ class NotificationsScreen extends ConsumerWidget {
                     background: Container(
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      color: AppColors.bordeauxProfond.withValues(alpha: 0.85),
+                      color: AppColors.error,
                       child: const Icon(Icons.delete_outline,
-                          color: AppColors.porcelaine),
+                          color: Colors.white),
                     ),
                     child: ListTile(
                       onTap: () => ref
                           .read(notificationsProvider.notifier)
                           .markRead(n.id),
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(_iconFor(n.kind),
-                          color: AppColors.laitonBrosse, size: 20),
+                      leading: Container(
+                        width: 38,
+                        height: 38,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceMuted,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(_iconFor(n.kind),
+                            color: AppColors.primary, size: 18),
+                      ),
                       title: Text(n.restaurantName,
                           style: AppTextStyles.bodySmall(
-                              color: AppColors.encre.withValues(alpha: 0.5))),
+                              color: AppColors.inkMuted(opacity: 0.5))),
                       subtitle: Text(
                         n.message,
                         style: AppTextStyles.bodyMedium(
                           color: n.isRead
-                              ? AppColors.encre.withValues(alpha: 0.6)
-                              : AppColors.encre,
+                              ? AppColors.inkMuted(opacity: 0.6)
+                              : AppColors.ink,
                         ),
                       ),
                       trailing: Column(
@@ -102,7 +112,7 @@ class NotificationsScreen extends ConsumerWidget {
                               width: 7,
                               height: 7,
                               decoration: const BoxDecoration(
-                                color: AppColors.laitonBrosse,
+                                color: AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -123,25 +133,12 @@ class _EmptyNotifications extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.notifications_none_rounded,
-                size: 40, color: AppColors.laitonBrosse),
-            const SizedBox(height: 16),
-            Text('Aucune notification', style: AppTextStyles.displayMedium()),
-            const SizedBox(height: 8),
-            Text(
-              'Vous serez prévenu ici de vos tampons, récompenses et statuts VIP.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium(
-                  color: AppColors.encre.withValues(alpha: 0.6)),
-            ),
-          ],
-        ),
+    return const Center(
+      child: EmptyState(
+        icon: Icons.notifications_none_rounded,
+        title: 'Aucune notification',
+        message:
+            'Vous serez prévenu ici de vos tampons, récompenses et statuts VIP.',
       ),
     );
   }

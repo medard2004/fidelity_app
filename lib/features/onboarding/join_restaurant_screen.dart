@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../data/mock_data.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
+import '../../widgets/components/components.dart';
 
 class JoinRestaurantScreen extends ConsumerStatefulWidget {
   /// Code scanné (ou saisi manuellement) sur l'écran précédent.
@@ -84,50 +86,25 @@ class _UnrecognizedCodeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.porcelaine,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          child: EmptyState(
+            icon: Icons.qr_code_2_outlined,
+            title: 'Code non reconnu',
+            message: '« $code » ne correspond à aucun établissement partenaire de Carte pour le moment.',
+            action: Column(
               children: [
-                const Icon(Icons.qr_code_2_outlined,
-                    size: 40, color: AppColors.laitonBrosse),
-                const SizedBox(height: 16),
-                Text('Code non reconnu', style: AppTextStyles.displayMedium()),
-                const SizedBox(height: 8),
-                Text(
-                  '« $code » ne correspond à aucun établissement partenaire de Carte pour le moment.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium(
-                    color: AppColors.encre.withValues(alpha: 0.6),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => context.go('/onboarding/scan'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.vertBouteille,
-                      foregroundColor: AppColors.porcelaine,
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Réessayer un scan'),
-                  ),
+                AppButton(
+                  label: 'Réessayer un scan',
+                  fullWidth: false,
+                  onTap: () => context.go('/onboarding/scan'),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.go('/wallet'),
-                  child: Text(
-                    'Retour au portefeuille',
-                    style: AppTextStyles.label(
-                        color: AppColors.encre.withValues(alpha: 0.6)),
-                  ),
+                  child: Text('Retour au portefeuille',
+                      style: AppTextStyles.label(color: AppColors.inkMuted(opacity: 0.6))),
                 ),
               ],
             ),
@@ -188,34 +165,20 @@ class _JoinScreenState extends State<_JoinScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Dégradé haut sauge → bas porcelaine (comme la maquette).
-    const topColor = Color(0xFF607B6E);
-    const bottomColor = Color(0xFFEBE8DC);
-
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 0.42, 1.0],
-          colors: [topColor, Color(0xFFCDD4CE), bottomColor],
-        ),
-      ),
+      color: AppColors.surface,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header avec bouton retour ──────────────────────────────────
             Padding(
               padding: const EdgeInsets.only(left: 8, top: 4),
               child: IconButton(
                 onPressed: () => context.go('/wallet'),
-                icon: const Icon(Icons.arrow_back,
-                    color: AppColors.encre, size: 22),
+                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink, size: 22),
               ),
             ),
 
-            // ── En-tête établissement ──────────────────────────────────────
             FadeTransition(
               opacity: _fade,
               child: SlideTransition(
@@ -226,27 +189,16 @@ class _JoinScreenState extends State<_JoinScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-                      // Label "REJOINDRE" laiton
-                      Text(
-                        'REJOINDRE',
-                        style: AppTextStyles.monoSmall(
-                          color: AppColors.laitonBrosse,
-                        ).copyWith(letterSpacing: 2.5),
-                      ),
+                      const SectionEyebrow('Rejoindre'),
                       const SizedBox(height: 10),
-                      // Nom du restaurant — grand serif
                       Text(
                         widget.card.restaurantName,
-                        style: AppTextStyles.displayXL(color: AppColors.encre)
-                            .copyWith(height: 1.05),
+                        style: AppTextStyles.displayXL().copyWith(height: 1.05),
                       ),
                       const SizedBox(height: 6),
-                      // Catégorie · Quartier
                       Text(
                         widget.card.restaurantCategory,
-                        style: AppTextStyles.bodyMedium(
-                          color: AppColors.encre.withValues(alpha: 0.7),
-                        ),
+                        style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
                       ),
                     ],
                   ),
@@ -256,7 +208,6 @@ class _JoinScreenState extends State<_JoinScreen>
 
             const SizedBox(height: 36),
 
-            // ── Carte offre de bienvenue ───────────────────────────────────
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: _ctrl,
@@ -272,52 +223,23 @@ class _JoinScreenState extends State<_JoinScreen>
                 )),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    width: double.infinity,
+                  child: AppCard(
+                    elevated: true,
                     padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-                    decoration: BoxDecoration(
-                      color: AppColors.porcelaine,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.laitonBrosse.withValues(alpha: 0.35),
-                        width: 1.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.encre.withValues(alpha: 0.06),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Label "OFFRE DE BIENVENUE"
-                        Text(
-                          'OFFRE DE BIENVENUE',
-                          style: AppTextStyles.monoSmall(
-                            color: AppColors.laitonBrosse,
-                          ).copyWith(
-                            letterSpacing: 2.2,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        const SectionEyebrow('Offre de bienvenue'),
                         const SizedBox(height: 14),
-                        // Titre de l'offre — serif élégant
                         Text(
                           widget.card.welcomeOffer,
-                          style: AppTextStyles.displayMedium(
-                                  color: AppColors.encre)
-                              .copyWith(height: 1.2),
+                          style: AppTextStyles.displayMedium().copyWith(height: 1.2),
                         ),
                         const SizedBox(height: 10),
-                        // Détail / sous-titre
                         Text(
                           widget.offerDetail,
-                          style: AppTextStyles.bodyMedium(
-                            color: AppColors.encre.withValues(alpha: 0.65),
-                          ).copyWith(height: 1.5),
+                          style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65))
+                              .copyWith(height: 1.5),
                         ),
                       ],
                     ),
@@ -328,65 +250,21 @@ class _JoinScreenState extends State<_JoinScreen>
 
             const Spacer(),
 
-            // ── CTA "Rejoindre le programme" ───────────────────────────────
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: _ctrl,
                 curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-                child: _JoinButton(onTap: widget.onJoin),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                child: AppButton(
+                  label: 'Rejoindre le programme',
+                  height: 58,
+                  onTap: widget.onJoin,
+                ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bouton "Rejoindre le programme" — pill vert bouteille, grande hauteur
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _JoinButton extends StatefulWidget {
-  final VoidCallback onTap;
-  const _JoinButton({required this.onTap});
-
-  @override
-  State<_JoinButton> createState() => _JoinButtonState();
-}
-
-class _JoinButtonState extends State<_JoinButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _pressed ? 0.975 : 1.0,
-        duration: const Duration(milliseconds: 110),
-        curve: Curves.easeOut,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 19),
-          decoration: BoxDecoration(
-            color: AppColors.vertBouteille,
-            borderRadius: BorderRadius.circular(50), // pill
-          ),
-          child: Center(
-            child: Text(
-              'Rejoindre le programme',
-              style: AppTextStyles.bodyLarge(color: AppColors.porcelaine)
-                  .copyWith(fontWeight: FontWeight.w500, letterSpacing: 0.2),
-            ),
-          ),
         ),
       ),
     );
@@ -438,7 +316,7 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.porcelaine,
+      color: AppColors.surface,
       child: SafeArea(
         child: Center(
           child: FadeTransition(
@@ -452,45 +330,25 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Carte révélée
                       Container(
                         height: 200,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: widget.card.liningColor,
                           borderRadius: BorderRadius.circular(AppRadius.card),
-                          border: Border.all(
-                            color:
-                                AppColors.laitonBrosse.withValues(alpha: 0.5),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.encre.withValues(alpha: 0.15),
-                              blurRadius: 30,
-                              offset: const Offset(0, 12),
-                            ),
-                          ],
+                          boxShadow: AppShadows.floating,
                         ),
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check_circle_outline,
-                                  color: AppColors.porcelaine, size: 34),
+                              const Icon(Icons.check_circle_outline, color: Colors.white, size: 34),
                               const SizedBox(height: 10),
-                              Text(
-                                'Carte créée !',
-                                style: AppTextStyles.displayMedium(
-                                    color: AppColors.porcelaine),
-                              ),
+                              Text('Carte créée !', style: AppTextStyles.displayMedium(color: Colors.white)),
                               const SizedBox(height: 6),
                               Text(
                                 widget.card.restaurantName,
-                                style: AppTextStyles.bodyMedium(
-                                  color: AppColors.porcelaine
-                                      .withValues(alpha: 0.75),
-                                ),
+                                style: AppTextStyles.bodyMedium(color: Colors.white.withValues(alpha: 0.8)),
                               ),
                             ],
                           ),
