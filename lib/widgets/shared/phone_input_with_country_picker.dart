@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
@@ -130,7 +131,7 @@ class PhoneInputWithCountryPickerState
                   selectedCountry.dialCode,
                   style: AppTextStyles.label().copyWith(fontWeight: FontWeight.w600),
                 ),
-                const Icon(Icons.arrow_drop_down, size: 18, color: AppColors.primary),
+                const Icon(LucideIcons.chevronDown, size: 18, color: AppColors.primary),
               ],
             ),
           ),
@@ -202,7 +203,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                 onChanged: _filter,
                 decoration: const InputDecoration(
                   hintText: 'Rechercher un pays ou un indicatif...',
-                  prefixIcon: Icon(Icons.search_rounded, size: 18),
+                  prefixIcon: Icon(LucideIcons.search, size: 18),
                 ),
               ),
 

@@ -2,43 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Échelle typographique — une seule famille (Inter) pour toute l'UI,
-/// plus IBM Plex Mono en accent ponctuel pour les données chiffrées
-/// (soldes, identifiants de carte, code OTP).
+/// Échelle typographique — Cormorant (serif éditorial) pour les
+/// titres, Inter pour le reste de l'UI, plus IBM Plex Mono en accent
+/// ponctuel pour les données chiffrées (soldes, identifiants de carte,
+/// code OTP).
 class AppTextStyles {
   AppTextStyles._();
 
-  // --- Display / titres — Inter, poids élevés ---
+  // --- Display / titres — Cormorant, serif éditorial ---
 
   static TextStyle displayXL({Color color = AppColors.ink}) =>
-      GoogleFonts.inter(
+      GoogleFonts.cormorant(
         fontSize: 34,
         fontWeight: FontWeight.w700,
         color: color,
         height: 1.15,
-        letterSpacing: -0.6,
+        letterSpacing: -0.2,
       );
 
   static TextStyle displayLarge({Color color = AppColors.ink}) =>
-      GoogleFonts.inter(
+      GoogleFonts.cormorant(
         fontSize: 26,
         fontWeight: FontWeight.w700,
         color: color,
         height: 1.2,
-        letterSpacing: -0.4,
+        letterSpacing: -0.1,
       );
 
   static TextStyle displayMedium({Color color = AppColors.ink}) =>
-      GoogleFonts.inter(
+      GoogleFonts.cormorant(
         fontSize: 20,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: color,
         height: 1.25,
-        letterSpacing: -0.2,
       );
 
   static TextStyle titleMedium({Color color = AppColors.ink}) =>
-      GoogleFonts.inter(
+      GoogleFonts.cormorant(
         fontSize: 17,
         fontWeight: FontWeight.w600,
         color: color,

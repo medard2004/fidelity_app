@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
@@ -91,7 +92,7 @@ class AppDatePickerField extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Icon(Icons.calendar_today_outlined,
+                    const Icon(LucideIcons.calendar,
                         size: 16, color: AppColors.primary),
                   ],
                 ),

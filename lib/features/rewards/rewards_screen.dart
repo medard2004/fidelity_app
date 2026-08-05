@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
@@ -66,7 +67,7 @@ class RewardsScreen extends ConsumerWidget {
                               boxShadow: AppShadows.resting,
                             ),
                             child: const Icon(
-                              Icons.notifications_none_rounded,
+                              LucideIcons.bell,
                               color: AppColors.ink,
                               size: 20,
                             ),
@@ -127,7 +128,7 @@ class RewardsScreen extends ConsumerWidget {
                       else
                         const EmptyState(
                           compact: true,
-                          icon: Icons.card_giftcard_outlined,
+                          icon: LucideIcons.gift,
                           title: 'Aucun privilège disponible',
                           message: 'Revenez bientôt pour de nouvelles offres.',
                         ),
@@ -145,7 +146,7 @@ class RewardsScreen extends ConsumerWidget {
                       else
                         const EmptyState(
                           compact: true,
-                          icon: Icons.lock_open_rounded,
+                          icon: LucideIcons.lockOpen,
                           title: 'Tout est débloqué',
                           message: 'Aucune récompense verrouillée pour le moment.',
                         ),
@@ -172,7 +173,7 @@ class RewardsScreen extends ConsumerWidget {
                       else
                         const EmptyState(
                           compact: true,
-                          icon: Icons.history_rounded,
+                          icon: LucideIcons.history,
                           title: 'Aucun historique',
                           message: 'Vos récompenses utilisées apparaîtront ici.',
                         ),
@@ -287,7 +288,7 @@ class _LockedRewardCard extends StatelessWidget {
                 reward.restaurantName.toUpperCase(),
                 style: AppTextStyles.eyebrow(color: AppColors.inkMuted(opacity: 0.55)),
               ),
-              Icon(Icons.lock_outline, size: 14, color: AppColors.inkMuted()),
+              Icon(LucideIcons.lock, size: 14, color: AppColors.inkMuted()),
             ],
           ),
           const SizedBox(height: 6),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -161,7 +162,7 @@ class _QrScanScreenState extends State<QrScanScreen>
                           child: const SizedBox(
                             width: 44,
                             height: 44,
-                            child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                            child: Icon(LucideIcons.arrowLeft, color: Colors.white, size: 22),
                           ),
                         ),
                       ),
@@ -182,7 +183,7 @@ class _QrScanScreenState extends State<QrScanScreen>
                           child: const SizedBox(
                             width: 44,
                             height: 44,
-                            child: Icon(Icons.flash_on_outlined, color: Colors.white, size: 20),
+                            child: Icon(LucideIcons.zap, color: Colors.white, size: 20),
                           ),
                         ),
                       ),
@@ -314,7 +315,7 @@ class _CameraUnavailable extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.no_photography_outlined, size: 40, color: Colors.white70),
+              const Icon(LucideIcons.cameraOff, size: 40, color: Colors.white70),
               const SizedBox(height: 16),
               Text('Caméra indisponible', style: AppTextStyles.displayMedium(color: Colors.white)),
               const SizedBox(height: 8),

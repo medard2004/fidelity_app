@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../providers/app_providers.dart';
@@ -67,7 +68,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                    const Icon(LucideIcons.circleCheckBig, color: Colors.white, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
@@ -49,7 +50,7 @@ class CardDetailScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_rounded,
+                    icon: const Icon(LucideIcons.arrowLeft,
                         color: AppColors.ink, size: 20),
                   ),
                   const Expanded(
@@ -58,7 +59,7 @@ class CardDetailScreen extends ConsumerWidget {
                   IconButton(
                     onPressed: () =>
                         _showExportModal(context, card, _exportBoundaryKey),
-                    icon: const Icon(Icons.ios_share_outlined,
+                    icon: const Icon(LucideIcons.share2,
                         color: AppColors.primary, size: 20),
                     tooltip: 'Exporter / Partager',
                   ),
@@ -162,7 +163,7 @@ void _showExportModal(
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded,
+                  icon: const Icon(LucideIcons.x,
                       color: AppColors.ink, size: 20),
                 ),
               ],
@@ -171,7 +172,7 @@ void _showExportModal(
             const SizedBox(height: 20),
 
             _ExportOptionTile(
-              icon: Icons.bookmark_add_outlined,
+              icon: LucideIcons.bookmarkPlus,
               title: 'Enregistrer la carte',
               subtitle: 'Conserver dans votre Portefeuille d\'application',
               onTap: () {
@@ -184,7 +185,7 @@ void _showExportModal(
             const SizedBox(height: 10),
 
             _ExportOptionTile(
-              icon: Icons.download_outlined,
+              icon: LucideIcons.download,
               title: 'Télécharger la carte',
               subtitle:
                   'Enregistrer un visuel HD dans votre galerie (Pass format)',
@@ -198,7 +199,7 @@ void _showExportModal(
             const SizedBox(height: 10),
 
             _ExportOptionTile(
-              icon: Icons.share_outlined,
+              icon: LucideIcons.share2,
               title: 'Partager la carte',
               subtitle: 'Générer et envoyer une version propre à un proche',
               isHighlight: true,
@@ -268,7 +269,7 @@ class _ExportOptionTile extends StatelessWidget {
             ),
           ),
           Icon(
-            Icons.chevron_right_rounded,
+            LucideIcons.chevronRight,
             color: isHighlight
                 ? Colors.white.withValues(alpha: 0.7)
                 : AppColors.inkMuted(opacity: 0.3),
@@ -324,7 +325,7 @@ class _TopQrPlateCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.open_in_full_rounded,
+                const Icon(LucideIcons.maximize2,
                     size: 13, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text('Plein écran',
@@ -356,7 +357,7 @@ class _TopQrPlateCard extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(6),
                   child: Icon(
-                    Icons.copy_outlined,
+                    LucideIcons.copy,
                     size: 15,
                     color: AppColors.inkMuted(),
                   ),
@@ -391,7 +392,7 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded,
+                    icon: const Icon(LucideIcons.x,
                         color: AppColors.ink, size: 20),
                   ),
                 ],
@@ -490,7 +491,7 @@ class _DetailedRewardCard extends StatelessWidget {
                   StatusBadge(
                     label: isReady ? 'PRÊT' : (isLocked ? 'VERROUILLÉ' : 'UTILISÉ'),
                     tone: isReady ? StatusTone.success : StatusTone.neutral,
-                    icon: isReady ? Icons.check_circle_outline : (isLocked ? Icons.lock_outline : null),
+                    icon: isReady ? LucideIcons.circleCheckBig : (isLocked ? LucideIcons.lock : null),
                   ),
                 ],
               ),
@@ -612,7 +613,7 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
               AnimatedRotation(
                 turns: _expanded ? 0.5 : 0.0,
                 duration: const Duration(milliseconds: 200),
-                child: const Icon(Icons.expand_more_rounded,
+                child: const Icon(LucideIcons.chevronDown,
                     color: AppColors.ink, size: 20),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../models/app_notification.dart';
@@ -12,19 +13,19 @@ class NotificationsScreen extends ConsumerWidget {
   IconData _iconFor(NotificationKind k) {
     switch (k) {
       case NotificationKind.reward:
-        return Icons.card_giftcard_outlined;
+        return LucideIcons.gift;
       case NotificationKind.stamp:
-        return Icons.circle_outlined;
+        return LucideIcons.circle;
       case NotificationKind.points:
-        return Icons.star_outline;
+        return LucideIcons.star;
       case NotificationKind.cashback:
-        return Icons.savings_outlined;
+        return LucideIcons.piggyBank;
       case NotificationKind.vip:
-        return Icons.diamond_outlined;
+        return LucideIcons.gem;
       case NotificationKind.referral:
-        return Icons.people_outline;
+        return LucideIcons.users;
       case NotificationKind.system:
-        return Icons.info_outline;
+        return LucideIcons.info;
     }
   }
 
@@ -70,7 +71,7 @@ class NotificationsScreen extends ConsumerWidget {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       color: AppColors.error,
-                      child: const Icon(Icons.delete_outline,
+                      child: const Icon(LucideIcons.trash2,
                           color: Colors.white),
                     ),
                     child: ListTile(
@@ -135,7 +136,7 @@ class _EmptyNotifications extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: EmptyState(
-        icon: Icons.notifications_none_rounded,
+        icon: LucideIcons.bell,
         title: 'Aucune notification',
         message:
             'Vous serez prévenu ici de vos tampons, récompenses et statuts VIP.',

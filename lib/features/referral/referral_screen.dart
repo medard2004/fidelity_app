@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
@@ -100,7 +101,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         ),
         body: const Center(
           child: EmptyState(
-            icon: Icons.people_outline,
+            icon: LucideIcons.users,
             title: 'Aucune carte à parrainer',
             message:
                 'Rejoignez au moins un établissement pour pouvoir le recommander à vos proches.',
@@ -188,7 +189,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 const SizedBox(width: 8),
                 IconButton.filled(
                   onPressed: _addRecipient,
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(LucideIcons.plus, color: Colors.white),
                   style: IconButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -217,7 +218,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             AppButton(
               label:
                   'Partager l\'invitation (${refState.recipients.length} destinataire${refState.recipients.length > 1 ? "s" : ""})',
-              icon: Icons.send_rounded,
+              icon: LucideIcons.send,
               onTap: () => _sendShares(selectedCard),
             ),
 
@@ -417,7 +418,7 @@ class _AntiFraudHistorySection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.shield_outlined, size: 16, color: AppColors.primary),
+            const Icon(LucideIcons.shield, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
             Text('Suivi anti-fraude & clics validés', style: AppTextStyles.titleMedium().copyWith(fontSize: 13)),
           ],

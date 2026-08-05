@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
@@ -246,7 +247,7 @@ class _WalletVisual extends StatelessWidget {
                       children: [
                         Text('Le Palais',
                             style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 14)),
-                        const Icon(Icons.star_rounded, size: 18, color: Colors.white70),
+                        const Icon(LucideIcons.star, size: 18, color: Colors.white70),
                       ],
                     ),
                   ),
@@ -285,7 +286,7 @@ class _WalletVisual extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(Icons.qr_code_rounded, color: Colors.white70, size: 20),
+                            const Icon(LucideIcons.qrCode, color: Colors.white70, size: 20),
                           ],
                         ),
                         Row(
@@ -392,7 +393,7 @@ class _RewardsVisual extends StatelessWidget {
       ),
       child: Center(
         child: stamped
-            ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
+            ? const Icon(LucideIcons.check, color: Colors.white, size: 16)
             : Text('${index + 1}', style: AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.35))),
       ),
     );
@@ -444,7 +445,7 @@ class _ReferralVisual extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                        const Icon(LucideIcons.copy, size: 14, color: AppColors.primary),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(

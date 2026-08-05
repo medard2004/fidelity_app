@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
@@ -90,7 +91,7 @@ class _UnrecognizedCodeScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: EmptyState(
-            icon: Icons.qr_code_2_outlined,
+            icon: LucideIcons.qrCode,
             title: 'Code non reconnu',
             message: '« $code » ne correspond à aucun établissement partenaire de Carte pour le moment.',
             action: Column(
@@ -175,7 +176,7 @@ class _JoinScreenState extends State<_JoinScreen>
               padding: const EdgeInsets.only(left: 8, top: 4),
               child: IconButton(
                 onPressed: () => context.go('/wallet'),
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink, size: 22),
+                icon: const Icon(LucideIcons.arrowLeft, color: AppColors.ink, size: 22),
               ),
             ),
 
@@ -342,7 +343,7 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.check_circle_outline, color: Colors.white, size: 34),
+                              const Icon(LucideIcons.circleCheckBig, color: Colors.white, size: 34),
                               const SizedBox(height: 10),
                               Text('Carte créée !', style: AppTextStyles.displayMedium(color: Colors.white)),
                               const SizedBox(height: 6),

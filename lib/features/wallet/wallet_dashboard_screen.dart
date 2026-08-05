@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
@@ -95,7 +96,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
         decoration: InputDecoration(
           hintText: 'Rechercher une carte ou une enseigne',
           hintStyle: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.4)),
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
+          prefixIcon: const Icon(LucideIcons.search, color: AppColors.primary),
           prefixIconConstraints:
               const BoxConstraints(minWidth: 48, minHeight: 48),
           suffixIconConstraints:
@@ -103,7 +104,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
           suffixIcon: _searchQuery.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppColors.ink),
+                  icon: const Icon(LucideIcons.x, color: AppColors.ink),
                   onPressed: _clearSearch,
                 ),
           border: InputBorder.none,
@@ -168,8 +169,8 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                                 ),
                                 child: Icon(
                                   _isSearching
-                                      ? Icons.close_rounded
-                                      : Icons.search_rounded,
+                                      ? LucideIcons.x
+                                      : LucideIcons.search,
                                   size: 20,
                                   color: AppColors.ink,
                                 ),
@@ -198,7 +199,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                                       boxShadow: AppShadows.resting,
                                     ),
                                     child: const Icon(
-                                        Icons.notifications_none_rounded,
+                                        LucideIcons.bell,
                                         size: 22,
                                         color: AppColors.ink),
                                   ),
@@ -275,7 +276,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
             boxShadow: AppShadows.raised,
           ),
           child: IconButton(
-            icon: const Icon(Icons.qr_code_scanner_outlined,
+            icon: const Icon(LucideIcons.scanLine,
                 color: Colors.white, size: 26),
             onPressed: () => context.push('/onboarding/scan'),
           ),
@@ -290,7 +291,7 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
     }
 
     return const EmptyState(
-      icon: Icons.search_off_rounded,
+      icon: LucideIcons.searchX,
       title: 'Aucune carte trouvée',
       message: 'Essayez un autre nom ou une autre enseigne.',
     );
@@ -304,12 +305,12 @@ class _EmptyWallet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EmptyState(
-      icon: Icons.style_outlined,
+      icon: LucideIcons.layers,
       title: 'Aucune carte pour l\'instant',
       message: 'Scannez votre premier QR pour commencer votre collection',
       action: AppButton(
         label: 'Scanner un QR code',
-        icon: Icons.qr_code_scanner_outlined,
+        icon: LucideIcons.scanLine,
         fullWidth: false,
         onTap: onScan,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
@@ -65,7 +66,7 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: AppColors.surface,
         body: Center(
           child: EmptyState(
-            icon: Icons.person_outline,
+            icon: LucideIcons.user,
             title: 'Vous n\'êtes pas connecté',
             message: 'Connectez-vous pour accéder à votre profil.',
             action: AppButton(
@@ -119,7 +120,7 @@ class ProfileScreen extends ConsumerWidget {
                               boxShadow: AppShadows.resting,
                             ),
                             child: const Icon(
-                              Icons.notifications_none_rounded,
+                              LucideIcons.bell,
                               color: AppColors.ink,
                               size: 20,
                             ),
@@ -218,7 +219,7 @@ class ProfileScreen extends ConsumerWidget {
                         AppButton(
                           label: 'Modifier le profil',
                           variant: AppButtonVariant.outline,
-                          icon: Icons.edit_outlined,
+                          icon: LucideIcons.pencil,
                           height: 46,
                           onTap: () => _openEditProfileModal(context, ref, user),
                         ),
@@ -286,13 +287,13 @@ class ProfileScreen extends ConsumerWidget {
                         _InfoRow(
                           label: 'Nom complet',
                           value: user.fullName.isNotEmpty ? user.fullName : 'Non renseigné',
-                          icon: Icons.person_outline,
+                          icon: LucideIcons.user,
                         ),
                         const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
                           label: 'Téléphone',
                           value: user.phoneNumber.isNotEmpty ? user.phoneNumber : 'Non renseigné',
-                          icon: Icons.phone_outlined,
+                          icon: LucideIcons.phone,
                         ),
                         const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
@@ -300,7 +301,7 @@ class ProfileScreen extends ConsumerWidget {
                           value: user.birthDate != null
                               ? '${user.birthDate!.day.toString().padLeft(2, '0')}/${user.birthDate!.month.toString().padLeft(2, '0')}/${user.birthDate!.year}'
                               : 'Non renseignée',
-                          icon: Icons.cake_outlined,
+                          icon: LucideIcons.cake,
                         ),
                         const Divider(height: 1, color: AppColors.border),
                         _InfoRow(
@@ -308,7 +309,7 @@ class ProfileScreen extends ConsumerWidget {
                           value: (user.email != null && user.email!.isNotEmpty)
                               ? user.email!
                               : 'Non renseigné',
-                          icon: Icons.email_outlined,
+                          icon: LucideIcons.mail,
                         ),
                       ],
                     ),
@@ -358,7 +359,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.copy_rounded, size: 14, color: Colors.white),
+                                const Icon(LucideIcons.copy, size: 14, color: Colors.white),
                                 const SizedBox(width: 6),
                                 Text('Copier', style: AppTextStyles.label(color: Colors.white)),
                               ],
@@ -390,7 +391,7 @@ class ProfileScreen extends ConsumerWidget {
                     child: AppButton(
                       label: 'Se déconnecter',
                       variant: AppButtonVariant.destructive,
-                      icon: Icons.logout_rounded,
+                      icon: LucideIcons.logOut,
                       fullWidth: false,
                       height: 44,
                       onTap: () => _confirmSignOut(context, ref),

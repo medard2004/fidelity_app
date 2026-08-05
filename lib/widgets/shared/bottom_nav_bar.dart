@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
@@ -11,11 +12,10 @@ class NavItem {
 }
 
 const _navItems = [
-  NavItem(Icons.wallet_outlined, Icons.wallet_rounded, 'Wallet'),
-  NavItem(
-      Icons.card_giftcard_outlined, Icons.card_giftcard_rounded, 'Récompenses'),
-  NavItem(Icons.people_outline, Icons.people_rounded, 'Parrainage'),
-  NavItem(Icons.person_outline, Icons.person_rounded, 'Profil'),
+  NavItem(LucideIcons.wallet, LucideIcons.wallet, 'Wallet'),
+  NavItem(LucideIcons.gift, LucideIcons.gift, 'Récompenses'),
+  NavItem(LucideIcons.users, LucideIcons.users, 'Parrainage'),
+  NavItem(LucideIcons.user, LucideIcons.user, 'Profil'),
 ];
 
 /// Bottom tab bar — fond blanc, bordure hairline supérieure, indicateur

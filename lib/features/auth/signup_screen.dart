@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:simple_icons/simple_icons.dart';
 import '../../core/theme/app_colors.dart';
@@ -140,7 +141,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       AppButton(
                         label: 'S\'inscrire avec Google',
                         variant: AppButtonVariant.outline,
-                        leading: const Icon(SimpleIcons.google, size: 16, color: AppColors.ink),
+                        leading: SvgPicture.asset('assets/icons/google_logo.svg', width: 18, height: 18),
                         onTap: _continueWithGoogle,
                       ),
                       const SizedBox(height: 10),
