@@ -7,6 +7,7 @@ import '../../core/theme/app_shadows.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/referral_provider.dart';
 import '../../widgets/components/components.dart';
@@ -78,6 +79,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final cards = ref.watch(walletProvider);
     final refState = ref.watch(referralProvider);

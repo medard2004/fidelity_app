@@ -8,6 +8,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/app_section_header.dart';
@@ -33,6 +34,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
     final cards = ref.watch(walletProvider);

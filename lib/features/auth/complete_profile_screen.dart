@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/components/components.dart';
 
 /// Étape post-inscription : Nom complet · Date de naissance · Email (optionnel).
@@ -53,6 +54,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
 

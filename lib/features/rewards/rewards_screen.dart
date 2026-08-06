@@ -6,6 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/reward.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/app_section_header.dart';
 import '../../widgets/shared/notification_bell_button.dart';
@@ -16,6 +17,7 @@ class RewardsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final rewards = ref.watch(rewardsProvider);
     final unreadNotifs =

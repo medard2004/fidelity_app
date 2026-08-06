@@ -7,6 +7,7 @@ import '../../core/theme/app_shadows.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/app_section_header.dart';
 import '../../widgets/shared/notification_bell_button.dart';
@@ -25,6 +26,7 @@ class WalletDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final cards = ref.watch(walletProvider);
     final auth = ref.watch(authProvider);

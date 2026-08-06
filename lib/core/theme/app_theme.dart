@@ -10,11 +10,14 @@ class AppTheme {
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);
 
-  /// Construit le thème pour la luminosité donnée. [AppColors] doit être
-  /// basculé sur cette même luminosité avant l'appel (voir
-  /// [AppColors.setBrightness]) puisque ses tokens sont lus ici pour
-  /// remplir des styles [ThemeData] figés au moment de la construction.
+  /// Construit le thème pour la luminosité donnée. Bascule [AppColors]
+  /// sur cette luminosité avant de lire le moindre token — sans ça,
+  /// `light` et `dark` liraient tous les deux la luminosité globale
+  /// courante (celle laissée par le dernier appel) et produiraient deux
+  /// [ThemeData] avec les mêmes couleurs figées pour l'AppBar, les
+  /// dialogues, les champs de saisie, etc.
   static ThemeData _build(Brightness brightness) {
+    AppColors.setBrightness(brightness);
     final base = ThemeData(
       useMaterial3: true,
       brightness: brightness,

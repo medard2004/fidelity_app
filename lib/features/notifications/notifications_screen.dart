@@ -6,6 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/app_notification.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/app_detail_bar.dart';
 
@@ -33,6 +34,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final notifications = ref.watch(notificationsProvider);
 

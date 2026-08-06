@@ -8,6 +8,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../models/reward.dart';
@@ -26,6 +27,7 @@ class CardDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final card = ref.watch(walletProvider.select((cards) {
       try {

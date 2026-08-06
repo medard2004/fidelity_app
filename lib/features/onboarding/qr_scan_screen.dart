@@ -8,6 +8,11 @@ import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../widgets/components/components.dart';
 
+/// Fond du chrome caméra — volontairement fixe (jamais [AppColors.ink],
+/// qui s'inverse en mode sombre) : cet écran plein cadre reste sombre
+/// dans les deux thèmes, comme n'importe quel viseur d'appareil photo.
+const _kScanChrome = Color(0xFF0E0F12);
+
 /// Écran de scan QR — caméra réelle (mobile_scanner) sous un cadre net et
 /// neutre, avec repli de saisie manuelle si la caméra est indisponible.
 class QrScanScreen extends StatefulWidget {
@@ -131,7 +136,7 @@ class _QrScanScreenState extends State<QrScanScreen>
     final frameH = frameW;
 
     return Scaffold(
-      backgroundColor: AppColors.ink,
+      backgroundColor: _kScanChrome,
       body: Stack(
         children: [
           // ── Flux caméra réel ────────────────────────────────────────────
@@ -357,7 +362,7 @@ class _CameraUnavailable extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
     return Container(
-      color: AppColors.ink,
+      color: _kScanChrome,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),

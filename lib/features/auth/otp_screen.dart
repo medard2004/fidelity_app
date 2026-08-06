@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/shared/app_detail_bar.dart';
 import '../../widgets/shared/otp_input_row.dart';
 
@@ -86,6 +87,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final contextLabel = switch (widget.otpContext) {
       OtpContext.login => t.otpContextLogin,

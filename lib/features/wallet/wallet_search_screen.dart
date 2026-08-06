@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/components/components.dart';
 import 'widgets/loyalty_card_widget.dart';
@@ -51,6 +52,7 @@ class _WalletSearchScreenState extends ConsumerState<WalletSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final cards = ref.watch(walletProvider);
     final results = _filtered(cards);

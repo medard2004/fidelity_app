@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../data/mock_data.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
+import '../../providers/settings_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/components/components.dart';
 
@@ -34,6 +35,7 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     final code = widget.scannedCode;
     final card = code != null ? MockData.findJoinableByCode(code) : null;

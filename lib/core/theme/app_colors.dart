@@ -67,19 +67,29 @@ class AppColors {
   /// État pressé/actif de [primary].
   static const Color primaryDark = Color(0xFF4338CA);
 
-  /// Fond teinté léger pour badges/sélections sur [primary].
-  static const Color primaryTint = Color(0xFFEEF0FF);
+  /// Fond teinté léger pour badges/sélections sur [primary] — pastel en
+  /// clair, remplacé par un fond assombri de même teinte en sombre (un
+  /// pastel clair resterait un pavé blanc criard sur fond sombre).
+  static const Color _primaryTintLight = Color(0xFFEEF0FF);
+  static const Color _primaryTintDark = Color(0xFF23244A);
+  static Color get primaryTint => isDark ? _primaryTintDark : _primaryTintLight;
 
   // --- Sémantique ---------------------------------------------------------
 
   static const Color success = Color(0xFF16A34A);
-  static const Color successTint = Color(0xFFECFDF3);
+  static const Color _successTintLight = Color(0xFFECFDF3);
+  static const Color _successTintDark = Color(0xFF15291F);
+  static Color get successTint => isDark ? _successTintDark : _successTintLight;
 
   static const Color warning = Color(0xFFD97706);
-  static const Color warningTint = Color(0xFFFFF7ED);
+  static const Color _warningTintLight = Color(0xFFFFF7ED);
+  static const Color _warningTintDark = Color(0xFF2E2313);
+  static Color get warningTint => isDark ? _warningTintDark : _warningTintLight;
 
   static const Color error = Color(0xFFDC2626);
-  static const Color errorTint = Color(0xFFFEF2F2);
+  static const Color _errorTintLight = Color(0xFFFEF2F2);
+  static const Color _errorTintDark = Color(0xFF2E1A1A);
+  static Color get errorTint => isDark ? _errorTintDark : _errorTintLight;
 
   // --- Doublures des cartes de fidélité (identité par établissement) ------
 

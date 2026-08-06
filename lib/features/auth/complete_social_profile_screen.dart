@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 
@@ -53,6 +54,7 @@ class _CompleteSocialProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeModeProvider);
     final t = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
