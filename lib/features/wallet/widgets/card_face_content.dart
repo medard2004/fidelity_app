@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_radius.dart';
+import '../../../l10n/gen/app_localizations.dart';
 import '../../../models/loyalty_card.dart';
 
 /// Sépare les milliers d'un nombre par un espace fine (ex. 12 400).
@@ -8,6 +10,29 @@ String formatGroupedNumber(int number) {
   final str = number.toString();
   final reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
   return str.replaceAllMapped(reg, (Match m) => '${m[1]} ');
+}
+
+/// Icône représentative de la catégorie affichée sur la carte —
+/// heuristique sur le libellé (le modèle n'a pas de champ dédié),
+/// suffisante pour le jeu de catégories actuel de l'app.
+IconData categoryIcon(String category) {
+  final c = category.toLowerCase();
+  if (c.contains('monde')) return LucideIcons.globe;
+  if (c.contains('gastronom')) return LucideIcons.wine;
+  if (c.contains('cocktail') || c.contains('rooftop') || c.contains('bar')) {
+    return LucideIcons.martini;
+  }
+  if (c.contains('brunch') ||
+      c.contains('pâtisserie') ||
+      c.contains('patisserie') ||
+      c.contains('café') ||
+      c.contains('cafe')) {
+    return LucideIcons.coffee;
+  }
+  if (c.contains('bistrot') || c.contains('cuisine')) {
+    return LucideIcons.utensils;
+  }
+  return LucideIcons.store;
 }
 
 /// Contenu d'une face de carte de fidélité — catégorie/ID, nom de
@@ -44,11 +69,39 @@ class CardFaceContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    card.restaurantCategory.toUpperCase(),
-                    style: AppTextStyles.monoSmall(color: subtextColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: compact ? 7 : 10,
+                          vertical: compact ? 3 : 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.22)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            categoryIcon(card.restaurantCategory),
+                            size: compact ? 11 : 12,
+                            color: textColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              card.restaurantCategory.toUpperCase(),
+                              style:
+                                  AppTextStyles.monoSmall(color: subtextColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -60,7 +113,7 @@ class CardFaceContent extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: compact ? 8 : 10),
+            SizedBox(height: compact ? 6 : 10),
             Text(
               card.restaurantName,
               style: AppTextStyles.displayLarge(color: textColor).copyWith(
@@ -72,7 +125,8 @@ class CardFaceContent extends StatelessWidget {
             ),
           ],
         ),
-        _MechanicStat(card: card, textColor: textColor, subtextColor: subtextColor),
+        _MechanicStat(
+            card: card, textColor: textColor, subtextColor: subtextColor),
       ],
     );
   }
@@ -91,6 +145,7 @@ class _MechanicStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     switch (card.mechanic) {
       case LoyaltyMechanic.vip:
         return Row(
@@ -113,8 +168,9 @@ class _MechanicStat extends StatelessWidget {
             Expanded(
               child: Text(
                 card.vipTier == VipTier.platinum
-                    ? 'Palier maximum atteint'
-                    : 'Platinum dans ${((1 - card.vipProgressToNextTier) * 12).ceil()} visites',
+                    ? t.cardVipMaxTier
+                    : t.cardVipNextTier(
+                        ((1 - card.vipProgressToNextTier) * 12).ceil()),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodySmall(color: subtextColor),
@@ -123,11 +179,16 @@ class _MechanicStat extends StatelessWidget {
           ],
         );
       case LoyaltyMechanic.cashback:
-        return _valueRow('CASHBACK', formatGroupedNumber(card.cashbackBalanceFcfa), 'FCFA');
+        return _valueRow(
+            t.cardCashbackLabel,
+            formatGroupedNumber(card.cashbackBalanceFcfa),
+            t.cardCashbackSuffix);
       case LoyaltyMechanic.points:
-        return _valueRow('SOLDE', formatGroupedNumber(card.pointsBalance), 'PTS');
+        return _valueRow(t.cardPointsLabel,
+            formatGroupedNumber(card.pointsBalance), t.cardPointsSuffix);
       case LoyaltyMechanic.stamps:
-        return _valueRow('TAMPONS', '${card.stampsCurrent}/${card.stampsGoal}', null);
+        return _valueRow(t.cardStampsLabel,
+            '${card.stampsCurrent}/${card.stampsGoal}', null);
     }
   }
 
@@ -145,7 +206,8 @@ class _MechanicStat extends StatelessWidget {
             Text(value, style: AppTextStyles.monoLarge(color: textColor)),
             if (suffix != null) ...[
               const SizedBox(width: 6),
-              Text(suffix, style: AppTextStyles.monoMedium(color: subtextColor)),
+              Text(suffix,
+                  style: AppTextStyles.monoMedium(color: subtextColor)),
             ],
           ],
         ),

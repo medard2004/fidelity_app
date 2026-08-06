@@ -4,9 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/app_radius.dart';
-import '../../core/theme/app_shadows.dart';
 import '../../data/mock_data.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/components/components.dart';
@@ -26,9 +25,6 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
     with SingleTickerProviderStateMixin {
   bool _joining = false;
 
-  // Détail de l'offre affiché sous l'offre principale.
-  static const _offerDetail = 'Cumulez 10 tampons pour un menu entier offert.';
-
   Future<void> _join(LoyaltyCard card) async {
     setState(() => _joining = true);
     await Future.delayed(const Duration(milliseconds: 800));
@@ -38,6 +34,7 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final code = widget.scannedCode;
     final card = code != null ? MockData.findJoinableByCode(code) : null;
 
@@ -70,7 +67,7 @@ class _JoinRestaurantScreenState extends ConsumerState<JoinRestaurantScreen>
             : _JoinScreen(
                 key: const ValueKey('join'),
                 card: resolvedCard,
-                offerDetail: _offerDetail,
+                offerDetail: t.joinOfferDetail,
                 onJoin: () => _join(resolvedCard),
               ),
       ),
@@ -86,26 +83,28 @@ class _UnrecognizedCodeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Center(
           child: EmptyState(
             icon: LucideIcons.qrCode,
-            title: 'Code non reconnu',
-            message: '« $code » ne correspond à aucun établissement partenaire de Carte pour le moment.',
+            title: t.joinUnrecognizedTitle,
+            message: t.joinUnrecognizedMessage(code),
             action: Column(
               children: [
                 AppButton(
-                  label: 'Réessayer un scan',
+                  label: t.joinRetryScan,
                   fullWidth: false,
                   onTap: () => context.go('/onboarding/scan'),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.go('/wallet'),
-                  child: Text('Retour au portefeuille',
-                      style: AppTextStyles.label(color: AppColors.inkMuted(opacity: 0.6))),
+                  child: Text(t.joinBackToWallet,
+                      style: AppTextStyles.label(
+                          color: AppColors.inkMuted(opacity: 0.6))),
                 ),
               ],
             ),
@@ -166,6 +165,7 @@ class _JoinScreenState extends State<_JoinScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Container(
       color: AppColors.surface,
       child: SafeArea(
@@ -176,10 +176,10 @@ class _JoinScreenState extends State<_JoinScreen>
               padding: const EdgeInsets.only(left: 8, top: 4),
               child: IconButton(
                 onPressed: () => context.go('/wallet'),
-                icon: const Icon(LucideIcons.arrowLeft, color: AppColors.ink, size: 22),
+                icon:
+                    Icon(LucideIcons.arrowLeft, color: AppColors.ink, size: 22),
               ),
             ),
-
             FadeTransition(
               opacity: _fade,
               child: SlideTransition(
@@ -190,7 +190,7 @@ class _JoinScreenState extends State<_JoinScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-                      const SectionEyebrow('Rejoindre'),
+                      SectionEyebrow(t.joinEyebrow),
                       const SizedBox(height: 10),
                       Text(
                         widget.card.restaurantName,
@@ -199,16 +199,15 @@ class _JoinScreenState extends State<_JoinScreen>
                       const SizedBox(height: 6),
                       Text(
                         widget.card.restaurantCategory,
-                        style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
+                        style: AppTextStyles.bodyMedium(
+                            color: AppColors.inkMuted(opacity: 0.7)),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-
             const SizedBox(height: 36),
-
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: _ctrl,
@@ -230,16 +229,18 @@ class _JoinScreenState extends State<_JoinScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SectionEyebrow('Offre de bienvenue'),
+                        SectionEyebrow(t.joinWelcomeOfferEyebrow),
                         const SizedBox(height: 14),
                         Text(
                           widget.card.welcomeOffer,
-                          style: AppTextStyles.displayMedium().copyWith(height: 1.2),
+                          style: AppTextStyles.displayMedium()
+                              .copyWith(height: 1.2),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           widget.offerDetail,
-                          style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65))
+                          style: AppTextStyles.bodyMedium(
+                                  color: AppColors.inkMuted(opacity: 0.65))
                               .copyWith(height: 1.5),
                         ),
                       ],
@@ -248,18 +249,17 @@ class _JoinScreenState extends State<_JoinScreen>
                 ),
               ),
             ),
-
             const Spacer(),
-
             FadeTransition(
               opacity: CurvedAnimation(
                 parent: _ctrl,
                 curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 child: AppButton(
-                  label: 'Rejoindre le programme',
+                  label: t.joinButton,
                   height: 58,
                   onTap: widget.onJoin,
                 ),
@@ -316,6 +316,7 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Container(
       color: AppColors.surface,
       child: SafeArea(
@@ -331,25 +332,25 @@ class _CardRevealScreenState extends State<_CardRevealScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
+                      GradientCardSurface(
+                        color: widget.card.liningColor,
                         height: 200,
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: widget.card.liningColor,
-                          borderRadius: BorderRadius.circular(AppRadius.card),
-                          boxShadow: AppShadows.floating,
-                        ),
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(LucideIcons.circleCheckBig, color: Colors.white, size: 34),
+                              const Icon(LucideIcons.circleCheckBig,
+                                  color: Colors.white, size: 34),
                               const SizedBox(height: 10),
-                              Text('Carte créée !', style: AppTextStyles.displayMedium(color: Colors.white)),
+                              Text(t.joinCardCreatedTitle,
+                                  style: AppTextStyles.displayMedium(
+                                      color: Colors.white)),
                               const SizedBox(height: 6),
                               Text(
                                 widget.card.restaurantName,
-                                style: AppTextStyles.bodyMedium(color: Colors.white.withValues(alpha: 0.8)),
+                                style: AppTextStyles.bodyMedium(
+                                    color: Colors.white.withValues(alpha: 0.8)),
                               ),
                             ],
                           ),

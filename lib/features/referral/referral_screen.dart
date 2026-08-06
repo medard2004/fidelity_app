@@ -4,17 +4,21 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
+import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/referral_provider.dart';
 import '../../widgets/components/components.dart';
+import '../../widgets/shared/app_section_header.dart';
+import '../../widgets/shared/notification_bell_button.dart';
 
-/// Écran de Parrainage Partenaire
-/// Permet de :
-/// 1. Choisir le restaurant partenaire à parrainer.
-/// 2. Personnaliser le message d'invitation.
-/// 3. Sélectionner/saisir plusieurs destinataires.
-/// 4. Partager l'invitation avec système anti-fraude (100 partages valides = 3 points).
+/// Écran de Parrainage Partenaire — recommander un restaurant partenaire
+/// à ses proches, avec suivi anti-fraude des partages.
+///
+/// Volontairement simplifié : une seule action évidente (choisir →
+/// personnaliser → envoyer), l'historique anti-fraude est replié par
+/// défaut plutôt qu'exposé en permanence.
 class ReferralScreen extends ConsumerStatefulWidget {
   const ReferralScreen({super.key});
 
@@ -40,7 +44,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
     super.dispose();
   }
 
-  void _addRecipient() {
+  void _addRecipient(AppLocalizations t) {
     final text = _recipientController.text.trim();
     if (text.isEmpty) return;
     final added = ref.read(referralProvider.notifier).addRecipient(text);
@@ -48,69 +52,63 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
       _recipientController.clear();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ce destinataire est déjà dans votre liste d\'envoi.'),
-        ),
+        SnackBar(content: Text(t.referralDuplicateRecipient)),
       );
     }
   }
 
-  void _sendShares(LoyaltyCard selectedCard) {
+  void _sendShares(LoyaltyCard selectedCard, AppLocalizations t) {
     final result =
         ref.read(referralProvider.notifier).sendReferrals(selectedCard);
 
     if (result['success'] == true) {
       final added = result['addedCount'] as int;
-      final dup = result['duplicateCount'] as int;
-
-      final message = StringBuffer();
-      if (added > 0) {
-        message.write('$added invitation(s) envoyée(s) et validée(s) ! ');
-      }
-      if (dup > 0) {
-        message.write('$dup doublon(s) ignoré(s) (Anti-fraude).');
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message.toString()),
-          duration: const Duration(seconds: 4),
+          content: Text(t.referralSentSuccess(added)),
+          duration: const Duration(seconds: 3),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Veuillez ajouter au moins un destinataire avant d\'envoyer.'),
-        ),
+        SnackBar(content: Text(t.referralNoRecipient)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final cards = ref.watch(walletProvider);
     final refState = ref.watch(referralProvider);
+    final unreadNotifs =
+        ref.watch(notificationsProvider).where((n) => !n.isRead).length;
 
     if (cards.isEmpty) {
       return Scaffold(
         backgroundColor: AppColors.surface,
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text('Parrainage', style: AppTextStyles.displayMedium().copyWith(fontSize: 20)),
-        ),
-        body: const Center(
-          child: EmptyState(
-            icon: LucideIcons.users,
-            title: 'Aucune carte à parrainer',
-            message:
-                'Rejoignez au moins un établissement pour pouvoir le recommander à vos proches.',
+        body: SafeArea(
+          child: Column(
+            children: [
+              AppSectionHeader(
+                title: t.referralTitle,
+                actions: [NotificationBellButton(unreadCount: unreadNotifs)],
+              ),
+              Expanded(
+                child: Center(
+                  child: EmptyState(
+                    icon: LucideIcons.users,
+                    title: t.referralEmptyTitle,
+                    message: t.referralEmptyMessage,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
 
-    // Trouver le partenaire actuellement sélectionné
     final selectedCard = cards.firstWhere(
       (c) => c.id == refState.selectedRestaurantId,
       orElse: () => cards.first,
@@ -118,115 +116,123 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text('Parrainage', style: AppTextStyles.displayMedium().copyWith(fontSize: 20)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Faites découvrir vos commerces et partenaires favoris à vos proches et cumulez des points de fidélité.',
-              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65)),
+            AppSectionHeader(
+              title: t.referralTitle,
+              actions: [NotificationBellButton(unreadCount: unreadNotifs)],
             ),
-
-            const SizedBox(height: 20),
-
-            _ProgressionCard(refState: refState),
-
-            const SizedBox(height: 24),
-
-            const _StepHeader(stepNumber: '1', title: 'Choisir le partenaire à parrainer'),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 72,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: cards.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, i) {
-                  final card = cards[i];
-                  final isSelected = card.id == selectedCard.id;
-                  return _RestaurantSelectorChip(
-                    card: card,
-                    isSelected: isSelected,
-                    onTap: () {
-                      ref.read(referralProvider.notifier).selectRestaurant(card);
-                      _messageController.text = ref.read(referralProvider).customMessage;
-                    },
-                  );
-                },
+            Expanded(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.referralSubtitle,
+                      style: AppTextStyles.bodyMedium(
+                          color: AppColors.inkMuted(opacity: 0.65)),
+                    ),
+                    const SizedBox(height: 16),
+                    _ProgressionCard(refState: refState, t: t),
+                    const SizedBox(height: 24),
+                    SectionEyebrow(t.referralChoosePartner),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 68,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: cards.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 10),
+                        itemBuilder: (context, i) {
+                          final card = cards[i];
+                          final isSelected = card.id == selectedCard.id;
+                          return _RestaurantSelectorChip(
+                            card: card,
+                            isSelected: isSelected,
+                            onTap: () {
+                              ref
+                                  .read(referralProvider.notifier)
+                                  .selectRestaurant(card);
+                              _messageController.text =
+                                  ref.read(referralProvider).customMessage;
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SectionEyebrow(t.referralMessageLabel),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _messageController,
+                      maxLines: 3,
+                      onChanged: (val) => ref
+                          .read(referralProvider.notifier)
+                          .updateMessage(val),
+                    ),
+                    const SizedBox(height: 20),
+                    SectionEyebrow(t.referralRecipientsLabel),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _recipientController,
+                            keyboardType: TextInputType.text,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: InputDecoration(
+                                hintText: t.referralRecipientHint),
+                            onSubmitted: (_) => _addRecipient(t),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          onPressed: () => _addRecipient(t),
+                          icon:
+                              const Icon(LucideIcons.plus, color: Colors.white),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.all(14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (refState.recipients.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: refState.recipients.map((r) {
+                          return SelectableChip(
+                            label: r,
+                            onDeleted: () => ref
+                                .read(referralProvider.notifier)
+                                .removeRecipient(r),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    AppButton(
+                      label: refState.recipients.isEmpty
+                          ? t.referralSendButton
+                          : t.referralSendButtonWithCount(
+                              refState.recipients.length),
+                      icon: LucideIcons.send,
+                      onTap: () => _sendShares(selectedCard, t),
+                    ),
+                    const SizedBox(height: 20),
+                    _AntiFraudHistorySection(records: refState.records, t: t),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            const _StepHeader(stepNumber: '2', title: 'Personnaliser votre invitation'),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _messageController,
-              maxLines: 3,
-              onChanged: (val) => ref.read(referralProvider.notifier).updateMessage(val),
-            ),
-
-            const SizedBox(height: 24),
-
-            const _StepHeader(stepNumber: '3', title: 'Ajouter des destinataires'),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _recipientController,
-                    keyboardType: TextInputType.text,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(hintText: '+228 90 00 00 00 ou Nom'),
-                    onSubmitted: (_) => _addRecipient(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _addRecipient,
-                  icon: const Icon(LucideIcons.plus, color: Colors.white),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.all(14),
-                  ),
-                ),
-              ],
-            ),
-
-            if (refState.recipients.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: refState.recipients.map((r) {
-                  return SelectableChip(
-                    label: r,
-                    onDeleted: () => ref.read(referralProvider.notifier).removeRecipient(r),
-                  );
-                }).toList(),
-              ),
-            ],
-
-            const SizedBox(height: 28),
-
-            AppButton(
-              label:
-                  'Partager l\'invitation (${refState.recipients.length} destinataire${refState.recipients.length > 1 ? "s" : ""})',
-              icon: LucideIcons.send,
-              onTap: () => _sendShares(selectedCard),
-            ),
-
-            const SizedBox(height: 28),
-
-            _AntiFraudHistorySection(records: refState.records),
-
-            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -237,37 +243,6 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 // ─────────────────────────────────────────────────────────────────────────────
 // Widgets composants du parrainage
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _StepHeader extends StatelessWidget {
-  final String stepNumber;
-  final String title;
-
-  const _StepHeader({required this.stepNumber, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              stepNumber,
-              style: AppTextStyles.monoSmall(color: Colors.white).copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(title, style: AppTextStyles.titleMedium().copyWith(fontSize: 14)),
-      ],
-    );
-  }
-}
 
 class _RestaurantSelectorChip extends StatelessWidget {
   final LoyaltyCard card;
@@ -282,8 +257,9 @@ class _RestaurantSelectorChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppTapScale(
       onTap: onTap,
+      scaleDown: 0.97,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         width: 150,
@@ -302,7 +278,8 @@ class _RestaurantSelectorChip extends StatelessWidget {
           children: [
             Text(
               card.restaurantName,
-              style: AppTextStyles.label(color: isSelected ? Colors.white : AppColors.ink),
+              style: AppTextStyles.label(
+                  color: isSelected ? Colors.white : AppColors.ink),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -310,7 +287,9 @@ class _RestaurantSelectorChip extends StatelessWidget {
             Text(
               card.restaurantCategory,
               style: AppTextStyles.bodySmall(
-                color: isSelected ? Colors.white.withValues(alpha: 0.75) : AppColors.inkMuted(opacity: 0.55),
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.75)
+                    : AppColors.inkMuted(opacity: 0.55),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -322,9 +301,12 @@ class _RestaurantSelectorChip extends StatelessWidget {
   }
 }
 
+/// Résumé de progression — points cumulés et jauge, une seule ligne de
+/// statut (pas de pill supplémentaire ni de double texte).
 class _ProgressionCard extends StatelessWidget {
   final ReferralState refState;
-  const _ProgressionCard({required this.refState});
+  final AppLocalizations t;
+  const _ProgressionCard({required this.refState, required this.t});
 
   @override
   Widget build(BuildContext context) {
@@ -339,67 +321,30 @@ class _ProgressionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  'VOS POINTS PARRAINAGE',
-                  style: AppTextStyles.eyebrow(color: Colors.white.withValues(alpha: 0.6)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '100 partages = 3 pts',
-                  style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.8)),
-                ),
-              ),
-            ],
+          Text(
+            t.referralPointsLabel.toUpperCase(),
+            style: AppTextStyles.eyebrow(
+                color: Colors.white.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('${refState.pointsEarned}', style: AppTextStyles.monoLarge(color: Colors.white)),
-              const SizedBox(width: 6),
-              Text(
-                'POINTS ACCUMULÉS',
-                style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.6)),
-              ),
-            ],
-          ),
+          Text(t.referralPointsEarned(refState.pointsEarned),
+              style: AppTextStyles.monoLarge(color: Colors.white)),
           const SizedBox(height: 14),
-
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: refState.progressRatio,
               minHeight: 7,
               backgroundColor: Colors.white.withValues(alpha: 0.12),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${refState.totalUniqueShares} partages uniques validés',
-                style: AppTextStyles.bodySmall(color: Colors.white.withValues(alpha: 0.75)),
-              ),
-              Text(
-                'Encore ${refState.sharesToNextReward} partages',
-                style: AppTextStyles.monoSmall(color: Colors.white.withValues(alpha: 0.6)),
-              ),
-            ],
+          Text(
+            t.referralSharesToNext(refState.sharesToNextReward),
+            style: AppTextStyles.bodySmall(
+                color: Colors.white.withValues(alpha: 0.7)),
           ),
         ],
       ),
@@ -407,72 +352,113 @@ class _ProgressionCard extends StatelessWidget {
   }
 }
 
-class _AntiFraudHistorySection extends StatelessWidget {
+/// Historique anti-fraude — replié par défaut pour ne pas encombrer
+/// l'écran ; disponible d'un tap pour qui veut le détail.
+class _AntiFraudHistorySection extends StatefulWidget {
   final List<ReferralRecord> records;
-  const _AntiFraudHistorySection({required this.records});
+  final AppLocalizations t;
+  const _AntiFraudHistorySection({required this.records, required this.t});
+
+  @override
+  State<_AntiFraudHistorySection> createState() =>
+      _AntiFraudHistorySectionState();
+}
+
+class _AntiFraudHistorySectionState extends State<_AntiFraudHistorySection> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final t = widget.t;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Icon(LucideIcons.shield, size: 16, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text('Suivi anti-fraude & clics validés', style: AppTextStyles.titleMedium().copyWith(fontSize: 13)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Seuls les partages uniques avec clics confirmés comptent pour débloquer des points.',
-          style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.6)),
-        ),
-        const SizedBox(height: 12),
         AppCard(
-          padding: const EdgeInsets.all(14),
-          child: records.isEmpty
+          onTap: () => setState(() => _expanded = !_expanded),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              const Icon(LucideIcons.shield,
+                  size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(t.referralHistoryTitle,
+                    style: AppTextStyles.titleMedium().copyWith(fontSize: 14)),
+              ),
+              AnimatedRotation(
+                turns: _expanded ? 0.5 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(LucideIcons.chevronDown,
+                    color: AppColors.ink, size: 20),
+              ),
+            ],
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          child: _expanded
               ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Center(
-                    child: Text(
-                      'Aucun partage effectué pour le moment.',
-                      style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5)),
-                    ),
-                  ),
-                )
-              : ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: records.length > 5 ? 5 : records.length,
-                  separatorBuilder: (_, __) => const Divider(height: 20, color: AppColors.border),
-                  itemBuilder: (context, i) {
-                    final rec = records[i];
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.only(top: 8),
+                  child: AppCard(
+                    padding: const EdgeInsets.all(14),
+                    child: widget.records.isEmpty
+                        ? Center(
+                            child: Text(
+                              t.referralHistoryEmpty,
+                              style: AppTextStyles.bodySmall(
+                                  color: AppColors.inkMuted(opacity: 0.5)),
+                            ),
+                          )
+                        : Column(
                             children: [
-                              Text(
-                                '${rec.restaurantName} • ${rec.recipient}',
-                                style: AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w600),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(rec.fraudNote, style: AppTextStyles.monoSmall()),
+                              for (int i = 0;
+                                  i <
+                                      (widget.records.length > 5
+                                          ? 5
+                                          : widget.records.length);
+                                  i++) ...[
+                                if (i > 0)
+                                  Divider(height: 20, color: AppColors.border),
+                                _HistoryRow(record: widget.records[i]),
+                              ],
                             ],
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        StatusBadge(
-                          label: rec.isValidatedClick ? '+1 VALIDE' : 'REJETÉ',
-                          tone: rec.isValidatedClick ? StatusTone.success : StatusTone.error,
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryRow extends StatelessWidget {
+  final ReferralRecord record;
+  const _HistoryRow({required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${record.restaurantName} • ${record.recipient}',
+                style: AppTextStyles.bodySmall()
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 2),
+              Text(record.fraudNote, style: AppTextStyles.monoSmall()),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        StatusBadge(
+          label: record.isValidatedClick ? '+1' : '✕',
+          tone: record.isValidatedClick ? StatusTone.success : StatusTone.error,
         ),
       ],
     );

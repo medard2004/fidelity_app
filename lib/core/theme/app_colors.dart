@@ -4,28 +4,60 @@ import 'package:flutter/material.dart';
 /// inspirée d'Apple Wallet / Revolut / Stripe / Monzo.
 /// Fonds neutres froids, un seul accent de marque, tokens sémantiques
 /// explicites pour succès / avertissement / erreur.
+///
+/// Les tokens neutres (texte, fonds, bordures) sont sensibles au mode
+/// sombre via [setBrightness] — appelé une fois par [CarteApp] à chaque
+/// changement de thème, avant reconstruction de l'arbre. Ça évite de
+/// propager `Theme.of(context)` dans les dizaines de fichiers qui
+/// référencent `AppColors.xxx` directement. L'accent de marque et les
+/// couleurs sémantiques restent identiques dans les deux modes — assez
+/// saturées pour rester lisibles sur fond clair comme sombre.
 class AppColors {
   AppColors._();
 
+  static Brightness _brightness = Brightness.light;
+
+  static void setBrightness(Brightness brightness) => _brightness = brightness;
+
+  static bool get isDark => _brightness == Brightness.dark;
+
   // --- Neutres ---------------------------------------------------------
 
-  /// Texte principal — quasi-noir froid.
-  static const Color ink = Color(0xFF14151A);
+  static const Color _inkLight = Color(0xFF14151A);
+  static const Color _inkDark = Color(0xFFF2F2F5);
+
+  /// Texte principal — quasi-noir froid en clair, quasi-blanc en sombre.
+  static Color get ink => isDark ? _inkDark : _inkLight;
 
   /// Texte secondaire — dérivé de [ink], jamais une nouvelle teinte.
-  static Color inkMuted({double opacity = 0.6}) => ink.withValues(alpha: opacity);
+  static Color inkMuted({double opacity = 0.6}) =>
+      ink.withValues(alpha: opacity);
 
-  /// Fond principal de l'app — gris très clair, jamais un blanc pur.
-  static const Color surface = Color(0xFFF7F7F9);
+  static const Color _surfaceLight = Color(0xFFF7F7F9);
+  static const Color _surfaceDark = Color(0xFF0E0F12);
+
+  /// Fond principal de l'app — gris très clair en clair, quasi-noir en
+  /// sombre ; jamais un blanc/noir pur.
+  static Color get surface => isDark ? _surfaceDark : _surfaceLight;
+
+  static const Color _surfaceCardLight = Color(0xFFFFFFFF);
+  static const Color _surfaceCardDark = Color(0xFF1B1C21);
 
   /// Surface élevée — cartes, feuilles, modales.
-  static const Color surfaceCard = Color(0xFFFFFFFF);
+  static Color get surfaceCard => isDark ? _surfaceCardDark : _surfaceCardLight;
+
+  static const Color _surfaceMutedLight = Color(0xFFEEEFF2);
+  static const Color _surfaceMutedDark = Color(0xFF25262C);
 
   /// Fill discret — inputs, chips, fonds de section.
-  static const Color surfaceMuted = Color(0xFFEEEFF2);
+  static Color get surfaceMuted =>
+      isDark ? _surfaceMutedDark : _surfaceMutedLight;
+
+  static const Color _borderLight = Color(0xFFE4E5EA);
+  static const Color _borderDark = Color(0xFF34353C);
 
   /// Bordure fine (hairline).
-  static const Color border = Color(0xFFE4E5EA);
+  static Color get border => isDark ? _borderDark : _borderLight;
 
   // --- Accent de marque --------------------------------------------------
 
@@ -63,4 +95,32 @@ class AppColors {
 
   /// Fond du device frame desktop (au-delà de 620px de large).
   static const Color surfaceDesktopFrame = Color(0xFFE7E8ED);
+
+  /// Dégradé premium dérivé d'une couleur de doublure — même teinte
+  /// d'identité par établissement, enrichie en lumière (haut-gauche) et
+  /// en profondeur (bas-droite) plutôt qu'un aplat. 5 points avec des
+  /// écarts de luminosité modérés entre chacun (au lieu de 2 paliers
+  /// francs) pour une transition très progressive, sans bande visible.
+  /// Un seul calcul, réutilisé par toutes les cartes de fidélité et
+  /// leurs aperçus.
+  static LinearGradient cardGradient(Color base) {
+    final hsl = HSLColor.fromColor(base);
+    Color at(double deltaLightness, double deltaSaturation) => hsl
+        .withLightness((hsl.lightness + deltaLightness).clamp(0.0, 1.0))
+        .withSaturation((hsl.saturation + deltaSaturation).clamp(0.0, 1.0))
+        .toColor();
+
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        at(0.14, 0.05),
+        at(0.06, 0.02),
+        base,
+        at(-0.06, 0.0),
+        at(-0.12, -0.02),
+      ],
+      stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+    );
+  }
 }

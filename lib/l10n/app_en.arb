@@ -1,0 +1,276 @@
+{
+  "@@locale": "en",
+
+  "navWallet": "Wallet",
+  "navRewards": "Rewards",
+  "navReferral": "Referral",
+  "navProfile": "Profile",
+
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonClose": "Close",
+  "commonBack": "Back",
+  "commonCopy": "Copy",
+  "commonEdit": "Edit",
+  "commonDone": "Done",
+
+  "settingsTitle": "Settings",
+  "settingsAppearance": "Appearance",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsThemeSystem": "System",
+  "settingsLanguage": "Language",
+  "settingsLanguageFrench": "Français",
+  "settingsLanguageEnglish": "English",
+  "settingsAccount": "Account",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsSubtitle": "Manage alerts per establishment",
+  "settingsSignOut": "Sign out",
+  "settingsSignOutConfirmTitle": "Sign out",
+  "settingsSignOutConfirmMessage": "Are you sure you want to sign out of your Carte account?",
+
+  "profileTitle": "Profile",
+  "profileEditProfile": "Edit profile",
+  "profileMemberSince": "Member since {date}",
+  "@profileMemberSince": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "profileCards": "Cards",
+  "profileOffers": "Offers",
+  "profileReferrals": "Referrals",
+  "profileNotConnectedTitle": "You're not signed in",
+  "profileNotConnectedMessage": "Sign in to access your profile.",
+  "profileSignIn": "Sign in",
+  "profileSettings": "Settings",
+  "profileSettingsSubtitle": "Appearance, language, notifications",
+  "profileReferralCode": "Your invite code",
+  "profileReferralCodeCopied": "Referral code copied to clipboard!",
+  "profileBirthdayBannerTitle": "Happy birthday month!",
+  "profileBirthdayBannerMessage": "Exclusive treats await you at your restaurants.",
+
+  "editProfileTitle": "Edit profile",
+  "editProfileFullName": "Full name",
+  "editProfileFullNameHint": "First Last",
+  "editProfileFullNameError": "Please enter your full name",
+  "editProfilePhone": "Phone number",
+  "editProfileBirthDate": "Date of birth",
+  "editProfileEmail": "Email",
+  "editProfileEmailHint": "you@email.com",
+  "editProfileSaveSuccess": "Profile updated successfully!",
+
+  "referralTitle": "Referral",
+  "referralSubtitle": "Recommend your favorite restaurants and earn points.",
+  "referralEmptyTitle": "No card to refer",
+  "referralEmptyMessage": "Join at least one establishment to recommend it to your friends.",
+  "referralPointsLabel": "Referral points",
+  "referralPointsEarned": "{count} points earned",
+  "@referralPointsEarned": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "referralSharesToNext": "{count} shares to go",
+  "@referralSharesToNext": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "referralChoosePartner": "Choose partner",
+  "referralRecipientHint": "Phone or name",
+  "referralSendButton": "Send invitation",
+  "referralSendButtonWithCount": "Send invitation ({count})",
+  "@referralSendButtonWithCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "referralDuplicateRecipient": "This recipient is already in your list.",
+  "referralNoRecipient": "Please add at least one recipient before sending.",
+  "referralSentSuccess": "{count} invitation(s) sent!",
+  "@referralSentSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "referralHistoryTitle": "Share history",
+  "referralHistoryEmpty": "No shares yet.",
+  "referralMessageLabel": "Your message",
+  "referralRecipientsLabel": "Recipients",
+
+  "notificationsTitle": "Notifications",
+  "notificationsMarkAllRead": "Mark all read",
+  "notificationsEmptyTitle": "No notifications",
+  "notificationsEmptyMessage": "You'll be notified here about your stamps, rewards and VIP status.",
+
+  "commonConfirm": "Confirm",
+  "commonHistory": "History",
+  "commonCountdownPrefix": "D-",
+
+  "cardStampsLabel": "STAMPS",
+  "cardPointsLabel": "BALANCE",
+  "cardPointsSuffix": "PTS",
+  "cardCashbackLabel": "CASHBACK",
+  "cardCashbackSuffix": "FCFA",
+  "cardVipMaxTier": "Top tier reached",
+  "cardVipNextTier": "Platinum in {count} visits",
+  "@cardVipNextTier": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "rewardsTitle": "Rewards",
+  "rewardsEmptyActiveTitle": "No perk available",
+  "rewardsEmptyActiveMessage": "Check back soon for new offers.",
+  "rewardsToUnlock": "To unlock",
+  "rewardsAllUnlockedTitle": "Everything unlocked",
+  "rewardsAllUnlockedMessage": "No locked reward at the moment.",
+  "rewardsHistoryEmptyTitle": "No history",
+  "rewardsHistoryEmptyMessage": "Your used rewards will appear here.",
+  "rewardsRedeemConfirmTitle": "Use this reward?",
+  "rewardsRedeemConfirmMessage": "\"{title}\" will be marked as used and removed from your active perks. Show this screen to the establishment before confirming.",
+  "@rewardsRedeemConfirmMessage": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "rewardsRedeemSuccess": "Reward marked as used",
+  "rewardsUseButton": "Use",
+
+  "walletGreetingMorning": "GOOD MORNING",
+  "walletGreetingAfternoon": "GOOD AFTERNOON",
+  "walletGreetingEvening": "GOOD EVENING",
+  "walletFallbackName": "there",
+  "walletSearchSemanticLabel": "Search a card",
+  "walletSearchHint": "Search a card or a merchant",
+  "walletSearchNoResultsTitle": "No card found",
+  "walletSearchNoResultsMessage": "Try another name or merchant.",
+  "walletEmptyTitle": "No card yet",
+  "walletEmptyMessage": "Scan your first QR code to start your collection.",
+  "walletScanButton": "Scan a QR code",
+
+  "cardDetailNotFound": "Card not found",
+  "cardDetailTitle": "Your card",
+  "cardDetailExportTooltip": "Export / Share",
+  "cardDetailDefaultOfferRestaurant": "Offer",
+  "cardDetailDefaultOfferTitle": "Reward coming soon",
+  "cardDetailDefaultOfferMessage": "Keep earning to unlock your next perk.",
+  "cardDetailExportSheetTitle": "Export",
+  "cardDetailSaveTitle": "Save the card",
+  "cardDetailSaveSubtitle": "Keep it in your app Wallet",
+  "cardDetailDownloadTitle": "Download the card",
+  "cardDetailDownloadSubtitle": "Save an HD visual to your gallery (Pass format)",
+  "cardDetailShareTitle": "Share the card",
+  "cardDetailShareSubtitle": "Generate and send a clean version to a friend",
+  "cardDetailFullScreen": "Full screen",
+  "cardDetailIdCopied": "ID copied",
+  "cardDetailQrInstructions": "Show this QR code at checkout",
+  "cardDetailVisitsCount": "{count, plural, one {{count} VISIT} other {{count} VISITS}}",
+  "@cardDetailVisitsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "rewardStatusReady": "READY",
+  "rewardStatusLocked": "LOCKED",
+  "rewardStatusUsed": "USED",
+
+  "historyStampEntry": "+1 stamp · Checkout visit",
+  "historyPointsEntry": "+{points} points · Checkout visit",
+  "@historyPointsEntry": {
+    "placeholders": { "points": { "type": "int" } }
+  },
+  "historyCashbackEntry": "+{amount} FCFA · Checkout visit",
+  "@historyCashbackEntry": {
+    "placeholders": { "amount": { "type": "int" } }
+  },
+  "historyVisitEntry": "Visit recorded",
+  "historySignupEntry": "Joined the card",
+
+  "exportFailedRetry": "Export failed: please try again.",
+  "exportShareSubject": "My {name} card — Carte",
+  "@exportShareSubject": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "exportShareText": "Check out {name} on Carte!",
+  "@exportShareText": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "exportDownloadReady": "HD image of card {id} ready — choose \"Save image\".",
+  "@exportDownloadReady": {
+    "placeholders": { "id": { "type": "String" } }
+  },
+  "exportShareSuccess": "{name} card visual shared.",
+  "@exportShareSuccess": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "exportSaveReady": "\"{name}\" card ready to be saved.",
+  "@exportSaveReady": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "exportFailedGeneric": "Export failed: an error occurred.",
+
+  "commonPhoneLabel": "Phone number",
+  "commonOptional": "Optional",
+
+  "authLoginTitle": "Sign in",
+  "authContinueGoogle": "Continue with Google",
+  "authContinueApple": "Continue with Apple",
+  "authNoAccountPrefix": "Not a member yet? ",
+  "authSignUpLink": "Sign up",
+  "authSignupTitle": "Create an account",
+  "authBirthDateError": "Please select your date of birth",
+  "authPhoneRequiredError": "Please enter your phone number",
+  "authSignupButton": "Sign up",
+  "authSignupGoogle": "Sign up with Google",
+  "authSignupApple": "Sign up with Apple",
+  "authHasAccountPrefix": "Already a member? ",
+
+  "otpContextLogin": "Sign in",
+  "otpContextSignup": "Sign up",
+  "otpContextSocial": "Verification",
+  "otpTitle": "Verification",
+  "otpSentMessage": "A 6-digit code was sent to\n{phone}",
+  "@otpSentMessage": {
+    "placeholders": { "phone": { "type": "String" } }
+  },
+  "otpResendCountdown": "Resend code in 00:{seconds}",
+  "@otpResendCountdown": {
+    "placeholders": { "seconds": { "type": "String" } }
+  },
+  "otpResendButton": "Resend code",
+
+  "completeProfileWelcomeNamed": "Welcome, {name}!\nYour account has been created.",
+  "@completeProfileWelcomeNamed": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "completeProfileWelcomeAnon": "Welcome!\nYour account has been created.",
+  "completeProfileTitle": "Complete your profile",
+  "completeProfileSubmit": "Go to the app",
+  "completeProfileSkip": "Skip this step",
+  "completeSocialProfileTitle": "Complete your profile",
+
+  "onboardingSlide1Title": "All your cards,\none wallet",
+  "onboardingSlide1Subtitle": "Bring your favorite loyalty cards together in one seamless, frictionless experience.",
+  "onboardingSlide2Title": "Perks on\nevery visit",
+  "onboardingSlide2Subtitle": "Earn stamps and points automatically, and unlock exclusive perks at your favorite spots.",
+  "onboardingSlide3Title": "Share,\nearn together",
+  "onboardingSlide3Subtitle": "Invite your friends with your personal code and earn referral points.",
+  "onboardingSkip": "Skip",
+  "onboardingStart": "Get started",
+  "onboardingContinue": "Continue",
+
+  "commonValidate": "Confirm",
+
+  "qrManualEntryLabel": "Enter the code manually",
+  "qrScanTitle": "SCAN A QR CODE",
+  "qrToggleFlash": "Toggle flash",
+  "qrPlaceInFrame": "Place the restaurant's QR code in the frame.",
+  "qrManualEntryHint": "The code is printed below the QR code shown by the establishment.",
+  "qrManualEntryPlaceholder": "E.g. JARDIN-2024",
+  "qrCameraUnavailableTitle": "Camera unavailable",
+  "qrCameraUnavailableMessage": "Allow camera access in settings, or enter the code manually.",
+
+  "joinOfferDetail": "Earn 10 stamps for a free full meal.",
+  "joinUnrecognizedTitle": "Code not recognized",
+  "joinUnrecognizedMessage": "\"{code}\" doesn't match any Carte partner establishment at the moment.",
+  "@joinUnrecognizedMessage": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "joinRetryScan": "Try scanning again",
+  "joinBackToWallet": "Back to Wallet",
+  "joinEyebrow": "Join",
+  "joinWelcomeOfferEyebrow": "Welcome offer",
+  "joinButton": "Join the program",
+  "joinCardCreatedTitle": "Card created!",
+
+  "phonePickerTitle": "Select a dial code",
+  "phonePickerSearchHint": "Search a country or dial code..."
+}

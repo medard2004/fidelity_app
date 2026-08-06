@@ -51,7 +51,7 @@ class AppDatePickerField extends StatelessWidget {
                   helpText: helpText,
                   builder: (context, child) => Theme(
                     data: Theme.of(context).copyWith(
-                      colorScheme: const ColorScheme.light(
+                      colorScheme: ColorScheme.light(
                         primary: AppColors.primary,
                         onPrimary: Colors.white,
                         surface: AppColors.surfaceCard,

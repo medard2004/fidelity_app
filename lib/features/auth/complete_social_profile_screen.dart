@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/components/components.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
@@ -52,6 +53,7 @@ class _CompleteSocialProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -60,55 +62,50 @@ class _CompleteSocialProfileScreenState
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                constraints:
+                    BoxConstraints(minHeight: constraints.maxHeight - 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Compléter le profil', style: AppTextStyles.displayXL()),
-
+                      Text(t.completeSocialProfileTitle,
+                          style: AppTextStyles.displayXL()),
                       const SizedBox(height: 20),
-
-                      Text('Nom complet', style: AppTextStyles.label()),
+                      Text(t.editProfileFullName, style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _fullNameController,
                         keyboardType: TextInputType.name,
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Veuillez saisir votre nom complet'
+                            ? t.editProfileFullNameError
                             : null,
-                        decoration: const InputDecoration(hintText: 'Prénom Nom'),
+                        decoration: InputDecoration(
+                            hintText: t.editProfileFullNameHint),
                       ),
-
                       const SizedBox(height: 16),
-
-                      Text('Numéro de téléphone', style: AppTextStyles.label()),
+                      Text(t.commonPhoneLabel, style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       PhoneInputWithCountryPicker(
                         key: _phoneInputKey,
                         controller: _phoneController,
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Veuillez saisir votre numéro'
+                            ? t.authPhoneRequiredError
                             : null,
                       ),
-
                       const SizedBox(height: 16),
-
-                      Text('Date de naissance', style: AppTextStyles.label()),
+                      Text(t.editProfileBirthDate,
+                          style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       AppDatePickerField(
                         value: _birthDate,
                         onChanged: (date) => setState(() => _birthDate = date),
-                        validator: (_) => _birthDate == null
-                            ? 'Veuillez sélectionner votre date de naissance'
-                            : null,
+                        validator: (_) =>
+                            _birthDate == null ? t.authBirthDateError : null,
                       ),
-
                       const SizedBox(height: 28),
-
-                      AppButton(label: 'Accéder à l\'application', onTap: _submit),
+                      AppButton(label: t.completeProfileSubmit, onTap: _submit),
                     ],
                   ),
                 ),

@@ -10,7 +10,8 @@ class StatTile extends StatelessWidget {
   final String label;
   final IconData? icon;
 
-  const StatTile({super.key, required this.value, required this.label, this.icon});
+  const StatTile(
+      {super.key, required this.value, required this.label, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,8 @@ class StatTile extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.6)),
+            style: AppTextStyles.bodySmall(
+                color: AppColors.inkMuted(opacity: 0.6)),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 /// Modèle représentatif d'un pays avec son nom, indicatif et drapeau.
 class CountryInfo {
@@ -119,19 +120,23 @@ class PhoneInputWithCountryPickerState
           child: Container(
             padding: const EdgeInsets.only(left: 12, right: 8),
             margin: const EdgeInsets.only(right: 8),
-            decoration: const BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.border, width: 1)),
+            decoration: BoxDecoration(
+              border:
+                  Border(right: BorderSide(color: AppColors.border, width: 1)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(selectedCountry.flag, style: const TextStyle(fontSize: 18)),
+                Text(selectedCountry.flag,
+                    style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 4),
                 Text(
                   selectedCountry.dialCode,
-                  style: AppTextStyles.label().copyWith(fontWeight: FontWeight.w600),
+                  style: AppTextStyles.label()
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
-                const Icon(LucideIcons.chevronDown, size: 18, color: AppColors.primary),
+                const Icon(LucideIcons.chevronDown,
+                    size: 18, color: AppColors.primary),
               ],
             ),
           ),
@@ -188,7 +193,7 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
           child: Column(
             children: [
               Text(
-                'Sélectionnez un indicatif',
+                AppLocalizations.of(context)!.phonePickerTitle,
                 style: AppTextStyles.label().copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -201,9 +206,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
               TextField(
                 controller: _searchController,
                 onChanged: _filter,
-                decoration: const InputDecoration(
-                  hintText: 'Rechercher un pays ou un indicatif...',
-                  prefixIcon: Icon(LucideIcons.search, size: 18),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.phonePickerSearchHint,
+                  prefixIcon: const Icon(LucideIcons.search, size: 18),
                 ),
               ),
 
@@ -213,7 +218,8 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                 child: ListView.separated(
                   controller: scrollController,
                   itemCount: _filteredCountries.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.border),
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: AppColors.border),
                   itemBuilder: (context, index) {
                     final country = _filteredCountries[index];
                     final isSelected =
@@ -238,7 +244,9 @@ class _CountryPickerModalState extends State<_CountryPickerModal> {
                       trailing: Text(
                         country.dialCode,
                         style: AppTextStyles.monoMedium(
-                          color: isSelected ? AppColors.primary : AppColors.inkMuted(opacity: 0.6),
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.inkMuted(opacity: 0.6),
                         ),
                       ),
                       onTap: () => widget.onSelect(country),

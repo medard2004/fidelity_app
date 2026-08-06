@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:simple_icons/simple_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/components/components.dart';
@@ -72,6 +73,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -80,91 +82,86 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                constraints:
+                    BoxConstraints(minHeight: constraints.maxHeight - 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Créer un compte', style: AppTextStyles.displayXL()),
+                      Text(t.authSignupTitle, style: AppTextStyles.displayXL()),
                       const SizedBox(height: 20),
-
-                      Text('Nom complet', style: AppTextStyles.label()),
+                      Text(t.editProfileFullName, style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _fullNameController,
                         keyboardType: TextInputType.name,
                         validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Veuillez saisir votre nom complet'
+                            ? t.editProfileFullNameError
                             : null,
-                        decoration: const InputDecoration(hintText: 'Prénom Nom'),
+                        decoration: InputDecoration(
+                            hintText: t.editProfileFullNameHint),
                       ),
-
                       const SizedBox(height: 14),
-
-                      Text('Date de naissance', style: AppTextStyles.label()),
+                      Text(t.editProfileBirthDate,
+                          style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       AppDatePickerField(
                         value: _birthDate,
                         onChanged: (date) => setState(() => _birthDate = date),
-                        validator: (_) => _birthDate == null
-                            ? 'Veuillez sélectionner votre date de naissance'
-                            : null,
+                        validator: (_) =>
+                            _birthDate == null ? t.authBirthDateError : null,
                       ),
-
                       const SizedBox(height: 14),
-
-                      Text('Numéro de téléphone', style: AppTextStyles.label()),
+                      Text(t.commonPhoneLabel, style: AppTextStyles.label()),
                       const SizedBox(height: 6),
                       PhoneInputWithCountryPicker(
                         key: _phoneInputKey,
                         controller: _phoneController,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return 'Veuillez saisir votre numéro de téléphone';
+                            return t.authPhoneRequiredError;
                           }
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 20),
-
-                      AppButton(label: 'S\'inscrire', onTap: _submit),
-
+                      AppButton(label: t.authSignupButton, onTap: _submit),
                       const SizedBox(height: 18),
-
                       const OrDivider(),
-
                       const SizedBox(height: 18),
-
                       AppButton(
-                        label: 'S\'inscrire avec Google',
+                        label: t.authSignupGoogle,
                         variant: AppButtonVariant.outline,
-                        leading: SvgPicture.asset('assets/icons/google_logo.svg', width: 18, height: 18),
+                        leading: SvgPicture.asset(
+                            'assets/icons/google_logo.svg',
+                            width: 18,
+                            height: 18),
                         onTap: _continueWithGoogle,
                       ),
                       const SizedBox(height: 10),
                       AppButton(
-                        label: 'S\'inscrire avec Apple',
+                        label: t.authSignupApple,
                         variant: AppButtonVariant.outline,
                         icon: SimpleIcons.apple,
                         onTap: _continueWithApple,
                       ),
-
                       const SizedBox(height: 20),
-
                       Center(
-                        child: GestureDetector(
+                        child: AppTapScale(
                           onTap: _goToLogin,
+                          scaleDown: 0.95,
                           child: Text.rich(
                             TextSpan(
-                              text: 'Déjà membre ? ',
-                              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.55)),
+                              text: t.authHasAccountPrefix,
+                              style: AppTextStyles.bodyMedium(
+                                  color: AppColors.inkMuted(opacity: 0.55)),
                               children: [
                                 TextSpan(
-                                  text: 'Se connecter',
-                                  style: AppTextStyles.bodyMedium(color: AppColors.primary)
+                                  text: t.profileSignIn,
+                                  style: AppTextStyles.bodyMedium(
+                                          color: AppColors.primary)
                                       .copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],

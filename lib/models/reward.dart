@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 enum RewardStatus { active, locked, used }
 
 class Reward {
@@ -31,30 +33,18 @@ class Reward {
   bool get isExpiringSoon =>
       expiresAt != null && expiresAt!.difference(DateTime.now()).inHours < 48;
 
-  String get daysRemainingText {
+  /// [countdownPrefix] vient d'[AppLocalizations.commonCountdownPrefix]
+  /// ("J-" en français, "D-" en anglais).
+  String daysRemainingText(String countdownPrefix) {
     if (expiresAt == null) return '';
     final days = expiresAt!.difference(DateTime.now()).inDays;
-    return 'J-${days < 0 ? 0 : days}';
+    return '$countdownPrefix${days < 0 ? 0 : days}';
   }
 
-  String get formattedUsedDate {
+  String formattedUsedDate(String dateFormatLocale) {
     if (usedAt == null) return '';
-    const months = [
-      'JAN',
-      'FEV',
-      'MAR',
-      'AVR',
-      'MAI',
-      'JUIN',
-      'JUIL',
-      'AOU',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC'
-    ];
-    final day = usedAt!.day.toString().padLeft(2, '0');
-    final month = months[usedAt!.month - 1];
-    return '$day $month ${usedAt!.year}';
+    return DateFormat('dd MMM yyyy', dateFormatLocale)
+        .format(usedAt!)
+        .toUpperCase();
   }
 }

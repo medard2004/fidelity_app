@@ -12,14 +12,14 @@ class OrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.border)),
+        Expanded(child: Divider(color: AppColors.border)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(label,
               style: AppTextStyles.eyebrow(
                   color: AppColors.inkMuted(opacity: 0.5))),
         ),
-        const Expanded(child: Divider(color: AppColors.border)),
+        Expanded(child: Divider(color: AppColors.border)),
       ],
     );
   }

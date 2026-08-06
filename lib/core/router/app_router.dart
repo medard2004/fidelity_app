@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'app_route_observer.dart';
+import 'tab_transition_direction.dart';
+import '../theme/app_motion.dart';
 import '../../features/auth/auth_screen.dart';
 import '../../features/auth/otp_screen.dart';
 import '../../features/auth/signup_screen.dart';
@@ -9,12 +12,47 @@ import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/qr_scan_screen.dart';
 import '../../features/onboarding/join_restaurant_screen.dart';
 import '../../features/wallet/wallet_dashboard_screen.dart';
+import '../../features/wallet/wallet_search_screen.dart';
 import '../../features/card_detail/card_detail_screen.dart';
 import '../../features/rewards/rewards_screen.dart';
 import '../../features/referral/referral_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 import '../../widgets/shared/app_shell.dart';
+
+/// Transition des onglets de la bottom nav bar — léger slide horizontal
+/// orienté selon le sens du changement d'onglet (voir [tabSlideDirection]),
+/// combiné à un fondu et un scale discret. Donne l'impression que tous
+/// les onglets appartiennent au même espace plutôt que d'être des pages
+/// empilées, sans jamais évoquer une navigation hiérarchique.
+CustomTransitionPage<void> _tabFadePage(GoRouterState state, Widget child) {
+  final direction = tabSlideDirection;
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: AppMotion.pageDuration,
+    reverseTransitionDuration: AppMotion.pageReverseDuration,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved =
+          CurvedAnimation(parent: animation, curve: AppMotion.pageCurve);
+      final slide = Tween<Offset>(
+        begin: Offset(0.035 * direction, 0),
+        end: Offset.zero,
+      ).animate(curved);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: slide,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.98, end: 1.0).animate(curved),
+            child: child,
+          ),
+        ),
+      );
+    },
+  );
+}
 
 /// Construit un [OtpScreen] depuis les données `extra` du router.
 /// `extra` peut être :
@@ -43,6 +81,7 @@ OtpScreen _buildOtpScreen(GoRouterState state) {
 
 final appRouter = GoRouter(
   initialLocation: '/onboarding',
+  observers: [routeObserver],
   routes: [
     // ── Onboarding ───────────────────────────────────────────────────────────
     GoRoute(
@@ -107,57 +146,53 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/wallet',
-          builder: (context, state) => const WalletDashboardScreen(),
+          pageBuilder: (context, state) =>
+              _tabFadePage(state, const WalletDashboardScreen()),
         ),
         GoRoute(
           path: '/rewards',
-          builder: (context, state) => const RewardsScreen(),
+          pageBuilder: (context, state) =>
+              _tabFadePage(state, const RewardsScreen()),
         ),
         GoRoute(
           path: '/referral',
-          builder: (context, state) => const ReferralScreen(),
+          pageBuilder: (context, state) =>
+              _tabFadePage(state, const ReferralScreen()),
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => const ProfileScreen(),
+          pageBuilder: (context, state) =>
+              _tabFadePage(state, const ProfileScreen()),
         ),
       ],
     ),
 
-    /// Détail de carte — transition signature bascule 3D + agrandissement.
+    /// Détail de carte — la carte du Wallet (Hero partagé) se transforme
+    /// naturellement en page plein écran : fondu + agrandissement depuis
+    /// son point d'ancrage, dans l'esprit du "container transform" de
+    /// Google Wallet/Google Photos, plutôt qu'un simple push.
     GoRoute(
       path: '/card/:id',
       pageBuilder: (context, state) {
         final id = state.pathParameters['id']!;
-        return CustomTransitionPage(
+        return CustomTransitionPage<void>(
           key: state.pageKey,
           child: CardDetailScreen(cardId: id),
-          transitionDuration: const Duration(milliseconds: 420),
-          reverseTransitionDuration: const Duration(milliseconds: 320),
+          transitionDuration: AppMotion.pageDuration,
+          reverseTransitionDuration: AppMotion.pageReverseDuration,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final curved = CurvedAnimation(
               parent: animation,
-              curve: Curves.easeOutCubic,
-              reverseCurve: Curves.easeInCubic,
+              curve: AppMotion.pageCurve,
+              reverseCurve: AppMotion.pageReverseCurve,
             );
-            return AnimatedBuilder(
-              animation: curved,
-              child: child,
-              builder: (context, child) {
-                final t = curved.value;
-                final s = 0.92 + 0.08 * t;
-                final perspective = Matrix4.identity()
-                  ..setEntry(3, 2, 0.0009)
-                  ..rotateX((1 - t) * -0.35);
-                return Opacity(
-                  opacity: t.clamp(0, 1),
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: perspective..scaleByDouble(s, s, 1.0, 1.0),
-                    child: child,
-                  ),
-                );
-              },
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.90, end: 1.0).animate(curved),
+                alignment: Alignment.center,
+                child: child,
+              ),
             );
           },
         );
@@ -168,6 +203,40 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
+    ),
+
+    // ── Paramètres ───────────────────────────────────────────────────────────
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
+    ),
+
+    /// Recherche du Wallet — écran dédié qui glisse depuis le bas, comme
+    /// une feuille de recherche plutôt qu'une simple page poussée.
+    GoRoute(
+      path: '/wallet/search',
+      pageBuilder: (context, state) {
+        return CustomTransitionPage<void>(
+          key: state.pageKey,
+          child: const WalletSearchScreen(),
+          transitionDuration: AppMotion.pageDuration,
+          reverseTransitionDuration: AppMotion.pageReverseDuration,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved =
+                CurvedAnimation(parent: animation, curve: AppMotion.pageCurve);
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.06),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
+      },
     ),
   ],
 );

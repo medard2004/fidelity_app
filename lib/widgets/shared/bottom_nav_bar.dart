@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../components/app_tap_scale.dart';
 
 class NavItem {
   final IconData icon;
@@ -11,12 +14,12 @@ class NavItem {
   const NavItem(this.icon, this.activeIcon, this.label);
 }
 
-const _navItems = [
-  NavItem(LucideIcons.wallet, LucideIcons.wallet, 'Wallet'),
-  NavItem(LucideIcons.gift, LucideIcons.gift, 'Récompenses'),
-  NavItem(LucideIcons.users, LucideIcons.users, 'Parrainage'),
-  NavItem(LucideIcons.user, LucideIcons.user, 'Profil'),
-];
+List<NavItem> _navItems(AppLocalizations t) => [
+      NavItem(LucideIcons.wallet, LucideIcons.wallet, t.navWallet),
+      NavItem(LucideIcons.gift, LucideIcons.gift, t.navRewards),
+      NavItem(LucideIcons.users, LucideIcons.users, t.navReferral),
+      NavItem(LucideIcons.user, LucideIcons.user, t.navProfile),
+    ];
 
 /// Bottom tab bar — fond blanc, bordure hairline supérieure, indicateur
 /// actif en pastille pleine (pattern Revolut/Stripe) plutôt qu'un point.
@@ -32,8 +35,9 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navItems = _navItems(AppLocalizations.of(context)!);
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surfaceCard,
         border: Border(top: BorderSide(color: AppColors.border, width: 1)),
       ),
@@ -45,32 +49,40 @@ class AppBottomNavBar extends StatelessWidget {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(_navItems.length, (i) {
-          final item = _navItems[i];
+        children: List.generate(navItems.length, (i) {
+          final item = navItems[i];
           final active = i == currentIndex;
-          final color = active ? AppColors.primary : AppColors.inkMuted(opacity: 0.45);
+          final color =
+              active ? AppColors.primary : AppColors.inkMuted(opacity: 0.45);
           return Expanded(
-            child: GestureDetector(
+            child: AppTapScale(
               onTap: () => onTap(i),
-              behavior: HitTestBehavior.opaque,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
+                    duration: AppMotion.pressDuration,
+                    curve: AppMotion.pressCurve,
                     padding:
                         const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
                     decoration: BoxDecoration(
-                      color: active ? AppColors.primaryTint : Colors.transparent,
+                      color:
+                          active ? AppColors.primaryTint : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadius.pill),
                     ),
-                    child: Icon(active ? item.activeIcon : item.icon,
-                        size: 22, color: color),
+                    child: AnimatedScale(
+                      duration: AppMotion.pressDuration,
+                      curve: AppMotion.pressCurve,
+                      scale: active ? 1.08 : 1.0,
+                      child: Icon(active ? item.activeIcon : item.icon,
+                          size: 22, color: color),
+                    ),
                   ),
                   const SizedBox(height: 4),
                   FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(item.label, style: AppTextStyles.bodySmall(color: color)),
+                    child: Text(item.label,
+                        style: AppTextStyles.bodySmall(color: color)),
                   ),
                 ],
               ),

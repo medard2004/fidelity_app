@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../../models/reward.dart';
 import '../../widgets/components/components.dart';
+import '../../widgets/shared/app_detail_bar.dart';
 import '../wallet/widgets/card_face_content.dart';
 import 'card_export_service.dart';
 
@@ -24,6 +26,7 @@ class CardDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final card = ref.watch(walletProvider.select((cards) {
       try {
         return cards
@@ -36,37 +39,25 @@ class CardDetailScreen extends ConsumerWidget {
         ref.watch(rewardsProvider).where((r) => r.cardId == cardId).toList();
 
     if (card == null) {
-      return const Scaffold(body: Center(child: Text('Carte introuvable')));
+      return Scaffold(body: Center(child: Text(t.cardDetailNotFound)));
     }
 
     return Scaffold(
       backgroundColor: AppColors.surface,
+      appBar: AppDetailBar(
+        title: t.cardDetailTitle,
+        trailing: IconButton(
+          onPressed: () =>
+              _showExportModal(context, card, _exportBoundaryKey, t),
+          icon: const Icon(LucideIcons.share2,
+              color: AppColors.primary, size: 20),
+          tooltip: t.cardDetailExportTooltip,
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(LucideIcons.arrowLeft,
-                        color: AppColors.ink, size: 20),
-                  ),
-                  const Expanded(
-                    child: Center(child: SectionEyebrow('Votre carte')),
-                  ),
-                  IconButton(
-                    onPressed: () =>
-                        _showExportModal(context, card, _exportBoundaryKey),
-                    icon: const Icon(LucideIcons.share2,
-                        color: AppColors.primary, size: 20),
-                    tooltip: 'Exporter / Partager',
-                  ),
-                ],
-              ),
-            ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -82,7 +73,7 @@ class CardDetailScreen extends ConsumerWidget {
                         color: AppColors.surface,
                         child: Column(
                           children: [
-                            _TopQrPlateCard(card: card),
+                            _TopQrPlateCard(card: card, t: t),
                             const SizedBox(height: 8),
                             _MiddleCardWidget(card: card),
                           ],
@@ -92,7 +83,7 @@ class CardDetailScreen extends ConsumerWidget {
 
                     const SizedBox(height: 20),
 
-                    Text('Récompenses', style: AppTextStyles.displayMedium()),
+                    Text(t.rewardsTitle, style: AppTextStyles.displayMedium()),
 
                     const SizedBox(height: 10),
 
@@ -105,25 +96,25 @@ class CardDetailScreen extends ConsumerWidget {
                           separatorBuilder: (_, __) =>
                               const SizedBox(width: 10),
                           itemBuilder: (context, i) =>
-                              _DetailedRewardCard(reward: rewards[i]),
+                              _DetailedRewardCard(reward: rewards[i], t: t),
                         ),
                       )
                     else
-                      const _DetailedRewardCard(
+                      _DetailedRewardCard(
                         reward: Reward(
                           id: 'default',
                           cardId: 'default',
-                          restaurantName: 'Offre',
-                          title: 'Récompense à venir',
-                          description:
-                              'Continuez à cumuler pour débloquer votre prochain privilège.',
+                          restaurantName: t.cardDetailDefaultOfferRestaurant,
+                          title: t.cardDetailDefaultOfferTitle,
+                          description: t.cardDetailDefaultOfferMessage,
                           status: RewardStatus.locked,
                         ),
+                        t: t,
                       ),
 
                     const SizedBox(height: 16),
 
-                    _HistoryAccordionBar(card: card),
+                    _HistoryAccordionBar(card: card, t: t),
 
                     const SizedBox(height: 16),
                   ],
@@ -138,8 +129,8 @@ class CardDetailScreen extends ConsumerWidget {
 }
 
 /// Modal d'exportation et de partage de la carte.
-void _showExportModal(
-    BuildContext context, LoyaltyCard card, GlobalKey exportKey) {
+void _showExportModal(BuildContext context, LoyaltyCard card,
+    GlobalKey exportKey, AppLocalizations t) {
   showModalBottomSheet(
     context: context,
     builder: (context) {
@@ -155,53 +146,46 @@ void _showExportModal(
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionEyebrow('Exportation'),
+                    SectionEyebrow(t.cardDetailExportSheetTitle),
                     const SizedBox(height: 4),
                     Text(card.restaurantName,
-                        style: AppTextStyles.displayMedium().copyWith(fontSize: 20)),
+                        style: AppTextStyles.displayMedium()
+                            .copyWith(fontSize: 20)),
                   ],
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(LucideIcons.x,
-                      color: AppColors.ink, size: 20),
+                  icon: Icon(LucideIcons.x, color: AppColors.ink, size: 20),
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
             _ExportOptionTile(
               icon: LucideIcons.bookmarkPlus,
-              title: 'Enregistrer la carte',
-              subtitle: 'Conserver dans votre Portefeuille d\'application',
+              title: t.cardDetailSaveTitle,
+              subtitle: t.cardDetailSaveSubtitle,
               onTap: () {
                 Navigator.pop(context);
                 CardExportService.exportAndShareCard(
                     context, card, 'save', exportKey);
               },
             ),
-
             const SizedBox(height: 10),
-
             _ExportOptionTile(
               icon: LucideIcons.download,
-              title: 'Télécharger la carte',
-              subtitle:
-                  'Enregistrer un visuel HD dans votre galerie (Pass format)',
+              title: t.cardDetailDownloadTitle,
+              subtitle: t.cardDetailDownloadSubtitle,
               onTap: () {
                 Navigator.pop(context);
                 CardExportService.exportAndShareCard(
                     context, card, 'download', exportKey);
               },
             ),
-
             const SizedBox(height: 10),
-
             _ExportOptionTile(
               icon: LucideIcons.share2,
-              title: 'Partager la carte',
-              subtitle: 'Générer et envoyer une version propre à un proche',
+              title: t.cardDetailShareTitle,
+              subtitle: t.cardDetailShareSubtitle,
               isHighlight: true,
               onTap: () {
                 Navigator.pop(context);
@@ -284,7 +268,8 @@ class _ExportOptionTile extends StatelessWidget {
 /// Bloc supérieur — QR code scannable et identifiant de carte.
 class _TopQrPlateCard extends StatelessWidget {
   final LoyaltyCard card;
-  const _TopQrPlateCard({required this.card});
+  final AppLocalizations t;
+  const _TopQrPlateCard({required this.card, required this.t});
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +285,7 @@ class _TopQrPlateCard extends StatelessWidget {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () => _showFullScreenQrDialog(context, card),
+            onTap: () => _showFullScreenQrDialog(context, card, t),
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -317,25 +302,21 @@ class _TopQrPlateCard extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
           GestureDetector(
-            onTap: () => _showFullScreenQrDialog(context, card),
+            onTap: () => _showFullScreenQrDialog(context, card, t),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(LucideIcons.maximize2,
                     size: 13, color: AppColors.primary),
                 const SizedBox(width: 6),
-                Text('Plein écran',
+                Text(t.cardDetailFullScreen,
                     style: AppTextStyles.label(color: AppColors.primary)),
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -349,7 +330,7 @@ class _TopQrPlateCard extends StatelessWidget {
                   await Clipboard.setData(ClipboardData(text: card.fallbackId));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Identifiant copié')),
+                      SnackBar(content: Text(t.cardDetailIdCopied)),
                     );
                   }
                 },
@@ -372,7 +353,8 @@ class _TopQrPlateCard extends StatelessWidget {
 }
 
 /// Affiche le QR Code en plein écran dans un modal.
-void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
+void _showFullScreenQrDialog(
+    BuildContext context, LoyaltyCard card, AppLocalizations t) {
   showDialog(
     context: context,
     builder: (context) {
@@ -392,8 +374,7 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(LucideIcons.x,
-                        color: AppColors.ink, size: 20),
+                    icon: Icon(LucideIcons.x, color: AppColors.ink, size: 20),
                   ),
                 ],
               ),
@@ -421,7 +402,7 @@ void _showFullScreenQrDialog(BuildContext context, LoyaltyCard card) {
               ),
               const SizedBox(height: 10),
               Text(
-                'Présentez ce QR Code lors de votre passage en caisse',
+                t.cardDetailQrInstructions,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall(color: AppColors.inkMuted()),
               ),
@@ -448,16 +429,13 @@ class _MiddleCardWidget extends StatelessWidget {
       tag: 'card_${card.id}',
       child: Material(
         type: MaterialType.transparency,
-        child: Container(
+        child: GradientCardSurface(
+          color: card.liningColor,
           width: double.infinity,
           height: 140,
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          decoration: BoxDecoration(
-            color: card.liningColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: AppShadows.raised,
-          ),
-          child: CardFaceContent(card: card, textColor: textColor, compact: true),
+          child:
+              CardFaceContent(card: card, textColor: textColor, compact: true),
         ),
       ),
     );
@@ -467,7 +445,8 @@ class _MiddleCardWidget extends StatelessWidget {
 /// Carte de récompense individuelle.
 class _DetailedRewardCard extends StatelessWidget {
   final Reward reward;
-  const _DetailedRewardCard({required this.reward});
+  final AppLocalizations t;
+  const _DetailedRewardCard({required this.reward, required this.t});
 
   @override
   Widget build(BuildContext context) {
@@ -489,34 +468,36 @@ class _DetailedRewardCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   StatusBadge(
-                    label: isReady ? 'PRÊT' : (isLocked ? 'VERROUILLÉ' : 'UTILISÉ'),
+                    label: isReady
+                        ? t.rewardStatusReady
+                        : (isLocked
+                            ? t.rewardStatusLocked
+                            : t.rewardStatusUsed),
                     tone: isReady ? StatusTone.success : StatusTone.neutral,
-                    icon: isReady ? LucideIcons.circleCheckBig : (isLocked ? LucideIcons.lock : null),
+                    icon: isReady
+                        ? LucideIcons.circleCheckBig
+                        : (isLocked ? LucideIcons.lock : null),
                   ),
                 ],
               ),
-
               const SizedBox(height: 8),
-
               Text(
                 reward.title,
                 style: AppTextStyles.titleMedium().copyWith(fontSize: 15),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-
               const SizedBox(height: 3),
-
               Text(
                 reward.description,
-                style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.7)),
+                style: AppTextStyles.bodySmall(
+                    color: AppColors.inkMuted(opacity: 0.7)),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-
               if (isLocked && reward.lockedCondition != null) ...[
                 const SizedBox(height: 8),
-                const Divider(height: 1, color: AppColors.border),
+                Divider(height: 1, color: AppColors.border),
                 const SizedBox(height: 6),
                 Text(
                   reward.lockedCondition!,
@@ -534,7 +515,8 @@ class _DetailedRewardCard extends StatelessWidget {
 /// Accordéon de l'historique.
 class _HistoryAccordionBar extends StatefulWidget {
   final LoyaltyCard card;
-  const _HistoryAccordionBar({required this.card});
+  final AppLocalizations t;
+  const _HistoryAccordionBar({required this.card, required this.t});
 
   @override
   State<_HistoryAccordionBar> createState() => _HistoryAccordionBarState();
@@ -546,7 +528,7 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
   /// Historique synthétique dérivé des vraies données de la carte
   /// (pas de modèle de visites individuelles côté backend pour l'instant),
   /// pour éviter d'afficher les 3 mêmes lignes sur toutes les cartes.
-  List<_HistoryEntry> _historyFor(LoyaltyCard card) {
+  List<_HistoryEntry> _historyFor(LoyaltyCard card, AppLocalizations t) {
     final now = DateTime.now();
     final entries = <_HistoryEntry>[];
     switch (card.mechanic) {
@@ -555,47 +537,52 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
           entries.add(_HistoryEntry(
             date:
                 now.subtract(Duration(days: (card.stampsCurrent - i + 1) * 9)),
-            detail: '+1 tampon · Passage en caisse',
+            detail: t.historyStampEntry,
           ));
         }
         break;
       case LoyaltyMechanic.points:
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 4)),
-            detail: '+80 points · Passage en caisse'));
+            detail: t.historyPointsEntry(80)));
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 19)),
-            detail: '+120 points · Passage en caisse'));
+            detail: t.historyPointsEntry(120)));
         break;
       case LoyaltyMechanic.cashback:
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 3)),
-            detail: '+500 FCFA · Passage en caisse'));
+            detail: t.historyCashbackEntry(500)));
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 15)),
-            detail: '+900 FCFA · Passage en caisse'));
+            detail: t.historyCashbackEntry(900)));
         break;
       case LoyaltyMechanic.vip:
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 6)),
-            detail: 'Visite comptabilisée'));
+            detail: t.historyVisitEntry));
         entries.add(_HistoryEntry(
             date: now.subtract(const Duration(days: 20)),
-            detail: 'Visite comptabilisée'));
+            detail: t.historyVisitEntry));
         break;
     }
     entries.add(_HistoryEntry(
       date: now.subtract(const Duration(days: 34)),
       detail: card.welcomeOffer.isNotEmpty
           ? card.welcomeOffer
-          : 'Inscription à la carte',
+          : t.historySignupEntry,
     ));
     return entries;
   }
 
   @override
   Widget build(BuildContext context) {
-    final history = _historyFor(widget.card);
+    final t = widget.t;
+    final history = _historyFor(widget.card, t);
+    final dateFormatLocale =
+        Localizations.localeOf(context).languageCode == 'fr'
+            ? 'fr_FR'
+            : 'en_US';
     return Column(
       children: [
         AppCard(
@@ -603,17 +590,17 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Text('Historique', style: AppTextStyles.titleMedium()),
+              Text(t.commonHistory, style: AppTextStyles.titleMedium()),
               const Spacer(),
               Text(
-                '${history.length} VISITE${history.length > 1 ? 'S' : ''}',
+                t.cardDetailVisitsCount(history.length),
                 style: AppTextStyles.eyebrow(color: AppColors.primary),
               ),
               const SizedBox(width: 8),
               AnimatedRotation(
                 turns: _expanded ? 0.5 : 0.0,
                 duration: const Duration(milliseconds: 200),
-                child: const Icon(LucideIcons.chevronDown,
+                child: Icon(LucideIcons.chevronDown,
                     color: AppColors.ink, size: 20),
               ),
             ],
@@ -630,8 +617,11 @@ class _HistoryAccordionBarState extends State<_HistoryAccordionBar> {
                     child: Column(
                       children: [
                         for (int i = 0; i < history.length; i++) ...[
-                          if (i > 0) const Divider(height: 20, color: AppColors.border),
-                          _HistoryRow(entry: history[i]),
+                          if (i > 0)
+                            Divider(height: 20, color: AppColors.border),
+                          _HistoryRow(
+                              entry: history[i],
+                              dateFormatLocale: dateFormatLocale),
                         ],
                       ],
                     ),
@@ -650,36 +640,22 @@ class _HistoryEntry {
   const _HistoryEntry({required this.date, required this.detail});
 }
 
-const _fullMonths = [
-  'Janvier',
-  'Février',
-  'Mars',
-  'Avril',
-  'Mai',
-  'Juin',
-  'Juillet',
-  'Août',
-  'Septembre',
-  'Octobre',
-  'Novembre',
-  'Décembre',
-];
-
 class _HistoryRow extends StatelessWidget {
   final _HistoryEntry entry;
-  const _HistoryRow({required this.entry});
+  final String dateFormatLocale;
+  const _HistoryRow({required this.entry, required this.dateFormatLocale});
 
   @override
   Widget build(BuildContext context) {
-    final date = entry.date;
     final formatted =
-        '${date.day.toString().padLeft(2, '0')} ${_fullMonths[date.month - 1]} ${date.year}';
+        DateFormat('dd MMMM yyyy', dateFormatLocale).format(entry.date);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Flexible(
           child: Text(formatted,
-              style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.8))),
+              style: AppTextStyles.bodySmall(
+                  color: AppColors.inkMuted(opacity: 0.8))),
         ),
         const SizedBox(width: 8),
         Flexible(

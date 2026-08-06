@@ -5,13 +5,20 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/app_shadows.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/user.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/wallet_provider.dart';
 import '../../widgets/components/components.dart';
+import '../../widgets/shared/app_section_header.dart';
+import '../../widgets/shared/notification_bell_button.dart';
 import '../../widgets/shared/phone_input_with_country_picker.dart';
 
+/// Profil — juste l'essentiel : identité, un coup d'œil chiffré, code de
+/// parrainage, et un accès unique vers Paramètres pour tout le reste
+/// (apparence, langue, notifications, déconnexion). Les informations
+/// détaillées (nom/téléphone/naissance/email) ne vivent qu'à un seul
+/// endroit : la modale d'édition, pour ne pas les afficher deux fois.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -24,42 +31,18 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmSignOut(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Déconnexion', style: AppTextStyles.titleMedium().copyWith(fontSize: 18)),
-        content: Text(
-          'Êtes-vous sûr de vouloir vous déconnecter de votre compte Carte ?',
-          style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Annuler',
-                style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.6))),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(minimumSize: const Size(0, 40)),
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(authProvider.notifier).signOut();
-              context.go('/auth');
-            },
-            child: const Text('Se déconnecter'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
     final cards = ref.watch(walletProvider);
     final rewards = ref.watch(rewardsProvider);
     final unreadNotifs =
         ref.watch(notificationsProvider).where((n) => !n.isRead).length;
+    final dateFormatLocale =
+        Localizations.localeOf(context).languageCode == 'fr'
+            ? 'fr_FR'
+            : 'en_US';
 
     if (user == null) {
       return Scaffold(
@@ -67,10 +50,10 @@ class ProfileScreen extends ConsumerWidget {
         body: Center(
           child: EmptyState(
             icon: LucideIcons.user,
-            title: 'Vous n\'êtes pas connecté',
-            message: 'Connectez-vous pour accéder à votre profil.',
+            title: t.profileNotConnectedTitle,
+            message: t.profileNotConnectedMessage,
             action: AppButton(
-              label: 'Se connecter',
+              label: t.profileSignIn,
               fullWidth: false,
               onTap: () => context.go('/auth'),
             ),
@@ -84,78 +67,10 @@ class ProfileScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── En-tête statique ─────────────────────────────────────────
-            Container(
-              color: AppColors.surface,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SectionEyebrow('Espace membre'),
-                      const SizedBox(height: 4),
-                      Text('Profil', style: AppTextStyles.displayLarge()),
-                    ],
-                  ),
-                  Semantics(
-                    button: true,
-                    label: unreadNotifs > 0
-                        ? 'Notifications, $unreadNotifs non lues'
-                        : 'Notifications',
-                    child: GestureDetector(
-                      onTap: () => context.push('/notifications'),
-                      behavior: HitTestBehavior.opaque,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceCard,
-                              shape: BoxShape.circle,
-                              boxShadow: AppShadows.resting,
-                            ),
-                            child: const Icon(
-                              LucideIcons.bell,
-                              color: AppColors.ink,
-                              size: 20,
-                            ),
-                          ),
-                          if (unreadNotifs > 0)
-                            Positioned(
-                              top: 2,
-                              right: 2,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.error,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '$unreadNotifs',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            AppSectionHeader(
+              title: t.profileTitle,
+              actions: [NotificationBellButton(unreadCount: unreadNotifs)],
             ),
-
-            const Divider(height: 1, color: AppColors.border),
-
-            // ── Contenu défilant ─────────────────────────────────────────
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -178,14 +93,13 @@ class ProfileScreen extends ConsumerWidget {
                                   user.fullName.isNotEmpty
                                       ? user.fullName[0].toUpperCase()
                                       : '?',
-                                  style: AppTextStyles.displayMedium(color: Colors.white)
+                                  style: AppTextStyles.displayMedium(
+                                          color: Colors.white)
                                       .copyWith(fontSize: 26),
                                 ),
                               ),
                             ),
-
                             const SizedBox(width: 16),
-
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,61 +107,66 @@ class ProfileScreen extends ConsumerWidget {
                                   Text(
                                     user.fullName.isNotEmpty
                                         ? user.fullName
-                                        : 'Membre Carte',
-                                    style: AppTextStyles.titleMedium().copyWith(fontSize: 18),
+                                        : t.profileTitle,
+                                    style: AppTextStyles.titleMedium()
+                                        .copyWith(fontSize: 18),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     user.maskedPhoneNumber,
-                                    style: AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.65)),
+                                    style: AppTextStyles.monoSmall(
+                                        color:
+                                            AppColors.inkMuted(opacity: 0.65)),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    user.memberSince,
-                                    style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5)),
+                                    t.profileMemberSince(
+                                        user.memberSinceDate(dateFormatLocale)),
+                                    style: AppTextStyles.bodySmall(
+                                        color:
+                                            AppColors.inkMuted(opacity: 0.5)),
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 16),
-
                         AppButton(
-                          label: 'Modifier le profil',
+                          label: t.profileEditProfile,
                           variant: AppButtonVariant.outline,
                           icon: LucideIcons.pencil,
                           height: 46,
-                          onTap: () => _openEditProfileModal(context, ref, user),
+                          onTap: () =>
+                              _openEditProfileModal(context, ref, user),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
                   Row(
                     children: [
                       Expanded(
-                        child: StatTile(value: '${cards.length}', label: 'Cartes'),
+                        child: StatTile(
+                            value: '${cards.length}', label: t.profileCards),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: StatTile(value: '${rewards.length}', label: 'Offres'),
+                        child: StatTile(
+                            value: '${rewards.length}', label: t.profileOffers),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: StatTile(value: '${user.friendsJoined}', label: 'Filleuls'),
+                        child: StatTile(
+                            value: '${user.friendsJoined}',
+                            label: t.profileReferrals),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
-
                   if (user.isBirthdayMonth) ...[
+                    const SizedBox(height: 16),
                     AppCard(
                       backgroundColor: AppColors.primaryTint,
                       bordered: false,
@@ -261,13 +180,15 @@ class ProfileScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Joyeux mois d\'anniversaire !',
-                                  style: AppTextStyles.label(color: AppColors.primaryDark),
+                                  t.profileBirthdayBannerTitle,
+                                  style: AppTextStyles.label(
+                                      color: AppColors.primaryDark),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Des attentions exclusives vous attendent dans vos restaurants.',
-                                  style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.7)),
+                                  t.profileBirthdayBannerMessage,
+                                  style: AppTextStyles.bodySmall(
+                                      color: AppColors.inkMuted(opacity: 0.7)),
                                 ),
                               ],
                             ),
@@ -275,54 +196,11 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
                   ],
-
-                  const SectionEyebrow('Informations personnelles'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   AppCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _InfoRow(
-                          label: 'Nom complet',
-                          value: user.fullName.isNotEmpty ? user.fullName : 'Non renseigné',
-                          icon: LucideIcons.user,
-                        ),
-                        const Divider(height: 1, color: AppColors.border),
-                        _InfoRow(
-                          label: 'Téléphone',
-                          value: user.phoneNumber.isNotEmpty ? user.phoneNumber : 'Non renseigné',
-                          icon: LucideIcons.phone,
-                        ),
-                        const Divider(height: 1, color: AppColors.border),
-                        _InfoRow(
-                          label: 'Date de naissance',
-                          value: user.birthDate != null
-                              ? '${user.birthDate!.day.toString().padLeft(2, '0')}/${user.birthDate!.month.toString().padLeft(2, '0')}/${user.birthDate!.year}'
-                              : 'Non renseignée',
-                          icon: LucideIcons.cake,
-                        ),
-                        const Divider(height: 1, color: AppColors.border),
-                        _InfoRow(
-                          label: 'Email',
-                          value: (user.email != null && user.email!.isNotEmpty)
-                              ? user.email!
-                              : 'Non renseigné',
-                          icon: LucideIcons.mail,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const SectionEyebrow('Parrainage exclusif'),
-                  const SizedBox(height: 8),
-                  AppCard(
-                    backgroundColor: AppColors.primaryTint,
-                    bordered: false,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     child: Row(
                       children: [
                         Expanded(
@@ -330,71 +208,88 @@ class ProfileScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Votre code invitation',
-                                style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.6)),
+                                t.profileReferralCode,
+                                style: AppTextStyles.bodySmall(
+                                    color: AppColors.inkMuted(opacity: 0.6)),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
-                                user.referralCode.isNotEmpty ? user.referralCode : 'CARTE-MEMBRE',
-                                style: AppTextStyles.monoMedium(color: AppColors.primaryDark)
-                                    .copyWith(fontWeight: FontWeight.bold, fontSize: 16),
+                                user.referralCode.isNotEmpty
+                                    ? user.referralCode
+                                    : 'CARTE-MEMBRE',
+                                style: AppTextStyles.monoMedium(
+                                        color: AppColors.primaryDark)
+                                    .copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15),
                               ),
                             ],
                           ),
                         ),
-                        GestureDetector(
+                        AppTapScale(
                           onTap: () {
-                            Clipboard.setData(ClipboardData(text: user.referralCode));
+                            Clipboard.setData(
+                                ClipboardData(text: user.referralCode));
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Code parrainage copié dans le presse-papier !'),
-                              ),
+                              SnackBar(
+                                  content: Text(t.profileReferralCodeCopied)),
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
+                            width: 38,
+                            height: 38,
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(
                               color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(10),
+                              shape: BoxShape.circle,
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(LucideIcons.copy, size: 14, color: Colors.white),
-                                const SizedBox(width: 6),
-                                Text('Copier', style: AppTextStyles.label(color: Colors.white)),
-                              ],
-                            ),
+                            child: const Icon(LucideIcons.copy,
+                                size: 15, color: Colors.white),
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  const SectionEyebrow('Préférences de notification'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   AppCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: cards
-                          .map<Widget>(
-                            (card) => _NotifToggleRow(cardId: card.id, name: card.restaurantName),
-                          )
-                          .toList(),
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  Center(
-                    child: AppButton(
-                      label: 'Se déconnecter',
-                      variant: AppButtonVariant.destructive,
-                      icon: LucideIcons.logOut,
-                      fullWidth: false,
-                      height: 44,
-                      onTap: () => _confirmSignOut(context, ref),
+                    onTap: () => context.push('/settings'),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceMuted,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(LucideIcons.settings,
+                              size: 18, color: AppColors.ink),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(t.profileSettings,
+                                  style: AppTextStyles.bodyMedium()
+                                      .copyWith(fontWeight: FontWeight.w600)),
+                              Text(
+                                t.profileSettingsSubtitle,
+                                style: AppTextStyles.bodySmall(
+                                    color: AppColors.inkMuted(opacity: 0.55)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(LucideIcons.chevronRight,
+                            size: 18, color: AppColors.inkMuted(opacity: 0.35)),
+                      ],
                     ),
                   ),
                 ],
@@ -447,7 +342,7 @@ class _EditProfileModalState extends State<_EditProfileModal> {
     super.dispose();
   }
 
-  void _save(WidgetRef ref) {
+  void _save(WidgetRef ref, AppLocalizations t) {
     if (!_formKey.currentState!.validate()) return;
 
     final fullPhone = _phoneInputKey.currentState?.fullPhoneNumber ??
@@ -464,7 +359,7 @@ class _EditProfileModalState extends State<_EditProfileModal> {
 
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profil mis à jour avec succès !')),
+      SnackBar(content: Text(t.editProfileSaveSuccess)),
     );
   }
 
@@ -472,6 +367,7 @@ class _EditProfileModalState extends State<_EditProfileModal> {
   Widget build(BuildContext context) {
     return Consumer(
       builder: (context, ref, child) {
+        final t = AppLocalizations.of(context)!;
         return DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.8,
@@ -485,55 +381,49 @@ class _EditProfileModalState extends State<_EditProfileModal> {
                 child: ListView(
                   controller: scrollController,
                   children: [
-                    Text('Modifier le profil', style: AppTextStyles.displayMedium()),
+                    Text(t.editProfileTitle,
+                        style: AppTextStyles.displayMedium()),
                     const SizedBox(height: 20),
-
-                    Text('Nom complet', style: AppTextStyles.label()),
+                    Text(t.editProfileFullName, style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _fullNameController,
                       validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'Veuillez saisir votre nom complet'
+                          ? t.editProfileFullNameError
                           : null,
-                      decoration: const InputDecoration(hintText: 'Prénom Nom'),
+                      decoration:
+                          InputDecoration(hintText: t.editProfileFullNameHint),
                     ),
-
                     const SizedBox(height: 16),
-
-                    Text('Numéro de téléphone', style: AppTextStyles.label()),
+                    Text(t.editProfilePhone, style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     PhoneInputWithCountryPicker(
                       key: _phoneInputKey,
                       controller: _phoneController,
                     ),
-
                     const SizedBox(height: 16),
-
-                    Text('Date de naissance', style: AppTextStyles.label()),
+                    Text(t.editProfileBirthDate, style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     AppDatePickerField(
                       value: _birthDate,
                       lastDate: DateTime.now(),
-                      onChanged: (picked) => setState(() => _birthDate = picked),
+                      onChanged: (picked) =>
+                          setState(() => _birthDate = picked),
                     ),
-
                     const SizedBox(height: 16),
-
-                    Text('Email', style: AppTextStyles.label()),
+                    Text(t.editProfileEmail, style: AppTextStyles.label()),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(hintText: 'votre@email.com'),
+                      decoration:
+                          InputDecoration(hintText: t.editProfileEmailHint),
                     ),
-
                     const SizedBox(height: 28),
-
                     AppButton(
-                      label: 'Enregistrer les modifications',
-                      onTap: () => _save(ref),
+                      label: t.commonSave,
+                      onTap: () => _save(ref, t),
                     ),
-
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -542,73 +432,6 @@ class _EditProfileModalState extends State<_EditProfileModal> {
           },
         );
       },
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Widgets locaux
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.5))),
-                const SizedBox(height: 2),
-                Text(value, style: AppTextStyles.bodyMedium().copyWith(fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NotifToggleRow extends ConsumerWidget {
-  final String cardId;
-  final String name;
-  const _NotifToggleRow({required this.cardId, required this.name});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final enabled =
-        ref.watch(notificationPrefsProvider.select((p) => p[cardId] ?? true));
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(name, style: AppTextStyles.bodyMedium()),
-          ),
-          Switch(
-            value: enabled,
-            onChanged: (v) =>
-                ref.read(notificationPrefsProvider.notifier).toggle(cardId, v),
-          ),
-        ],
-      ),
     );
   }
 }

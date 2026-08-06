@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/app_shadows.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/reward.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/components/components.dart';
+import '../../widgets/shared/app_section_header.dart';
+import '../../widgets/shared/notification_bell_button.dart';
 
 /// Écran des Récompenses et Privilèges.
 class RewardsScreen extends ConsumerWidget {
@@ -15,6 +16,7 @@ class RewardsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final rewards = ref.watch(rewardsProvider);
     final unreadNotifs =
         ref.watch(notificationsProvider).where((n) => !n.isRead).length;
@@ -31,76 +33,10 @@ class RewardsScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── En-tête statique ─────────────────────────────────────────
-            Container(
-              color: AppColors.surface,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SectionEyebrow('Vos privilèges'),
-                      const SizedBox(height: 4),
-                      Text('Récompenses', style: AppTextStyles.displayLarge()),
-                    ],
-                  ),
-                  Semantics(
-                    button: true,
-                    label: unreadNotifs > 0
-                        ? 'Notifications, $unreadNotifs non lues'
-                        : 'Notifications',
-                    child: GestureDetector(
-                      onTap: () => context.push('/notifications'),
-                      behavior: HitTestBehavior.opaque,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceCard,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: AppShadows.resting,
-                            ),
-                            child: const Icon(
-                              LucideIcons.bell,
-                              color: AppColors.ink,
-                              size: 20,
-                            ),
-                          ),
-                          if (unreadNotifs > 0)
-                            Positioned(
-                              top: 2,
-                              right: 2,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.error,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '$unreadNotifs',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            AppSectionHeader(
+              title: t.rewardsTitle,
+              actions: [NotificationBellButton(unreadCount: unreadNotifs)],
             ),
-
-            const Divider(height: 1, color: AppColors.border),
 
             // ── Contenu défilant ─────────────────────────────────────────
             Expanded(
@@ -126,36 +62,31 @@ class RewardsScreen extends ConsumerWidget {
                               ),
                             ))
                       else
-                        const EmptyState(
+                        EmptyState(
                           compact: true,
                           icon: LucideIcons.gift,
-                          title: 'Aucun privilège disponible',
-                          message: 'Revenez bientôt pour de nouvelles offres.',
+                          title: t.rewardsEmptyActiveTitle,
+                          message: t.rewardsEmptyActiveMessage,
                         ),
-
                       const SizedBox(height: 16),
-
-                      Text('À débloquer', style: AppTextStyles.titleMedium()),
+                      Text(t.rewardsToUnlock,
+                          style: AppTextStyles.titleMedium()),
                       const SizedBox(height: 10),
-
                       if (lockedRewards.isNotEmpty)
                         ...lockedRewards.map((reward) => Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: _LockedRewardCard(reward: reward),
                             ))
                       else
-                        const EmptyState(
+                        EmptyState(
                           compact: true,
                           icon: LucideIcons.lockOpen,
-                          title: 'Tout est débloqué',
-                          message: 'Aucune récompense verrouillée pour le moment.',
+                          title: t.rewardsAllUnlockedTitle,
+                          message: t.rewardsAllUnlockedMessage,
                         ),
-
                       const SizedBox(height: 20),
-
-                      Text('Historique', style: AppTextStyles.titleMedium()),
+                      Text(t.commonHistory, style: AppTextStyles.titleMedium()),
                       const SizedBox(height: 10),
-
                       if (usedRewards.isNotEmpty)
                         AppCard(
                           padding: const EdgeInsets.symmetric(
@@ -171,13 +102,12 @@ class RewardsScreen extends ConsumerWidget {
                           ),
                         )
                       else
-                        const EmptyState(
+                        EmptyState(
                           compact: true,
                           icon: LucideIcons.history,
-                          title: 'Aucun historique',
-                          message: 'Vos récompenses utilisées apparaîtront ici.',
+                          title: t.rewardsHistoryEmptyTitle,
+                          message: t.rewardsHistoryEmptyMessage,
                         ),
-
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -192,31 +122,33 @@ class RewardsScreen extends ConsumerWidget {
 }
 
 void _confirmRedeem(BuildContext context, WidgetRef ref, Reward reward) {
+  final t = AppLocalizations.of(context)!;
   showDialog(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text('Utiliser cette récompense ?',
-          style: AppTextStyles.titleMedium()),
+      title:
+          Text(t.rewardsRedeemConfirmTitle, style: AppTextStyles.titleMedium()),
       content: Text(
-        '« ${reward.title} » sera marquée comme utilisée et retirée de vos privilèges actifs. Présentez cet écran à l\'enseigne avant de confirmer.',
-        style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.75)),
+        t.rewardsRedeemConfirmMessage(reward.title),
+        style:
+            AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.75)),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: Text('Annuler',
-              style: AppTextStyles.label(color: AppColors.inkMuted(opacity: 0.6))),
+          child: Text(t.commonCancel,
+              style:
+                  AppTextStyles.label(color: AppColors.inkMuted(opacity: 0.6))),
         ),
         TextButton(
           onPressed: () {
             ref.read(rewardsProvider.notifier).redeem(reward.id);
             Navigator.of(dialogContext).pop();
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Récompense marquée comme utilisée')),
+              SnackBar(content: Text(t.rewardsRedeemSuccess)),
             );
           },
-          child: Text('Confirmer',
+          child: Text(t.commonConfirm,
               style: AppTextStyles.label(color: AppColors.primary)),
         ),
       ],
@@ -232,6 +164,7 @@ class _ActiveRewardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return AppCard(
       elevated: true,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -247,20 +180,24 @@ class _ActiveRewardCard extends StatelessWidget {
               ),
               if (reward.expiresAt != null)
                 StatusBadge(
-                  label: reward.daysRemainingText,
-                  tone: reward.isExpiringSoon ? StatusTone.warning : StatusTone.neutral,
+                  label: reward.daysRemainingText(t.commonCountdownPrefix),
+                  tone: reward.isExpiringSoon
+                      ? StatusTone.warning
+                      : StatusTone.neutral,
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(reward.title, style: AppTextStyles.titleMedium().copyWith(fontSize: 17)),
+          Text(reward.title,
+              style: AppTextStyles.titleMedium().copyWith(fontSize: 17)),
           const SizedBox(height: 4),
           Text(
             reward.description,
-            style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
+            style: AppTextStyles.bodyMedium(
+                color: AppColors.inkMuted(opacity: 0.7)),
           ),
           const SizedBox(height: 14),
-          AppButton(label: 'Utiliser', onTap: onRedeem, height: 46),
+          AppButton(label: t.rewardsUseButton, onTap: onRedeem, height: 46),
         ],
       ),
     );
@@ -286,17 +223,20 @@ class _LockedRewardCard extends StatelessWidget {
             children: [
               Text(
                 reward.restaurantName.toUpperCase(),
-                style: AppTextStyles.eyebrow(color: AppColors.inkMuted(opacity: 0.55)),
+                style: AppTextStyles.eyebrow(
+                    color: AppColors.inkMuted(opacity: 0.55)),
               ),
               Icon(LucideIcons.lock, size: 14, color: AppColors.inkMuted()),
             ],
           ),
           const SizedBox(height: 6),
-          Text(reward.title, style: AppTextStyles.titleMedium().copyWith(fontSize: 15)),
+          Text(reward.title,
+              style: AppTextStyles.titleMedium().copyWith(fontSize: 15)),
           const SizedBox(height: 4),
           Text(
             reward.lockedCondition ?? reward.description,
-            style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.65)),
+            style: AppTextStyles.bodySmall(
+                color: AppColors.inkMuted(opacity: 0.65)),
           ),
         ],
       ),
@@ -311,17 +251,23 @@ class _HistoryRewardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dateFormatLocale =
+        Localizations.localeOf(context).languageCode == 'fr'
+            ? 'fr_FR'
+            : 'en_US';
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          reward.formattedUsedDate,
-          style: AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.8)),
+          reward.formattedUsedDate(dateFormatLocale),
+          style:
+              AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.8)),
         ),
         Expanded(
           child: Text(
             '${reward.restaurantName}  ·  ${reward.title}',
-            style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.8)),
+            style: AppTextStyles.bodyMedium(
+                color: AppColors.inkMuted(opacity: 0.8)),
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),

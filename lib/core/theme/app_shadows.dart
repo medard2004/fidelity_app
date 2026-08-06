@@ -31,4 +31,32 @@ class AppShadows {
       offset: const Offset(0, 16),
     ),
   ];
+
+  /// Ombre teintée et douce pour les surfaces à identité colorée (cartes
+  /// de fidélité) — seule exception au principe "jamais teintées"
+  /// ci-dessus : sous un dégradé saturé, une ombre neutre reste plate,
+  /// alors qu'un souffle de la couleur de la carte crée une vraie
+  /// sensation de lumière/profondeur. Trois niveaux superposés plutôt que
+  /// deux, du plus serré au plus diffus, pour un effet flottant soigné
+  /// plutôt qu'une simple ombre portée.
+  static List<BoxShadow> card(Color tint) => [
+        // Contact — ancre la carte au sol, très discret.
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+        // Halo teinté médian — la profondeur colorée caractéristique.
+        BoxShadow(
+          color: tint.withValues(alpha: 0.24),
+          blurRadius: 20,
+          offset: const Offset(0, 10),
+        ),
+        // Halo teinté large — diffusion douce jusque loin sous la carte.
+        BoxShadow(
+          color: tint.withValues(alpha: 0.14),
+          blurRadius: 42,
+          offset: const Offset(0, 22),
+        ),
+      ];
 }

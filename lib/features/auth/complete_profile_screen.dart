@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/components/components.dart';
 
@@ -52,6 +53,7 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final user = ref.watch(authProvider).user;
 
     return Scaffold(
@@ -65,76 +67,71 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
               AppCard(
                 backgroundColor: AppColors.primary,
                 bordered: false,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.circleCheckBig, color: Colors.white, size: 20),
+                    const Icon(LucideIcons.circleCheckBig,
+                        color: Colors.white, size: 20),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Bienvenue${user != null && user.firstName.isNotEmpty ? ", ${user.firstName}" : ""} !\nVotre compte a été créé.',
-                        style: AppTextStyles.bodyMedium(color: Colors.white).copyWith(height: 1.3),
+                        user != null && user.firstName.isNotEmpty
+                            ? t.completeProfileWelcomeNamed(user.firstName)
+                            : t.completeProfileWelcomeAnon,
+                        style: AppTextStyles.bodyMedium(color: Colors.white)
+                            .copyWith(height: 1.3),
                       ),
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              Text('Complétez votre profil', style: AppTextStyles.displayMedium()),
-
+              Text(t.completeProfileTitle,
+                  style: AppTextStyles.displayMedium()),
               const SizedBox(height: 20),
-
-              Text('Nom complet', style: AppTextStyles.label()),
+              Text(t.editProfileFullName, style: AppTextStyles.label()),
               const SizedBox(height: 6),
               TextField(
                 controller: _fullNameController,
                 keyboardType: TextInputType.name,
-                decoration: const InputDecoration(hintText: 'Prénom Nom'),
+                decoration:
+                    InputDecoration(hintText: t.editProfileFullNameHint),
               ),
-
               const SizedBox(height: 16),
-
-              Text('Date de naissance', style: AppTextStyles.label()),
+              Text(t.editProfileBirthDate, style: AppTextStyles.label()),
               const SizedBox(height: 6),
               AppDatePickerField(
                 value: _birthDate,
                 onChanged: (date) => setState(() => _birthDate = date),
               ),
-
               const SizedBox(height: 16),
-
               Row(
                 children: [
-                  Text('Email', style: AppTextStyles.label()),
+                  Text(t.editProfileEmail, style: AppTextStyles.label()),
                   const SizedBox(width: 8),
-                  const StatusBadge(label: 'Optionnel'),
+                  StatusBadge(label: t.commonOptional),
                 ],
               ),
               const SizedBox(height: 6),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(hintText: 'votre@email.com'),
+                decoration: InputDecoration(hintText: t.editProfileEmailHint),
               ),
-
               const SizedBox(height: 28),
-
-              AppButton(label: 'Accéder à l\'application', onTap: _complete),
-
+              AppButton(label: t.completeProfileSubmit, onTap: _complete),
               const SizedBox(height: 10),
-
               Center(
                 child: TextButton(
                   onPressed: _skip,
                   child: Text(
-                    'Passer cette étape',
-                    style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.45)),
+                    t.completeProfileSkip,
+                    style: AppTextStyles.bodyMedium(
+                        color: AppColors.inkMuted(opacity: 0.45)),
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
             ],
           ),

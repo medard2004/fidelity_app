@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../widgets/components/components.dart';
 
 /// Écran de scan QR — caméra réelle (mobile_scanner) sous un cadre net et
@@ -75,6 +76,7 @@ class _QrScanScreenState extends State<QrScanScreen>
   }
 
   Future<void> _openManualEntry() async {
+    final t = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final code = await showModalBottomSheet<String>(
       context: context,
@@ -90,23 +92,24 @@ class _QrScanScreenState extends State<QrScanScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Saisir le code manuellement', style: AppTextStyles.displayMedium()),
+            Text(t.qrManualEntryLabel, style: AppTextStyles.displayMedium()),
             const SizedBox(height: 6),
             Text(
-              'Le code figure sous le QR affiché par l\'établissement.',
-              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.6)),
+              t.qrManualEntryHint,
+              style: AppTextStyles.bodyMedium(
+                  color: AppColors.inkMuted(opacity: 0.6)),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               autofocus: true,
               textCapitalization: TextCapitalization.characters,
-              decoration: const InputDecoration(hintText: 'Ex. JARDIN-2024'),
+              decoration: InputDecoration(hintText: t.qrManualEntryPlaceholder),
               onSubmitted: (v) => Navigator.pop(sheetContext, v),
             ),
             const SizedBox(height: 16),
             AppButton(
-              label: 'Valider',
+              label: t.commonValidate,
               onTap: () => Navigator.pop(sheetContext, controller.text),
             ),
           ],
@@ -122,6 +125,7 @@ class _QrScanScreenState extends State<QrScanScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final size = MediaQuery.of(context).size;
     final frameW = size.width * 0.76;
     final frameH = frameW;
@@ -150,40 +154,44 @@ class _QrScanScreenState extends State<QrScanScreen>
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Row(
                     children: [
                       Semantics(
                         button: true,
-                        label: 'Retour',
+                        label: t.commonBack,
                         child: GestureDetector(
                           onTap: () => context.go('/wallet'),
                           behavior: HitTestBehavior.opaque,
                           child: const SizedBox(
                             width: 44,
                             height: 44,
-                            child: Icon(LucideIcons.arrowLeft, color: Colors.white, size: 22),
+                            child: Icon(LucideIcons.arrowLeft,
+                                color: Colors.white, size: 22),
                           ),
                         ),
                       ),
                       Expanded(
                         child: Center(
                           child: Text(
-                            'SCANNER UN QR',
-                            style: AppTextStyles.eyebrow(color: Colors.white.withValues(alpha: 0.85)),
+                            t.qrScanTitle,
+                            style: AppTextStyles.eyebrow(
+                                color: Colors.white.withValues(alpha: 0.85)),
                           ),
                         ),
                       ),
                       Semantics(
                         button: true,
-                        label: 'Activer ou désactiver le flash',
+                        label: t.qrToggleFlash,
                         child: GestureDetector(
                           onTap: () => _cameraController.toggleTorch(),
                           behavior: HitTestBehavior.opaque,
                           child: const SizedBox(
                             width: 44,
                             height: 44,
-                            child: Icon(LucideIcons.zap, color: Colors.white, size: 20),
+                            child: Icon(LucideIcons.zap,
+                                color: Colors.white, size: 20),
                           ),
                         ),
                       ),
@@ -197,7 +205,8 @@ class _QrScanScreenState extends State<QrScanScreen>
                 AnimatedBuilder(
                   animation: _pulseAnim,
                   builder: (context, child) {
-                    return Transform.scale(scale: _pulseAnim.value, child: child);
+                    return Transform.scale(
+                        scale: _pulseAnim.value, child: child);
                   },
                   child: SizedBox(
                     width: frameW,
@@ -208,12 +217,12 @@ class _QrScanScreenState extends State<QrScanScreen>
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.04),
                             borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.2),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                width: 1.2),
                           ),
                         ),
-
                         ..._buildCorners(frameW, frameH),
-
                         AnimatedBuilder(
                           animation: _scanAnim,
                           builder: (context, _) {
@@ -236,7 +245,8 @@ class _QrScanScreenState extends State<QrScanScreen>
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.5),
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.5),
                                       blurRadius: 8,
                                       spreadRadius: 1,
                                     ),
@@ -256,8 +266,9 @@ class _QrScanScreenState extends State<QrScanScreen>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Placez le QR du restaurant dans le cadre.',
-                    style: AppTextStyles.bodyMedium(color: Colors.white.withValues(alpha: 0.8)),
+                    t.qrPlaceInFrame,
+                    style: AppTextStyles.bodyMedium(
+                        color: Colors.white.withValues(alpha: 0.8)),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -266,11 +277,12 @@ class _QrScanScreenState extends State<QrScanScreen>
 
                 Semantics(
                   button: true,
-                  label: 'Saisir le code manuellement',
+                  label: t.qrManualEntryLabel,
                   child: TextButton(
                     onPressed: _openManualEntry,
                     style: TextButton.styleFrom(minimumSize: const Size(0, 44)),
-                    child: Text('Saisir le code manuellement', style: AppTextStyles.label(color: Colors.white)),
+                    child: Text(t.qrManualEntryLabel,
+                        style: AppTextStyles.label(color: Colors.white)),
                   ),
                 ),
 
@@ -291,10 +303,46 @@ class _QrScanScreenState extends State<QrScanScreen>
     const color = Colors.white;
 
     return [
-      const Positioned(left: 0, top: 0, child: _Corner(len: len, thick: thick, r: r, color: color, flipX: false, flipY: false)),
-      const Positioned(right: 0, top: 0, child: _Corner(len: len, thick: thick, r: r, color: color, flipX: true, flipY: false)),
-      const Positioned(left: 0, bottom: 0, child: _Corner(len: len, thick: thick, r: r, color: color, flipX: false, flipY: true)),
-      const Positioned(right: 0, bottom: 0, child: _Corner(len: len, thick: thick, r: r, color: color, flipX: true, flipY: true)),
+      const Positioned(
+          left: 0,
+          top: 0,
+          child: _Corner(
+              len: len,
+              thick: thick,
+              r: r,
+              color: color,
+              flipX: false,
+              flipY: false)),
+      const Positioned(
+          right: 0,
+          top: 0,
+          child: _Corner(
+              len: len,
+              thick: thick,
+              r: r,
+              color: color,
+              flipX: true,
+              flipY: false)),
+      const Positioned(
+          left: 0,
+          bottom: 0,
+          child: _Corner(
+              len: len,
+              thick: thick,
+              r: r,
+              color: color,
+              flipX: false,
+              flipY: true)),
+      const Positioned(
+          right: 0,
+          bottom: 0,
+          child: _Corner(
+              len: len,
+              thick: thick,
+              r: r,
+              color: color,
+              flipX: true,
+              flipY: true)),
     ];
   }
 }
@@ -307,6 +355,7 @@ class _CameraUnavailable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Container(
       color: AppColors.ink,
       child: Center(
@@ -315,17 +364,20 @@ class _CameraUnavailable extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(LucideIcons.cameraOff, size: 40, color: Colors.white70),
+              const Icon(LucideIcons.cameraOff,
+                  size: 40, color: Colors.white70),
               const SizedBox(height: 16),
-              Text('Caméra indisponible', style: AppTextStyles.displayMedium(color: Colors.white)),
+              Text(t.qrCameraUnavailableTitle,
+                  style: AppTextStyles.displayMedium(color: Colors.white)),
               const SizedBox(height: 8),
               Text(
-                'Autorisez l\'accès à la caméra dans les réglages, ou saisissez le code manuellement.',
+                t.qrCameraUnavailableMessage,
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium(color: Colors.white.withValues(alpha: 0.7)),
+                style: AppTextStyles.bodyMedium(
+                    color: Colors.white.withValues(alpha: 0.7)),
               ),
               const SizedBox(height: 20),
-              AppButton(label: 'Saisir le code manuellement', onTap: onManualEntry),
+              AppButton(label: t.qrManualEntryLabel, onTap: onManualEntry),
             ],
           ),
         ),

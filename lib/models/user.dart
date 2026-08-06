@@ -62,10 +62,10 @@ class AppUser {
   bool get isSocialUser =>
       authProvider == AuthProvider.google || authProvider == AuthProvider.apple;
 
-  /// Texte de membre depuis la date d'inscription.
-  String get memberSince {
-    const locale = 'fr_FR';
-    return 'Depuis ${DateFormat('MMMM yyyy', locale).format(joinDate)}';
+  /// Date d'inscription formatée ("mars 2024" / "March 2024") — le préfixe
+  /// ("Membre depuis"/"Member since") vient d'[AppLocalizations] côté UI.
+  String memberSinceDate(String dateFormatLocale) {
+    return DateFormat('MMMM yyyy', dateFormatLocale).format(joinDate);
   }
 
   AppUser copyWith({

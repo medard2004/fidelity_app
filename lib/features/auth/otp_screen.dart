@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../widgets/shared/app_detail_bar.dart';
 import '../../widgets/shared/otp_input_row.dart';
 
 /// Contexte d'utilisation de l'OTP, transmis via `extra` du router.
@@ -84,31 +86,30 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     final contextLabel = switch (widget.otpContext) {
-      OtpContext.login => 'Connexion',
-      OtpContext.signup => 'Inscription',
-      OtpContext.social => 'Vérification',
+      OtpContext.login => t.otpContextLogin,
+      OtpContext.signup => t.otpContextSignup,
+      OtpContext.social => t.otpContextSocial,
     };
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        leading: const BackButton(color: AppColors.ink),
-        title: Text(contextLabel.toUpperCase(), style: AppTextStyles.eyebrow(color: AppColors.primary)),
-        centerTitle: true,
-      ),
+      appBar: AppDetailBar(title: contextLabel),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 32),
-            Text('Vérification', style: AppTextStyles.displayXL()),
+            Text(t.otpTitle, style: AppTextStyles.displayXL()),
             const SizedBox(height: 8),
             Text(
-              'Un code à 6 chiffres a été envoyé au\n'
-              '${widget.phoneNumber.isEmpty ? "+228 •• •• •• ••" : widget.phoneNumber}',
-              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.65)),
+              t.otpSentMessage(widget.phoneNumber.isEmpty
+                  ? '+228 •• •• •• ••'
+                  : widget.phoneNumber),
+              style: AppTextStyles.bodyMedium(
+                  color: AppColors.inkMuted(opacity: 0.65)),
             ),
             const SizedBox(height: 44),
             OtpInputRow(onCompleted: _onCompleted),
@@ -116,12 +117,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             Center(
               child: _secondsLeft > 0
                   ? Text(
-                      'Renvoyer le code dans 00:${_secondsLeft.toString().padLeft(2, '0')}',
+                      t.otpResendCountdown(
+                          _secondsLeft.toString().padLeft(2, '0')),
                       style: AppTextStyles.monoSmall(),
                     )
                   : TextButton(
                       onPressed: _startCountdown,
-                      child: Text('Renvoyer le code', style: AppTextStyles.bodyMedium(color: AppColors.primary)),
+                      child: Text(t.otpResendButton,
+                          style: AppTextStyles.bodyMedium(
+                              color: AppColors.primary)),
                     ),
             ),
           ],

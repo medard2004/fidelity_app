@@ -3,244 +3,65 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_shadows.dart';
-import '../../models/loyalty_card.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../providers/wallet_provider.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/components/components.dart';
+import '../../widgets/shared/app_section_header.dart';
+import '../../widgets/shared/notification_bell_button.dart';
 import 'widgets/card_stack.dart';
 
-class WalletDashboardScreen extends ConsumerStatefulWidget {
+class WalletDashboardScreen extends ConsumerWidget {
   const WalletDashboardScreen({super.key});
 
-  @override
-  ConsumerState<WalletDashboardScreen> createState() =>
-      _WalletDashboardScreenState();
-}
-
-class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
-    with SingleTickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  bool _isSearching = false;
-  String _searchQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchQuery = '';
-        _searchController.clear();
-        _searchFocusNode.unfocus();
-      }
-    });
-    if (_isSearching) {
-      Future.microtask(() => _searchFocusNode.requestFocus());
-    }
-  }
-
-  void _clearSearch() {
-    setState(() {
-      _searchQuery = '';
-      _searchController.clear();
-    });
-    _searchFocusNode.requestFocus();
-  }
-
-  void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = value;
-    });
-  }
-
-  String _greeting() {
+  String _greeting(AppLocalizations t) {
     final hour = DateTime.now().hour;
-    if (hour < 5) return 'BONSOIR';
-    if (hour < 12) return 'BONJOUR';
-    if (hour < 18) return 'BON APRÈS-MIDI';
-    return 'BONSOIR';
-  }
-
-  List<LoyaltyCard> _filteredCards(List<LoyaltyCard> cards) {
-    final query = _searchQuery.trim().toLowerCase();
-    if (query.isEmpty) return cards;
-
-    return cards.where((card) {
-      return card.restaurantName.toLowerCase().contains(query) ||
-          card.restaurantCategory.toLowerCase().contains(query) ||
-          card.fallbackId.toLowerCase().contains(query);
-    }).toList();
-  }
-
-  Widget _buildSearchField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceCard,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: AppShadows.resting,
-      ),
-      child: TextField(
-        controller: _searchController,
-        focusNode: _searchFocusNode,
-        onChanged: _onSearchChanged,
-        textInputAction: TextInputAction.search,
-        style: AppTextStyles.bodyLarge(color: AppColors.ink),
-        decoration: InputDecoration(
-          hintText: 'Rechercher une carte ou une enseigne',
-          hintStyle: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.4)),
-          prefixIcon: const Icon(LucideIcons.search, color: AppColors.primary),
-          prefixIconConstraints:
-              const BoxConstraints(minWidth: 48, minHeight: 48),
-          suffixIconConstraints:
-              const BoxConstraints(minWidth: 48, minHeight: 48),
-          suffixIcon: _searchQuery.isEmpty
-              ? null
-              : IconButton(
-                  icon: const Icon(LucideIcons.x, color: AppColors.ink),
-                  onPressed: _clearSearch,
-                ),
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-        ),
-      ),
-    );
+    if (hour < 5) return t.walletGreetingEvening;
+    if (hour < 12) return t.walletGreetingMorning;
+    if (hour < 18) return t.walletGreetingAfternoon;
+    return t.walletGreetingEvening;
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
     final cards = ref.watch(walletProvider);
     final auth = ref.watch(authProvider);
     final unread =
         ref.watch(notificationsProvider).where((n) => !n.isRead).length;
-    final firstName = auth.user?.firstName ?? 'vous';
-    final filteredCards = _filteredCards(cards);
+    final firstName = auth.user?.firstName ?? t.walletFallbackName;
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _greeting(),
-                            style: AppTextStyles.eyebrow(color: AppColors.primary),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(firstName, style: AppTextStyles.displayXL()),
-                        ],
+            AppSectionHeader(
+              eyebrow: _greeting(t),
+              title: firstName,
+              actions: [
+                Semantics(
+                  button: true,
+                  label: t.walletSearchSemanticLabel,
+                  child: AppTapScale(
+                    onTap: () => context.push('/wallet/search'),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceCard,
+                        shape: BoxShape.circle,
+                        boxShadow: AppShadows.resting,
                       ),
-                      Row(
-                        children: [
-                          Semantics(
-                            button: true,
-                            label: _isSearching
-                                ? 'Fermer la recherche'
-                                : 'Rechercher une carte',
-                            child: GestureDetector(
-                              onTap: _toggleSearch,
-                              behavior: HitTestBehavior.opaque,
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceCard,
-                                  shape: BoxShape.circle,
-                                  boxShadow: AppShadows.resting,
-                                ),
-                                child: Icon(
-                                  _isSearching
-                                      ? LucideIcons.x
-                                      : LucideIcons.search,
-                                  size: 20,
-                                  color: AppColors.ink,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Semantics(
-                            button: true,
-                            label: unread > 0
-                                ? 'Notifications, $unread non lues'
-                                : 'Notifications',
-                            child: GestureDetector(
-                              onTap: () => context.push('/notifications'),
-                              behavior: HitTestBehavior.opaque,
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceCard,
-                                      shape: BoxShape.circle,
-                                      boxShadow: AppShadows.resting,
-                                    ),
-                                    child: const Icon(
-                                        LucideIcons.bell,
-                                        size: 22,
-                                        color: AppColors.ink),
-                                  ),
-                                  if (unread > 0)
-                                    Positioned(
-                                      right: 8,
-                                      top: 8,
-                                      child: Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.primary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Vos cartes, réunies. Touchez-en une pour l\'ouvrir.',
-                    style: AppTextStyles.bodyMedium(color: AppColors.inkMuted()),
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 260),
-                    curve: Curves.easeInOut,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: _isSearching ? 24 : 0),
-                      child: _isSearching
-                          ? _buildSearchField()
-                          : const SizedBox.shrink(),
+                      child: Icon(LucideIcons.search,
+                          size: 20, color: AppColors.ink),
                     ),
                   ),
-                ],
-              ),
+                ),
+                NotificationBellButton(unreadCount: unread),
+              ],
             ),
             Expanded(
               child: RefreshIndicator(
@@ -252,10 +73,11 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
                   physics: const AlwaysScrollableScrollPhysics(
                       parent: BouncingScrollPhysics()),
                   padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-                  child: filteredCards.isEmpty
-                      ? _buildEmptyState(cards.isEmpty)
+                  child: cards.isEmpty
+                      ? _EmptyWallet(
+                          t: t, onScan: () => context.push('/onboarding/scan'))
                       : LoyaltyCardStack(
-                          cards: filteredCards,
+                          cards: cards,
                           onCardTap: (card) => context.push('/card/${card.id}'),
                         ),
                 ),
@@ -276,40 +98,29 @@ class _WalletDashboardScreenState extends ConsumerState<WalletDashboardScreen>
             boxShadow: AppShadows.raised,
           ),
           child: IconButton(
-            icon: const Icon(LucideIcons.scanLine,
-                color: Colors.white, size: 26),
+            icon:
+                const Icon(LucideIcons.scanLine, color: Colors.white, size: 26),
             onPressed: () => context.push('/onboarding/scan'),
           ),
         ),
       ),
     );
   }
-
-  Widget _buildEmptyState(bool isWalletEmpty) {
-    if (isWalletEmpty) {
-      return _EmptyWallet(onScan: () => context.push('/onboarding/scan'));
-    }
-
-    return const EmptyState(
-      icon: LucideIcons.searchX,
-      title: 'Aucune carte trouvée',
-      message: 'Essayez un autre nom ou une autre enseigne.',
-    );
-  }
 }
 
 class _EmptyWallet extends StatelessWidget {
+  final AppLocalizations t;
   final VoidCallback onScan;
-  const _EmptyWallet({required this.onScan});
+  const _EmptyWallet({required this.t, required this.onScan});
 
   @override
   Widget build(BuildContext context) {
     return EmptyState(
       icon: LucideIcons.layers,
-      title: 'Aucune carte pour l\'instant',
-      message: 'Scannez votre premier QR pour commencer votre collection',
+      title: t.walletEmptyTitle,
+      message: t.walletEmptyMessage,
       action: AppButton(
-        label: 'Scanner un QR code',
+        label: t.walletScanButton,
         icon: LucideIcons.scanLine,
         fullWidth: false,
         onTap: onScan,

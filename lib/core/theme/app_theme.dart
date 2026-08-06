@@ -7,14 +7,21 @@ import 'app_radius.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get light {
+  static ThemeData get light => _build(Brightness.light);
+  static ThemeData get dark => _build(Brightness.dark);
+
+  /// Construit le thème pour la luminosité donnée. [AppColors] doit être
+  /// basculé sur cette même luminosité avant l'appel (voir
+  /// [AppColors.setBrightness]) puisque ses tokens sont lus ici pour
+  /// remplir des styles [ThemeData] figés au moment de la construction.
+  static ThemeData _build(Brightness brightness) {
     final base = ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: brightness,
       scaffoldBackgroundColor: AppColors.surface,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
-        brightness: Brightness.light,
+        brightness: brightness,
         primary: AppColors.primary,
         secondary: AppColors.primaryDark,
         surface: AppColors.surface,
@@ -41,7 +48,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
+        iconTheme: IconThemeData(color: AppColors.ink),
         titleTextStyle: AppTextStyles.displayMedium(),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -51,11 +58,11 @@ class AppTheme {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.input),
@@ -69,7 +76,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: const BorderSide(color: AppColors.error, width: 1.6),
         ),
-        hintStyle: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.4)),
+        hintStyle:
+            AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.4)),
         errorStyle: AppTextStyles.bodySmall(color: AppColors.error).copyWith(
           color: AppColors.error,
         ),
@@ -92,7 +100,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.ink,
           minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: AppColors.border),
           textStyle: AppTextStyles.label(),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.button),
@@ -105,12 +113,12 @@ class AppTheme {
           textStyle: AppTextStyles.label(color: AppColors.primary),
         ),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
+      bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: AppColors.surfaceCard,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
         dragHandleColor: AppColors.border,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(AppRadius.sheet),
           ),
@@ -123,7 +131,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         titleTextStyle: AppTextStyles.titleMedium(),
-        contentTextStyle: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.8)),
+        contentTextStyle:
+            AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.8)),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.ink,
@@ -140,7 +149,7 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.pill),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: AppColors.border),
         ),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(

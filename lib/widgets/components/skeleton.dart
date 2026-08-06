@@ -36,9 +36,9 @@ class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
           blendMode: BlendMode.srcATop,
           shaderCallback: (bounds) {
             return LinearGradient(
-              colors: const [
+              colors: [
                 AppColors.surfaceMuted,
-                Color(0xFFF9F9FB),
+                const Color(0xFFF9F9FB),
                 AppColors.surfaceMuted,
               ],
               stops: const [0.35, 0.5, 0.65],

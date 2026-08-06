@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
 
 enum AppButtonVariant { primary, secondary, outline, ghost, destructive }
 
 /// Bouton unique de l'app — remplace tous les `ElevatedButton` ad-hoc.
-/// Un seul composant, 5 variantes, un seul comportement de press (scale
-/// 0.97), un état de chargement intégré.
+/// Un seul composant, 5 variantes, un seul comportement de press (scale +
+/// fondu, voir [AppMotion]), un état de chargement intégré.
 class AppButton extends StatefulWidget {
   final String label;
   final VoidCallback? onTap;
@@ -83,46 +84,51 @@ class _AppButtonState extends State<AppButton> {
       onTap: _enabled ? widget.onTap : null,
       behavior: HitTestBehavior.opaque,
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 90),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          width: widget.fullWidth ? double.infinity : null,
-          height: widget.height,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: c.bg,
-            borderRadius: BorderRadius.circular(AppRadius.button),
-            border: c.border != null ? Border.all(color: c.border!) : null,
-          ),
-          child: Row(
-            mainAxisSize:
-                widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.loading) ...[
-                SizedBox(
-                  width: 17,
-                  height: 17,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: c.fg,
+        scale: _pressed ? AppMotion.buttonPressScale : 1.0,
+        duration: AppMotion.pressDuration,
+        curve: AppMotion.pressCurve,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.85 : 1.0,
+          duration: AppMotion.pressDuration,
+          curve: AppMotion.pressCurve,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: widget.fullWidth ? double.infinity : null,
+            height: widget.height,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: c.bg,
+              borderRadius: BorderRadius.circular(AppRadius.button),
+              border: c.border != null ? Border.all(color: c.border!) : null,
+            ),
+            child: Row(
+              mainAxisSize:
+                  widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.loading) ...[
+                  SizedBox(
+                    width: 17,
+                    height: 17,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: c.fg,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ] else if (widget.leading != null || widget.icon != null) ...[
+                  widget.leading ?? Icon(widget.icon, size: 18, color: c.fg),
+                  const SizedBox(width: 8),
+                ],
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    style: AppTextStyles.label(color: c.fg),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 10),
-              ] else if (widget.leading != null || widget.icon != null) ...[
-                widget.leading ?? Icon(widget.icon, size: 18, color: c.fg),
-                const SizedBox(width: 8),
               ],
-              Flexible(
-                child: Text(
-                  widget.label,
-                  style: AppTextStyles.label(color: c.fg),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

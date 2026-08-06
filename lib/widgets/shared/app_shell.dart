@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/router/tab_transition_direction.dart';
 import '../../core/theme/app_colors.dart';
 import 'bottom_nav_bar.dart';
 
@@ -28,7 +29,10 @@ class AppShell extends StatelessWidget {
       body: SafeArea(bottom: false, child: child),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: currentIndex,
-        onTap: (i) => context.go(_shellRoutes[i]),
+        onTap: (i) {
+          tabSlideDirection = i >= currentIndex ? 1 : -1;
+          context.go(_shellRoutes[i]);
+        },
       ),
     );
 

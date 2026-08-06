@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../models/loyalty_card.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -20,6 +21,7 @@ class CardExportService {
     String action,
     GlobalKey boundaryKey,
   ) async {
+    final t = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -49,7 +51,7 @@ class CardExportService {
 
     if (bytes == null) {
       if (context.mounted) {
-        _showSnack(context, 'Échec de l\'export : réessayez.', isError: true);
+        _showSnack(context, t.exportFailedRetry, isError: true);
       }
       return;
     }
@@ -62,10 +64,9 @@ class CardExportService {
       final result = await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          subject: 'Ma carte ${card.restaurantName} — Carte',
-          text: action == 'share'
-              ? 'Découvre ${card.restaurantName} sur Carte !'
-              : null,
+          subject: t.exportShareSubject(card.restaurantName),
+          text:
+              action == 'share' ? t.exportShareText(card.restaurantName) : null,
         ),
       );
 
@@ -73,18 +74,16 @@ class CardExportService {
 
       if (result.status == ShareResultStatus.success) {
         final message = switch (action) {
-          'download' =>
-            'Image HD de la carte ${card.fallbackId} prête — choisissez "Enregistrer l\'image".',
-          'share' => 'Visuel de la carte ${card.restaurantName} partagé.',
-          _ => 'Carte "${card.restaurantName}" prête à être enregistrée.',
+          'download' => t.exportDownloadReady(card.fallbackId),
+          'share' => t.exportShareSuccess(card.restaurantName),
+          _ => t.exportSaveReady(card.restaurantName),
         };
         _showSnack(context, message);
       }
       // Feuille de partage annulée par l'utilisateur : pas de message, comportement natif standard.
     } catch (_) {
       if (context.mounted) {
-        _showSnack(context, 'Échec de l\'export : une erreur est survenue.',
-            isError: true);
+        _showSnack(context, t.exportFailedGeneric, isError: true);
       }
     }
   }

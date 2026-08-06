@@ -24,7 +24,8 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: compact ? 20 : 56, horizontal: 24),
+      padding:
+          EdgeInsets.symmetric(vertical: compact ? 20 : 56, horizontal: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -32,11 +33,12 @@ class EmptyState extends StatelessWidget {
             width: 52,
             height: 52,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.surfaceMuted,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 24, color: AppColors.inkMuted(opacity: 0.5)),
+            child:
+                Icon(icon, size: 24, color: AppColors.inkMuted(opacity: 0.5)),
           ),
           const SizedBox(height: 16),
           Text(
@@ -49,7 +51,8 @@ class EmptyState extends StatelessWidget {
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.55)),
+              style: AppTextStyles.bodyMedium(
+                  color: AppColors.inkMuted(opacity: 0.55)),
             ),
           ],
           if (action != null) ...[

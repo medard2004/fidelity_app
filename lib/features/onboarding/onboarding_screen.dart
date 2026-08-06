@@ -4,7 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/app_radius.dart';
-import '../../core/theme/app_shadows.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../../widgets/components/components.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -18,26 +18,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingSlideData> _slides = [
-    OnboardingSlideData(
-      title: 'Toutes vos cartes,\nun seul portefeuille',
-      subtitle:
-          'Rassemblez vos cartes de fidélité préférées dans une expérience unique, rapide et sans friction.',
-      visualBuilder: (context, active) => _WalletVisual(active: active),
-    ),
-    OnboardingSlideData(
-      title: 'Des privilèges\nà chaque visite',
-      subtitle:
-          'Cumulez tampons et points automatiquement, et débloquez des avantages exclusifs chez vos enseignes favorites.',
-      visualBuilder: (context, active) => _RewardsVisual(active: active),
-    ),
-    OnboardingSlideData(
-      title: 'Partagez,\ngagnez ensemble',
-      subtitle:
-          'Invitez vos proches avec votre code personnel et cumulez des points de parrainage.',
-      visualBuilder: (context, active) => _ReferralVisual(active: active),
-    ),
-  ];
+  List<OnboardingSlideData> _slides(AppLocalizations t) => [
+        OnboardingSlideData(
+          title: t.onboardingSlide1Title,
+          subtitle: t.onboardingSlide1Subtitle,
+          visualBuilder: (context, active) => _WalletVisual(active: active),
+        ),
+        OnboardingSlideData(
+          title: t.onboardingSlide2Title,
+          subtitle: t.onboardingSlide2Subtitle,
+          visualBuilder: (context, active) => _RewardsVisual(active: active),
+        ),
+        OnboardingSlideData(
+          title: t.onboardingSlide3Title,
+          subtitle: t.onboardingSlide3Subtitle,
+          visualBuilder: (context, active) => _ReferralVisual(active: active),
+        ),
+      ];
 
   void _onPageChanged(int index) {
     setState(() {
@@ -45,8 +42,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _onNext() {
-    if (_currentPage < _slides.length - 1) {
+  void _onNext(int slideCount) {
+    if (_currentPage < slideCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOutCubic,
@@ -64,6 +61,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final slides = _slides(t);
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
@@ -75,30 +74,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '0${_currentPage + 1} / 0${_slides.length}',
-                    style: AppTextStyles.monoMedium(color: AppColors.inkMuted(opacity: 0.5)),
+                    '0${_currentPage + 1} / 0${slides.length}',
+                    style: AppTextStyles.monoMedium(
+                        color: AppColors.inkMuted(opacity: 0.5)),
                   ),
                   TextButton(
                     onPressed: () => context.go('/auth'),
-                    child: Text('Passer', style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.6))),
+                    child: Text(t.onboardingSkip,
+                        style: AppTextStyles.bodyMedium(
+                            color: AppColors.inkMuted(opacity: 0.6))),
                   ),
                 ],
               ),
             ),
-
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
-                itemCount: _slides.length,
+                itemCount: slides.length,
                 itemBuilder: (context, index) {
-                  final slide = _slides[index];
+                  final slide = slides[index];
                   final active = _currentPage == index;
                   return _OnboardingSlide(slide: slide, active: active);
                 },
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(28.0),
               child: Column(
@@ -107,29 +107,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _slides.length,
+                      slides.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         height: 6,
                         width: _currentPage == index ? 24 : 6,
                         decoration: BoxDecoration(
-                          color: _currentPage == index ? AppColors.primary : AppColors.surfaceMuted,
+                          color: _currentPage == index
+                              ? AppColors.primary
+                              : AppColors.surfaceMuted,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 32),
-
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: AppButton(
-                      key: ValueKey(_currentPage == _slides.length - 1),
-                      label: _currentPage == _slides.length - 1
-                          ? "Commencer l'expérience"
-                          : 'Continuer',
-                      onTap: _onNext,
+                      key: ValueKey(_currentPage == slides.length - 1),
+                      label: _currentPage == slides.length - 1
+                          ? t.onboardingStart
+                          : t.onboardingContinue,
+                      onTap: () => _onNext(slides.length),
                     ),
                   ),
                 ],
@@ -181,7 +182,6 @@ class _OnboardingSlide extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-
           AnimatedOpacity(
             duration: const Duration(milliseconds: 400),
             opacity: active ? 1.0 : 0.0,
@@ -192,13 +192,13 @@ class _OnboardingSlide extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-
           AnimatedOpacity(
             duration: const Duration(milliseconds: 500),
             opacity: active ? 1.0 : 0.0,
             child: Text(
               slide.subtitle,
-              style: AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.7)),
+              style: AppTextStyles.bodyMedium(
+                  color: AppColors.inkMuted(opacity: 0.7)),
               textAlign: TextAlign.center,
             ),
           ),
@@ -232,28 +232,26 @@ class _WalletVisual extends StatelessWidget {
                 top: active ? 40 : 50,
                 child: Transform.rotate(
                   angle: active ? -0.1 : -0.04,
-                  child: Container(
+                  child: GradientCardSurface(
+                    color: AppColors.liningPlum,
                     width: 220,
                     height: 135,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.liningPlum,
-                      borderRadius: BorderRadius.circular(AppRadius.card),
-                      boxShadow: AppShadows.raised,
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Le Palais',
-                            style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 14)),
-                        const Icon(LucideIcons.star, size: 18, color: Colors.white70),
+                            style:
+                                AppTextStyles.titleMedium(color: Colors.white)
+                                    .copyWith(fontSize: 14)),
+                        const Icon(LucideIcons.star,
+                            size: 18, color: Colors.white70),
                       ],
                     ),
                   ),
                 ),
               ),
-
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 700),
                 curve: Curves.easeOutBack,
@@ -261,15 +259,11 @@ class _WalletVisual extends StatelessWidget {
                 bottom: active ? 40 : 50,
                 child: Transform.rotate(
                   angle: active ? 0.05 : 0.0,
-                  child: Container(
+                  child: GradientCardSurface(
+                    color: AppColors.liningIndigo,
                     width: 230,
                     height: 145,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.liningIndigo,
-                      borderRadius: BorderRadius.circular(AppRadius.card),
-                      boxShadow: AppShadows.raised,
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -280,13 +274,16 @@ class _WalletVisual extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 'Chez Awa',
-                                style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16),
+                                style: AppTextStyles.titleMedium(
+                                        color: Colors.white)
+                                    .copyWith(fontSize: 16),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(LucideIcons.qrCode, color: Colors.white70, size: 20),
+                            const Icon(LucideIcons.qrCode,
+                                color: Colors.white70, size: 20),
                           ],
                         ),
                         Row(
@@ -298,12 +295,16 @@ class _WalletVisual extends StatelessWidget {
                               height: 8,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: index < 3 ? Colors.white : Colors.white.withValues(alpha: 0.25),
+                                color: index < 3
+                                    ? Colors.white
+                                    : Colors.white.withValues(alpha: 0.25),
                               ),
                             ),
                           ),
                         ),
-                        Text('3 / 8 TAMPONS', style: AppTextStyles.monoSmall(color: Colors.white70)),
+                        Text('3 / 8 TAMPONS',
+                            style:
+                                AppTextStyles.monoSmall(color: Colors.white70)),
                       ],
                     ),
                   ),
@@ -345,25 +346,29 @@ class _RewardsVisual extends StatelessWidget {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(4, (index) => _buildStamp(index)),
+                        children:
+                            List.generate(4, (index) => _buildStamp(index)),
                       ),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(4, (index) => _buildStamp(index + 4)),
+                        children:
+                            List.generate(4, (index) => _buildStamp(index + 4)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.primaryTint,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
                     child: Text(
                       'Offre : 1 plat offert après 8 tampons',
-                      style: AppTextStyles.bodySmall(color: AppColors.primaryDark),
+                      style:
+                          AppTextStyles.bodySmall(color: AppColors.primaryDark),
                     ),
                   ),
                 ],
@@ -394,7 +399,9 @@ class _RewardsVisual extends StatelessWidget {
       child: Center(
         child: stamped
             ? const Icon(LucideIcons.check, color: Colors.white, size: 16)
-            : Text('${index + 1}', style: AppTextStyles.monoSmall(color: AppColors.inkMuted(opacity: 0.35))),
+            : Text('${index + 1}',
+                style: AppTextStyles.monoSmall(
+                    color: AppColors.inkMuted(opacity: 0.35))),
       ),
     );
   }
@@ -426,18 +433,22 @@ class _ReferralVisual extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       'Partagez votre privilège :',
-                      style: AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.8)),
+                      style: AppTextStyles.bodySmall(
+                          color: AppColors.inkMuted(opacity: 0.8)),
                     ),
                     const SizedBox(height: 10),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
                         color: AppColors.primaryTint,
                         borderRadius: BorderRadius.circular(AppRadius.chip),
                       ),
                       child: Center(
-                        child: Text('AURA-7590', style: AppTextStyles.monoLarge(color: AppColors.primaryDark)),
+                        child: Text('AURA-7590',
+                            style: AppTextStyles.monoLarge(
+                                color: AppColors.primaryDark)),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -445,12 +456,14 @@ class _ReferralVisual extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(LucideIcons.copy, size: 14, color: AppColors.primary),
+                        const Icon(LucideIcons.copy,
+                            size: 14, color: AppColors.primary),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
                             "Copier l'invitation",
-                            style: AppTextStyles.label(color: AppColors.primary),
+                            style:
+                                AppTextStyles.label(color: AppColors.primary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),

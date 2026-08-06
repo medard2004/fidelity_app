@@ -8,7 +8,7 @@ import '../../core/theme/app_shadows.dart';
 /// Fond blanc, bordure hairline neutre, ombre optionnelle à 1 niveau.
 class AppCard extends StatelessWidget {
   final Widget child;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final double radius;
   final EdgeInsetsGeometry padding;
   final bool elevated;
@@ -18,7 +18,7 @@ class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
     required this.child,
-    this.backgroundColor = AppColors.surfaceCard,
+    this.backgroundColor,
     this.radius = AppRadius.card,
     this.padding = const EdgeInsets.all(16),
     this.elevated = false,
@@ -31,7 +31,7 @@ class AppCard extends StatelessWidget {
     final content = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: backgroundColor ?? AppColors.surfaceCard,
         borderRadius: BorderRadius.circular(radius),
         border: bordered ? Border.all(color: AppColors.border) : null,
         boxShadow: elevated ? AppShadows.resting : null,
