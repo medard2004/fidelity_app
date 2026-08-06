@@ -94,7 +94,7 @@ class CardExportService {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? AppColors.error : AppColors.ink,
+        backgroundColor: isError ? AppColors.error : AppColors.inkSolid,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

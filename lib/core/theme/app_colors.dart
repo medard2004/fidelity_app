@@ -29,6 +29,13 @@ class AppColors {
   /// Texte principal — quasi-noir froid en clair, quasi-blanc en sombre.
   static Color get ink => isDark ? _inkDark : _inkLight;
 
+  /// Noir carbone fixe, **jamais inversé** par le mode sombre — pour les
+  /// chromes volontairement toujours sombres (toasts, cadre desktop,
+  /// carte de progression "premium") qui utilisaient par erreur [ink] :
+  /// correct en clair (où [ink] est déjà sombre) mais [ink] devient blanc
+  /// en sombre, transformant ces surfaces en pavés blancs inversés.
+  static const Color inkSolid = _inkLight;
+
   /// Texte secondaire — dérivé de [ink], jamais une nouvelle teinte.
   static Color inkMuted({double opacity = 0.6}) =>
       ink.withValues(alpha: opacity);

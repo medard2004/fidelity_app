@@ -56,7 +56,7 @@ class AppShell extends ConsumerWidget {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(36),
-            border: Border.all(color: AppColors.ink, width: 8),
+            border: Border.all(color: AppColors.inkSolid, width: 8),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.22),

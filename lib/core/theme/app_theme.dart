@@ -130,15 +130,25 @@ class AppTheme {
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceCard,
         surfaceTintColor: Colors.transparent,
+        // En sombre, l'élévation Material seule (ombre noire sur fond déjà
+        // quasi noir) ne suffit pas à détacher la boîte de dialogue de son
+        // arrière-plan assombri — un hairline la définit clairement. En
+        // clair, l'ombre suffit déjà, donc pas de bordure superflue.
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
+          side: AppColors.isDark
+              ? BorderSide(color: AppColors.border)
+              : BorderSide.none,
         ),
         titleTextStyle: AppTextStyles.titleMedium(),
         contentTextStyle:
             AppTextStyles.bodyMedium(color: AppColors.inkMuted(opacity: 0.8)),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.ink,
+        // Toast volontairement toujours sombre (texte blanc) dans les deux
+        // thèmes — AppColors.inkSolid, pas AppColors.ink qui s'inverserait
+        // en blanc en mode sombre et rendrait le texte illisible.
+        backgroundColor: AppColors.inkSolid,
         contentTextStyle: AppTextStyles.bodyMedium(color: Colors.white),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -157,6 +167,54 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
+      ),
+      // Le sélecteur de date Material 3 s'appuie par défaut sur des tons
+      // dérivés algorithmiquement du seed color (surfaceContainerHigh,
+      // onSurfaceVariant...) — jamais harmonisés avec nos tokens custom,
+      // d'où un contraste très faible en sombre. On fixe explicitement
+      // chaque rôle sur nos propres tokens (déjà sensibles au thème).
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: AppColors.surfaceCard,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: AppColors.surfaceCard,
+        headerForegroundColor: AppColors.ink,
+        headerHeadlineStyle: AppTextStyles.displayMedium(),
+        headerHelpStyle:
+            AppTextStyles.label(color: AppColors.inkMuted(opacity: 0.6)),
+        weekdayStyle:
+            AppTextStyles.bodySmall(color: AppColors.inkMuted(opacity: 0.55)),
+        dayStyle: AppTextStyles.bodyMedium(),
+        yearStyle: AppTextStyles.bodyMedium(),
+        dayForegroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppColors.ink),
+        dayBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : Colors.transparent),
+        todayForegroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppColors.primary),
+        todayBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : Colors.transparent),
+        todayBorder: const BorderSide(color: AppColors.primary, width: 1),
+        yearForegroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppColors.ink),
+        yearBackgroundColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : Colors.transparent),
+        dividerColor: AppColors.border,
+        confirmButtonStyle:
+            TextButton.styleFrom(foregroundColor: AppColors.primary),
+        cancelButtonStyle: TextButton.styleFrom(
+            foregroundColor: AppColors.inkMuted(opacity: 0.6)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

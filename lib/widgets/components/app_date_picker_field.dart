@@ -49,16 +49,10 @@ class AppDatePickerField extends StatelessWidget {
                   lastDate: lastDate ??
                       DateTime.now().subtract(const Duration(days: 365 * 16)),
                   helpText: helpText,
-                  builder: (context, child) => Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: ColorScheme.light(
-                        primary: AppColors.primary,
-                        onPrimary: Colors.white,
-                        surface: AppColors.surfaceCard,
-                      ),
-                    ),
-                    child: child!,
-                  ),
+                  // Le contraste clair/sombre du sélecteur vient de
+                  // AppTheme.datePickerTheme (déjà sensible au thème actif)
+                  // — inutile de forcer un ColorScheme ici, ça écrasait par
+                  // erreur le mode sombre avec un schéma toujours clair.
                 );
                 if (picked != null) {
                   onChanged(picked);

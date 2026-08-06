@@ -316,7 +316,9 @@ class _ProgressionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.ink,
+        // Carte volontairement toujours sombre (texte blanc) dans les deux
+        // thèmes — inkSolid, pas ink qui s'inverserait en blanc en sombre.
+        color: AppColors.inkSolid,
         borderRadius: BorderRadius.circular(20),
         boxShadow: AppShadows.raised,
       ),

@@ -679,8 +679,11 @@ class _QrPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // La plaque QR reste blanche dans les deux thèmes (lisibilité/scan) —
+    // inkSolid, pas ink qui passerait en quasi-blanc en mode sombre et
+    // rendrait les modules invisibles sur leur fond blanc fixe.
     final paint = Paint()
-      ..color = AppColors.ink
+      ..color = AppColors.inkSolid
       ..style = PaintingStyle.fill;
 
     final cellWidth = size.width / 21;
